@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, CheckCircle2, ChevronRight, Mail, MapPin, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ChevronRight, Eye, EyeOff, Mail, MapPin, Sparkles } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import {
   getCurrentUser,
@@ -104,6 +104,12 @@ export default function AuthPage() {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [visiblePasswords, setVisiblePasswords] = useState({
+    password: false,
+    confirmPassword: false,
+    newPassword: false,
+    confirmNewPassword: false
+  });
 
   useEffect(() => {
     if (step !== 'otp' || resendIn <= 0) return undefined;
@@ -148,6 +154,13 @@ export default function AuthPage() {
     setForm((current) => ({ ...current, [field]: value }));
     setError('');
     setStatus('');
+  }
+
+  function togglePasswordVisibility(field) {
+    setVisiblePasswords((current) => ({
+      ...current,
+      [field]: !current[field]
+    }));
   }
 
   function resetOtpBoxes() {
@@ -594,14 +607,24 @@ export default function AuthPage() {
                     </label>
                     <label className="block">
                       <span className="auth-label">Password</span>
-                      <input
-                        className="auth-input"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={form.password}
-                        onChange={(event) => updateField('password', event.target.value)}
-                        autoComplete="current-password"
-                      />
+                      <div className="relative">
+                        <input
+                          className="auth-input pr-12"
+                          type={visiblePasswords.password ? 'text' : 'password'}
+                          placeholder="Enter your password"
+                          value={form.password}
+                          onChange={(event) => updateField('password', event.target.value)}
+                          autoComplete="current-password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => togglePasswordVisibility('password')}
+                          className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-600 transition hover:text-slate-900"
+                          aria-label={visiblePasswords.password ? 'Hide password' : 'Show password'}
+                        >
+                          {visiblePasswords.password ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
                     </label>
 
                     <div className="flex justify-end">
@@ -656,25 +679,45 @@ export default function AuthPage() {
                         </label>
                         <label className="block">
                           <span className="auth-label">Password</span>
-                          <input
-                            className="auth-input"
-                            type="password"
-                            placeholder="At least 6 characters"
-                            value={form.password}
-                            onChange={(event) => updateField('password', event.target.value)}
-                            autoComplete="new-password"
-                          />
+                          <div className="relative">
+                            <input
+                              className="auth-input pr-12"
+                              type={visiblePasswords.password ? 'text' : 'password'}
+                              placeholder="At least 6 characters"
+                              value={form.password}
+                              onChange={(event) => updateField('password', event.target.value)}
+                              autoComplete="new-password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => togglePasswordVisibility('password')}
+                              className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-600 transition hover:text-slate-900"
+                              aria-label={visiblePasswords.password ? 'Hide password' : 'Show password'}
+                            >
+                              {visiblePasswords.password ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
                         </label>
                         <label className="block">
                           <span className="auth-label">Confirm password</span>
-                          <input
-                            className="auth-input"
-                            type="password"
-                            placeholder="Re-enter your password"
-                            value={form.confirmPassword}
-                            onChange={(event) => updateField('confirmPassword', event.target.value)}
-                            autoComplete="new-password"
-                          />
+                          <div className="relative">
+                            <input
+                              className="auth-input pr-12"
+                              type={visiblePasswords.confirmPassword ? 'text' : 'password'}
+                              placeholder="Re-enter your password"
+                              value={form.confirmPassword}
+                              onChange={(event) => updateField('confirmPassword', event.target.value)}
+                              autoComplete="new-password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => togglePasswordVisibility('confirmPassword')}
+                              className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-600 transition hover:text-slate-900"
+                              aria-label={visiblePasswords.confirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                            >
+                              {visiblePasswords.confirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
                         </label>
                       </>
                     ) : (
@@ -751,25 +794,45 @@ export default function AuthPage() {
 
                   <label className="mt-5 block">
                     <span className="auth-label">New password</span>
-                    <input
-                      className="auth-input"
-                      type="password"
-                      placeholder="At least 6 characters"
-                      value={form.newPassword}
-                      onChange={(event) => updateField('newPassword', event.target.value)}
-                      autoComplete="new-password"
-                    />
+                    <div className="relative">
+                      <input
+                        className="auth-input pr-12"
+                        type={visiblePasswords.newPassword ? 'text' : 'password'}
+                        placeholder="At least 6 characters"
+                        value={form.newPassword}
+                        onChange={(event) => updateField('newPassword', event.target.value)}
+                        autoComplete="new-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('newPassword')}
+                        className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-600 transition hover:text-slate-900"
+                        aria-label={visiblePasswords.newPassword ? 'Hide new password' : 'Show new password'}
+                      >
+                        {visiblePasswords.newPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </label>
                   <label className="mt-3 block">
                     <span className="auth-label">Confirm new password</span>
-                    <input
-                      className="auth-input"
-                      type="password"
-                      placeholder="Re-enter new password"
-                      value={form.confirmNewPassword}
-                      onChange={(event) => updateField('confirmNewPassword', event.target.value)}
-                      autoComplete="new-password"
-                    />
+                    <div className="relative">
+                      <input
+                        className="auth-input pr-12"
+                        type={visiblePasswords.confirmNewPassword ? 'text' : 'password'}
+                        placeholder="Re-enter new password"
+                        value={form.confirmNewPassword}
+                        onChange={(event) => updateField('confirmNewPassword', event.target.value)}
+                        autoComplete="new-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('confirmNewPassword')}
+                        className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-600 transition hover:text-slate-900"
+                        aria-label={visiblePasswords.confirmNewPassword ? 'Hide confirm new password' : 'Show confirm new password'}
+                      >
+                        {visiblePasswords.confirmNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </label>
 
                   {error ? <p className="auth-error mt-4">{error}</p> : null}
