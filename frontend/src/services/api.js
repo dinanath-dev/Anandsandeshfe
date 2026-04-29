@@ -1,15 +1,20 @@
+import { getUserAuth } from '../utils/auth.js';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-function withAuthHeaders(headers = {}) {
-  try {
-    const auth = JSON.parse(localStorage.getItem('ssdnUserAuth') || '{}');
-    if (auth?.token) {
-      return { ...headers, Authorization: `Bearer ${auth.token}` };
+/** Merge caller headers with Bearer token; uses Headers so casing / merging matches fetch rules. */
+function withAuthHeaders(headersInit) {
+  const headers = new Headers(headersInit ?? undefined);
+  if (!headers.has('Authorization')) {
+    try {
+      const token = getUserAuth()?.token;
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+    } catch {
+      // Ignore local auth parsing issues and continue without auth headers.
     }
-  } catch {
-    // Ignore local auth parsing issues and continue without auth headers.
   }
-
   return headers;
 }
 
@@ -21,7 +26,21 @@ async function request(path, options = {}) {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(payload.message || 'Request failed. Please try again.');
+    let message = typeof payload.message === 'string' ? payload.message.trim() : '';
+    if (response.status === 401) {
+      if (path.startsWith('/payment/')) {
+        message =
+          message ||
+          'Payment routes need a user JWT (same as /auth/me): sign in with email OTP or password on this site. Admin tokens and Razorpay keys are not valid here.';
+      } else {
+        message = message || 'Session expired or not signed in. Please sign in again.';
+      }
+    }
+    if (!message) message = 'Request failed. Please try again.';
+    const err = new Error(message);
+    err.status = response.status;
+    err.path = path;
+    throw err;
   }
 
   return payload;
@@ -29,6 +48,30 @@ async function request(path, options = {}) {
 
 export function getMyFormSubmission() {
   return request('/form/me');
+}
+
+/**
+ * Offline → online: find a legacy row by 10-digit mobile (not yet linked to this account).
+ * Auth: user JWT. Backend should only return unlinked / offline-imported records.
+ */
+export function lookupLegacyFormByMobile({ mobile }) {
+  return request('/form/lookup-legacy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mobile })
+  });
+}
+
+/**
+ * Attach a legacy submission to the current user. Auth: user JWT.
+ * Body always includes `mobile`; include `legacyClaimKey` / `rowId` / `subscriberNo` when the lookup returned `matches[]`.
+ */
+export function claimLegacyForm(payload) {
+  return request('/form/claim-legacy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
 }
 
 export function submitUserForm(formData) {
@@ -93,5 +136,23 @@ export function verifySubmission(token, id) {
   return request(`/admin/verify/${id}`, {
     method: 'PUT',
     headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+/** Razorpay recurring: create subscription. Auth: Bearer user JWT only (not admin). */
+export function createSubscription({ plan_id, total_count }) {
+  return request('/payment/subscriptions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plan_id, total_count })
+  });
+}
+
+/** Verify subscription payment after Checkout. Auth: Bearer user JWT only (not admin). */
+export function verifySubscriptionPayment(body) {
+  return request('/payment/verify-subscription', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
   });
 }

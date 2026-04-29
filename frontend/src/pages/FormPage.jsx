@@ -1,12 +1,50 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CreditCard, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { CheckCircle2, CreditCard, LogOut } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
 import DonationFormRow from '../components/DonationFormRow.jsx';
 import { INDIAN_STATES } from '../data/indianStates.js';
 import { getCurrentUser, getMyFormSubmission, submitUserForm } from '../services/api.js';
 import { clearPendingOtp, clearUserAuth, getUserAuth } from '../utils/auth.js';
+
+const SUBSCRIPTION_LABELS = {
+  yearly: 'One year',
+  five_year: 'Five years'
+};
+
+/** Normalize API payment_status so verified subscriptions never show as “pending” in the UI. */
+function normalizePaymentStatus(raw) {
+  const s = String(raw || '').toLowerCase();
+  if (s === 'verified' || s === 'paid' || s === 'active') return 'verified';
+  return 'pending';
+}
+
+function pickSubscriptionEnd(sub) {
+  if (!sub || typeof sub !== 'object') return null;
+  const v =
+    sub.subscription_end_at ??
+    sub.subscriptionEndsAt ??
+    sub.current_period_end ??
+    sub.currentPeriodEnd ??
+    sub.subscription_valid_until ??
+    null;
+  if (v == null || v === '') return null;
+  return v;
+}
+
+function formatPeriodEnd(value) {
+  if (value == null || value === '') return null;
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const ms = value > 0 && value < 1e12 ? value * 1000 : value;
+    const d = new Date(ms);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+  const d = new Date(String(value));
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+}
 
 const initialForm = {
   firstName: '',
@@ -118,6 +156,11 @@ export default function FormPage() {
   const [apiError, setApiError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedSubmissionId, setSavedSubmissionId] = useState(null);
+  /** Latest row from GET /form/me — drives subscription / payment messaging. */
+  const [submissionSnapshot, setSubmissionSnapshot] = useState(null);
+  /** After first GET /form/me resolves — avoids flashing the full form before we know status. */
+  const [submissionLoaded, setSubmissionLoaded] = useState(false);
+  const [saveInfo, setSaveInfo] = useState('');
 
   const years = useMemo(() => {
     const y = [];
@@ -174,9 +217,15 @@ export default function FormPage() {
         const submission = subRes?.submission;
         const mapped = submission ? submissionToFormState(submission) : null;
         if (mapped && submission) {
-          const sid =
-            submission.subscriber_no != null ? Number(submission.subscriber_no) : NaN;
-          if (Number.isInteger(sid) && sid > 0) setSavedSubmissionId(sid);
+          if (submission.id != null) setSavedSubmissionId(Number(submission.id));
+          setSubmissionSnapshot({
+            id: submission.id,
+            payment_status: normalizePaymentStatus(submission.payment_status),
+            subscription_type: submission.subscription_type,
+            period_end: formatPeriodEnd(pickSubscriptionEnd(submission))
+          });
+        } else {
+          setSubmissionSnapshot(null);
         }
         if (mapped) {
           setForm((c) => ({ ...c, ...mapped }));
@@ -184,11 +233,36 @@ export default function FormPage() {
       })
       .catch(() => {
         // no saved row or network
+      })
+      .finally(() => {
+        if (!cancelled) setSubmissionLoaded(true);
       });
 
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // After Razorpay, user may return to this tab — refresh payment_status only (do not overwrite the form).
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState !== 'visible') return;
+      getMyFormSubmission()
+        .then((subRes) => {
+          const submission = subRes?.submission;
+          if (!submission) return;
+          if (submission.id != null) setSavedSubmissionId(Number(submission.id));
+          setSubmissionSnapshot({
+            id: submission.id,
+            payment_status: normalizePaymentStatus(submission.payment_status),
+            subscription_type: submission.subscription_type,
+            period_end: formatPeriodEnd(pickSubscriptionEnd(submission))
+          });
+        })
+        .catch(() => {});
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
   function updateField(field, value) {
@@ -275,6 +349,7 @@ export default function FormPage() {
   async function handleSubmit(event) {
     event.preventDefault();
     setApiError('');
+    setSaveInfo('');
     if (!validate()) return;
 
     const payload = buildPayload();
@@ -284,11 +359,26 @@ export default function FormPage() {
       formData.append('submissionId', String(savedSubmissionId));
     }
 
+    const alreadyVerified = submissionSnapshot?.payment_status === 'verified';
+
     setIsSubmitting(true);
     try {
       const data = await submitUserForm(formData);
       const submissionId = data.submission?.id;
       if (!submissionId) throw new Error('Could not save submission. Please try again.');
+      if (data.submission?.payment_status != null) {
+        setSubmissionSnapshot((prev) => ({
+          ...(prev || {}),
+          id: submissionId,
+          payment_status: normalizePaymentStatus(data.submission.payment_status),
+          subscription_type: data.submission.subscription_type ?? prev?.subscription_type,
+          period_end: formatPeriodEnd(pickSubscriptionEnd(data.submission)) ?? prev?.period_end
+        }));
+      }
+      if (alreadyVerified) {
+        setSaveInfo('Your details were saved. Your subscription stays active.');
+        return;
+      }
       navigate('/payment', { state: { submissionId, subscriptionType: form.subscription } });
     } catch (err) {
       setApiError(err.message);
@@ -301,13 +391,60 @@ export default function FormPage() {
     <DonationLayout subtitle="My Submission Details for Anand Sandesh">
       <button
         type="button"
-        className="btn-secondary fixed right-4 top-4 z-[60] inline-flex min-h-10 items-center gap-2 px-4 py-2 text-sm font-semibold shadow-md sm:right-6 sm:top-5"
+        className="btn-secondary fixed right-3 top-[max(6.5rem,env(safe-area-inset-top)+5.25rem)] z-[60] inline-flex min-h-10 items-center gap-2 whitespace-nowrap px-3 py-2 text-sm font-semibold shadow-md sm:right-6 sm:top-5 sm:px-4"
         onClick={handleLogout}
       >
         <LogOut size={18} aria-hidden /> Log out
       </button>
       <div className="donation-form-shell w-full px-1 py-2 sm:px-3 sm:py-3">
+        {!submissionLoaded ? (
+          <p className="py-8 text-center text-sm text-muted">Loading your submission…</p>
+        ) : submissionSnapshot?.payment_status === 'verified' ? (
+          <div className="donation-form-banner mx-auto max-w-xl space-y-4 text-center sm:text-left">
+            <div className="flex justify-center sm:justify-start">
+              <CheckCircle2 className="h-14 w-14 text-primary" aria-hidden />
+            </div>
+            <Alert type="success">
+              <span className="font-black">Your subscription is already on file.</span>{' '}
+              Your {SUBSCRIPTION_LABELS[submissionSnapshot.subscription_type] || 'Anand Sandesh'} plan is paid and
+              verified
+              {submissionSnapshot.period_end ? (
+                <>
+                  {' '}
+                  (through <span className="whitespace-nowrap font-semibold">{submissionSnapshot.period_end}</span>).
+                </>
+              ) : (
+                '. Renewals follow your Razorpay subscription schedule.'
+              )}
+            </Alert>
+            <p className="text-sm leading-relaxed text-muted">
+              You don&apos;t need to submit this form again. Use your profile to review masked contact details, or
+              contact support if something looks wrong.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3 pt-2">
+              <Link
+                to="/profile"
+                className="btn-secondary inline-flex min-h-11 items-center justify-center px-5 py-2.5 text-sm font-semibold"
+              >
+                Back to profile
+              </Link>
+            </div>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="donation-form">
+          {submissionSnapshot ? (
+            <div className="donation-form-banner mb-2">
+              <Alert type="warning">
+                <span className="font-black">Payment still pending.</span> After you save this form, use{' '}
+                <strong>Proceed to payment</strong> to complete Razorpay checkout so your subscription can be verified.
+              </Alert>
+            </div>
+          ) : null}
+          {saveInfo ? (
+            <div className="donation-form-banner mb-2">
+              <Alert type="success">{saveInfo}</Alert>
+            </div>
+          ) : null}
           {apiError ? (
             <div className="donation-form-banner mb-2">
               <Alert>{apiError}</Alert>
@@ -597,10 +734,12 @@ export default function FormPage() {
               disabled={isSubmitting}
               className="btn-primary donation-form-submit-btn !min-h-10 inline-flex items-center gap-2 !px-8 !py-2 !text-sm font-semibold sm:!text-[0.9375rem]"
             >
-              <CreditCard size={18} /> {isSubmitting ? 'Saving...' : 'Proceed to payment'}
+              <CreditCard size={18} />{' '}
+              {isSubmitting ? 'Saving...' : 'Proceed to payment'}
             </button>
           </div>
         </form>
+        )}
       </div>
     </DonationLayout>
   );

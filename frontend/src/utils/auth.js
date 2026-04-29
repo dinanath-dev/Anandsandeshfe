@@ -1,9 +1,24 @@
-const AUTH_STORAGE_KEY = 'ssdnUserAuth';
+/**
+ * User session in localStorage. We read/write both keys so older builds (`ssdnUserAuth`)
+ * and setups that only have `samUserAuth` (e.g. manual env) still send the same JWT on API calls.
+ */
+const AUTH_STORAGE_PRIMARY = 'samUserAuth';
+const AUTH_STORAGE_LEGACY = 'ssdnUserAuth';
 const OTP_STORAGE_KEY = 'ssdnPendingAuth';
+
+function readAuthRaw() {
+  try {
+    let raw = localStorage.getItem(AUTH_STORAGE_PRIMARY);
+    if (!raw) raw = localStorage.getItem(AUTH_STORAGE_LEGACY);
+    return raw;
+  } catch {
+    return null;
+  }
+}
 
 export function isUserAuthenticated() {
   try {
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    const raw = readAuthRaw();
     if (!raw) return false;
     const parsed = JSON.parse(raw);
     return Boolean(parsed?.token && parsed?.user?.email);
@@ -14,7 +29,7 @@ export function isUserAuthenticated() {
 
 export function getUserAuth() {
   try {
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    const raw = readAuthRaw();
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -22,11 +37,14 @@ export function getUserAuth() {
 }
 
 export function saveUserAuth(payload) {
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload));
+  const serialized = JSON.stringify(payload);
+  localStorage.setItem(AUTH_STORAGE_PRIMARY, serialized);
+  localStorage.setItem(AUTH_STORAGE_LEGACY, serialized);
 }
 
 export function clearUserAuth() {
-  localStorage.removeItem(AUTH_STORAGE_KEY);
+  localStorage.removeItem(AUTH_STORAGE_PRIMARY);
+  localStorage.removeItem(AUTH_STORAGE_LEGACY);
 }
 
 export function getUserToken() {

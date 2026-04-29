@@ -147,7 +147,7 @@ export default function AuthPage() {
   }, []);
 
   if (isUserAuthenticated()) {
-    return <Navigate to="/form" replace />;
+    return <Navigate to="/profile" replace />;
   }
 
   function updateField(field, value) {
@@ -289,7 +289,7 @@ export default function AuthPage() {
         // Optional profile refresh failed; token is already stored.
       }
       clearPendingOtp();
-      navigate('/form', { replace: true });
+      navigate('/profile', { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -422,7 +422,7 @@ export default function AuthPage() {
       }
       clearPendingOtp();
 
-      navigate('/form', { replace: true });
+      navigate('/profile', { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -485,9 +485,9 @@ export default function AuthPage() {
     flow === 'forgot' ? 'Reset password' : mode === 'signup' ? 'Create account' : 'Welcome back';
 
   return (
-    <main className="auth-page min-h-screen overflow-hidden px-4 py-5 sm:px-6 lg:px-8">
-      <div className="auth-grid mx-auto flex min-h-[calc(100vh-2.5rem)] w-full max-w-7xl items-stretch overflow-hidden rounded-[2rem] border border-white/20 bg-white/10 shadow-[0_32px_120px_rgba(6,13,26,0.45)] backdrop-blur-2xl">
-        <section className="auth-hero relative hidden flex-1 flex-col overflow-hidden px-8 py-10 text-[#0d2d7f] lg:flex lg:justify-between xl:px-12">
+    <main className="auth-page min-h-screen overflow-x-hidden px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 lg:px-8">
+      <div className="auth-grid mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-7xl items-stretch overflow-x-hidden rounded-2xl border border-white/20 bg-white/10 shadow-[0_32px_120px_rgba(6,13,26,0.45)] backdrop-blur-2xl sm:min-h-[calc(100vh-2.5rem)] sm:rounded-[2rem]">
+        <section className="auth-hero relative hidden flex-1 flex-col overflow-hidden px-6 py-8 text-[#0d2d7f] md:flex md:justify-between lg:px-8 lg:py-10 xl:px-12">
           <div className="auth-hero-glow" aria-hidden />
           <div className="relative z-[1] max-w-xl">
             <AuthMarketingCard showGif={false} />
@@ -498,12 +498,12 @@ export default function AuthPage() {
           </div>
         </section>
 
-        <section className="relative flex w-full items-center justify-center px-4 py-6 sm:px-8 sm:py-10 lg:max-w-[34rem] lg:px-10 xl:px-12">
+        <section className="relative flex w-full items-center justify-center px-4 py-6 sm:px-8 sm:py-10 md:max-w-[34rem] md:shrink-0 md:px-10 xl:px-12">
           <div className="auth-card-shape auth-card-shape-one" aria-hidden />
           <div className="auth-card-shape auth-card-shape-two" aria-hidden />
 
           <div className="relative z-[1] w-full max-w-xl">
-            <div className="mb-7 lg:hidden">
+            <div className="mb-7 md:hidden">
               <AuthMarketingCard compact showGif />
             </div>
 
@@ -773,14 +773,14 @@ export default function AuthPage() {
                     )}
                   </div>
 
-                  <div className="mt-5 flex items-center gap-2 sm:gap-3">
+                  <div className="mt-5 grid grid-cols-6 gap-1.5 sm:gap-3">
                     {otpValues.map((digit, index) => (
                       <input
                         key={index}
                         ref={(element) => {
                           otpRefs.current[index] = element;
                         }}
-                        className="auth-otp-input"
+                        className="auth-otp-input min-w-0"
                         inputMode="numeric"
                         maxLength={1}
                         value={digit}
@@ -887,14 +887,14 @@ export default function AuthPage() {
                     )}
                   </div>
 
-                  <div className="mt-5 flex items-center gap-2 sm:gap-3">
+                  <div className="mt-5 grid grid-cols-6 gap-1.5 sm:gap-3">
                     {otpValues.map((digit, index) => (
                       <input
                         key={index}
                         ref={(element) => {
                           otpRefs.current[index] = element;
                         }}
-                        className="auth-otp-input"
+                        className="auth-otp-input min-w-0"
                         inputMode="numeric"
                         maxLength={1}
                         value={digit}

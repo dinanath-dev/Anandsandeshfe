@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AuthPage from './pages/AuthPage.jsx';
 import FormPage from './pages/FormPage.jsx';
+import ProfileOverviewPage from './pages/ProfileOverviewPage.jsx';
 import PaymentPage from './pages/PaymentPage.jsx';
 import SuccessPage from './pages/SuccessPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
@@ -18,6 +19,14 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<AuthPage />} />
+      <Route
+        path="/profile"
+        element={(
+          <ProtectedRoute>
+            <ProfileOverviewPage />
+          </ProtectedRoute>
+        )}
+      />
       <Route
         path="/form"
         element={(

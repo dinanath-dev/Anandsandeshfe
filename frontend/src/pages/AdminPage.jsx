@@ -143,7 +143,7 @@ export default function AdminPage() {
 
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] border-collapse text-left text-sm">
+            <table className="w-full min-w-[720px] border-collapse text-left text-sm md:min-w-[820px] lg:min-w-[900px]">
               <thead className="bg-brand-surface text-ink">
                 <tr>
                   <th className="px-4 py-4 font-black">Name</th>

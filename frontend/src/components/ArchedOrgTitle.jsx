@@ -1,8 +1,8 @@
 export default function ArchedOrgTitle() {
   return (
-    <div className="mx-auto mt-2 px-4 text-center">
+    <div className="mx-auto mt-2 max-w-[100vw] px-2 text-center sm:px-4">
       <h1
-        className="text-base font-black uppercase tracking-[0.06em] text-[#152d56] sm:text-lg md:text-xl lg:text-2xl"
+        className="text-balance text-xs font-black uppercase leading-tight tracking-[0.04em] text-[#152d56] sm:text-lg sm:tracking-[0.06em] md:text-xl lg:text-2xl"
         style={{ textShadow: '0 2px 0 #ffffff, 0 4px 8px rgba(15, 23, 42, 0.22)' }}
       >
         SHRI PARAMHANS ADVAIT MAT PUBLICATION SOCIETY

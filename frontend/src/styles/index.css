@@ -109,12 +109,19 @@ body {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
-/* Donation form: right-aligned labels + fields (reference layout) */
+/* Donation form: stacked on mobile, label|field on tablet, 2×2 desktop grid */
 .donation-form {
   display: grid;
-  grid-template-columns: minmax(5.25rem, 7.5rem) minmax(0, 1fr) minmax(5.25rem, 7.5rem) minmax(0, 1fr);
+  grid-template-columns: 1fr;
   column-gap: 0.8rem;
-  row-gap: 0.3rem;
+  row-gap: 0.55rem;
+}
+
+@media (min-width: 640px) {
+  .donation-form {
+    grid-template-columns: minmax(6rem, 8.75rem) minmax(0, 1fr);
+    row-gap: 0.35rem;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -129,8 +136,8 @@ body {
   font-weight: 700;
   color: var(--text-on-surface);
   align-self: start;
-  text-align: right;
-  padding-top: 0.45rem;
+  text-align: left;
+  padding-top: 0.25rem;
 }
 
 .donation-form-banner {
@@ -139,6 +146,8 @@ body {
 
 @media (min-width: 640px) {
   .donation-form-label {
+    text-align: right;
+    padding-top: 0.45rem;
     font-size: 0.875rem;
   }
 }
@@ -455,7 +464,7 @@ select {
 
 @layer components {
   .page-shell {
-    @apply min-h-screen bg-transparent px-4 py-6 sm:px-6 lg:px-8;
+    @apply min-h-screen bg-transparent px-3 py-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-6 sm:py-6 lg:px-8;
   }
 
   .content-wrap {
