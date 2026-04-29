@@ -19,10 +19,23 @@ function withAuthHeaders(headersInit) {
 }
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: withAuthHeaders(options.headers)
-  });
+  const url = `${API_BASE_URL}${path}`;
+  let response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers: withAuthHeaders(options.headers)
+    });
+  } catch (err) {
+    const isTypeError = err instanceof TypeError;
+    const failedFetch = isTypeError && String(err.message || '').toLowerCase().includes('fetch');
+    const message = failedFetch
+      ? 'Cannot reach the API. If this is the live site, the backend must allow your frontend origin in CORS (e.g. https://anandsandesh-fe.vercel.app) and VITE_API_BASE_URL must match the deployed API URL.'
+      : err?.message || 'Network error.';
+    const wrapped = new Error(message);
+    wrapped.cause = err;
+    throw wrapped;
+  }
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
