@@ -9,6 +9,7 @@ import {
   verifyEmailOtp
 } from '../services/api.js';
 import { clearPendingOtp, getPendingOtp, isUserAuthenticated, savePendingOtp, saveUserAuth } from '../utils/auth.js';
+import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import SubscriptionHeroVisual from '../components/SubscriptionHeroVisual.jsx';
 
 const OTP_LENGTH = 6;
@@ -486,6 +487,7 @@ export default function AuthPage() {
 
   return (
     <main className="auth-page min-h-screen overflow-x-hidden px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 lg:px-8">
+      {isLoggingIn ? <LoadingBlock label="Signing you in…" /> : null}
       <div className="auth-grid mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-7xl items-stretch overflow-x-hidden rounded-2xl border border-white/20 bg-white/10 shadow-[0_32px_120px_rgba(6,13,26,0.45)] backdrop-blur-2xl sm:min-h-[calc(100vh-2.5rem)] sm:rounded-[2rem]">
         <section className="auth-hero relative hidden flex-1 flex-col overflow-hidden px-6 py-8 text-[#0d2d7f] md:flex md:justify-between lg:px-8 lg:py-10 xl:px-12">
           <div className="auth-hero-glow" aria-hidden />
@@ -648,7 +650,9 @@ export default function AuthPage() {
                     {status ? <p className="auth-success">{status}</p> : null}
 
                     <button className="auth-primary-btn w-full" type="submit" disabled={isLoggingIn}>
-                      {isLoggingIn ? 'Signing in...' : 'Sign in'} <ArrowRight size={18} />
+                      {isLoggingIn ? <InlineLoader size={22} /> : null}
+                      {isLoggingIn ? 'Signing in...' : 'Sign in'}
+                      {!isLoggingIn ? <ArrowRight size={18} aria-hidden /> : null}
                     </button>
                   </form>
                 ) : (
@@ -738,12 +742,13 @@ export default function AuthPage() {
                     {status ? <p className="auth-success">{status}</p> : null}
 
                     <button className="auth-primary-btn w-full" type="submit" disabled={isSendingOtp}>
+                      {isSendingOtp ? <InlineLoader size={22} /> : null}
                       {isSendingOtp
                         ? 'Sending OTP...'
                         : flow === 'forgot'
                           ? 'Send reset code'
-                          : 'Continue with email OTP'}{' '}
-                      <ArrowRight size={18} />
+                          : 'Continue with email OTP'}
+                      {!isSendingOtp ? <ArrowRight size={18} aria-hidden /> : null}
                     </button>
 
                     <p className="text-center text-sm text-[#6b806f]">
@@ -843,7 +848,9 @@ export default function AuthPage() {
                     type="submit"
                     disabled={isResettingPassword}
                   >
-                    {isResettingPassword ? 'Updating...' : 'Update password'} <ChevronRight size={18} />
+                    {isResettingPassword ? <InlineLoader size={22} /> : null}
+                    {isResettingPassword ? 'Updating...' : 'Update password'}
+                    {!isResettingPassword ? <ChevronRight size={18} aria-hidden /> : null}
                   </button>
 
                   <div className="mt-5 flex items-center justify-between gap-3 text-sm">
@@ -863,8 +870,9 @@ export default function AuthPage() {
                       type="button"
                       onClick={handleResendOtp}
                       disabled={resendIn > 0 || isSendingOtp}
-                      className="font-semibold text-[#234d36] transition hover:text-[#17311f] disabled:cursor-not-allowed disabled:text-[#97aa9b]"
+                      className="inline-flex items-center gap-2 font-semibold text-[#234d36] transition hover:text-[#17311f] disabled:cursor-not-allowed disabled:text-[#97aa9b]"
                     >
+                      {isSendingOtp ? <InlineLoader size={18} /> : null}
                       {resendIn > 0 ? `Resend in ${resendIn}s` : isSendingOtp ? 'Sending...' : 'Resend OTP'}
                     </button>
                   </div>
@@ -910,7 +918,9 @@ export default function AuthPage() {
                   {status ? <p className="auth-success mt-4">{status}</p> : null}
 
                   <button className="auth-primary-btn mt-5 w-full" type="submit" disabled={isVerifyingOtp}>
-                    {isVerifyingOtp ? 'Verifying...' : 'Verify and continue'} <ChevronRight size={18} />
+                    {isVerifyingOtp ? <InlineLoader size={22} /> : null}
+                    {isVerifyingOtp ? 'Verifying...' : 'Verify and continue'}
+                    {!isVerifyingOtp ? <ChevronRight size={18} aria-hidden /> : null}
                   </button>
 
                   <div className="mt-5 flex items-center justify-between gap-3 text-sm">
@@ -930,8 +940,9 @@ export default function AuthPage() {
                       type="button"
                       onClick={handleResendOtp}
                       disabled={resendIn > 0 || isSendingOtp}
-                      className="font-semibold text-[#234d36] transition hover:text-[#17311f] disabled:cursor-not-allowed disabled:text-[#97aa9b]"
+                      className="inline-flex items-center gap-2 font-semibold text-[#234d36] transition hover:text-[#17311f] disabled:cursor-not-allowed disabled:text-[#97aa9b]"
                     >
+                      {isSendingOtp ? <InlineLoader size={18} /> : null}
                       {resendIn > 0 ? `Resend in ${resendIn}s` : isSendingOtp ? 'Sending...' : 'Resend OTP'}
                     </button>
                   </div>

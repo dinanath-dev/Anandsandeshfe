@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, Eye, Lock, RefreshCcw } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
+import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import { adminLogin, getSubmissions, verifySubmission } from '../services/api.js';
 
@@ -119,6 +120,7 @@ export default function AdminPage() {
 
   return (
     <main className="page-shell">
+      {isLoading && submissions.length === 0 ? <LoadingBlock label="Loading submissions…" /> : null}
       <section className="content-wrap py-8">
         <PageHeader eyebrow="Admin Panel" title="Payment submissions" description="Review pending submissions, inspect uploaded screenshots, and mark completed payments as verified." />
 
@@ -134,8 +136,9 @@ export default function AdminPage() {
               </button>
             ))}
           </div>
-          <button className="btn-secondary" onClick={() => loadSubmissions()} disabled={isLoading}>
-            <RefreshCcw size={18} /> {isLoading ? 'Refreshing...' : 'Refresh'}
+          <button className="btn-secondary inline-flex items-center gap-2" onClick={() => loadSubmissions()} disabled={isLoading}>
+            {isLoading ? <InlineLoader size={20} /> : <RefreshCcw size={18} aria-hidden />}
+            {isLoading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
 
@@ -220,8 +223,12 @@ export default function AdminPage() {
                 ))}
                 {!visibleSubmissions.length ? (
                   <tr>
-                    <td colSpan="8" className="px-4 py-10 text-center font-semibold text-muted">
-                      {isLoading ? 'Loading submissions...' : 'No submissions found.'}
+                    <td colSpan="8" className="px-4 py-10">
+                      {isLoading && submissions.length === 0 ? (
+                        <span className="sr-only">Loading submissions…</span>
+                      ) : (
+                        <p className="text-center font-semibold text-muted">No submissions found.</p>
+                      )}
                     </td>
                   </tr>
                 ) : null}

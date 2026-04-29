@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Info, LogOut, Search } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
+import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import DonationFormRow from '../components/DonationFormRow.jsx';
 import {
   claimLegacyForm,
@@ -236,6 +237,7 @@ export default function ProfileOverviewPage() {
 
   return (
     <DonationLayout subtitle="Your contact details on file">
+      {legacyLoading ? <LoadingBlock label="Searching records..." /> : null}
       <button
         type="button"
         className="btn-secondary fixed right-3 top-[max(6.5rem,env(safe-area-inset-top)+5.25rem)] z-[60] inline-flex min-h-10 items-center gap-2 whitespace-nowrap px-3 py-2 text-sm font-semibold shadow-md sm:right-6 sm:top-5 sm:px-4"
@@ -246,7 +248,7 @@ export default function ProfileOverviewPage() {
 
       <div className="donation-form-shell w-full px-1 py-2 sm:px-3 sm:py-3">
         {loading ? (
-          <p className="text-center text-sm text-muted">Loading your details…</p>
+          <LoadingBlock label="Loading your details…" />
         ) : (
           <div className="donation-form">
             <p className="donation-form-banner mb-1 text-center text-sm text-muted sm:text-left">
@@ -254,117 +256,122 @@ export default function ProfileOverviewPage() {
             </p>
 
             <div className="donation-form-banner mt-3 w-full text-center sm:text-left">
-              <div className="flex w-full flex-row items-start justify-center gap-2 sm:justify-start sm:gap-3">
-                <details className="min-w-0 w-full max-w-xl sm:max-w-none sm:flex-1" defaultOpen={legacyOpenDefault}>
-                  <summary className="cursor-pointer list-none outline-none [&::-webkit-details-marker]:hidden focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[rgba(255,255,255,0.85)]">
-                    <span className="btn-secondary inline-flex w-full min-h-11 items-center justify-center px-4 py-2.5 text-center text-sm font-semibold shadow-sm sm:justify-start sm:text-left">
-                      Subscribed offline before? Find your record by mobile
-                    </span>
-                  </summary>
-                  <p className="mt-2 text-left text-sm text-muted">
-                    If you used a different email before or are new to this website, your details may still be in our
-                    database from the offline process. Enter the <strong>mobile number</strong> from your old form—we
-                    will show the saved <strong>address</strong> so you can confirm it is yours, then link it to this
-                    login.
-                  </p>
+              <div className="rounded-2xl border border-[#0d2d7f]/20 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(244,248,255,0.92))] p-3 shadow-[0_10px_30px_-18px_rgba(13,45,127,0.45)] sm:p-4">
+                <div className="flex w-full flex-row items-start justify-center gap-2 sm:justify-start sm:gap-3">
+                  <details className="min-w-0 w-full max-w-xl sm:max-w-none sm:flex-1" defaultOpen={legacyOpenDefault}>
+                    <summary className="cursor-pointer list-none outline-none [&::-webkit-details-marker]:hidden focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[rgba(255,255,255,0.85)]">
+                      <span className="inline-flex w-full min-h-12 items-center justify-center rounded-xl border border-[#0d2d7f]/25 bg-white px-4 py-2.5 text-center text-sm font-bold text-[#0d2d7f] shadow-sm transition hover:border-[#0d2d7f]/40 hover:bg-[#f6f9ff] sm:justify-start sm:text-left">
+                        Subscribed offline before? Find your record by mobile
+                      </span>
+                    </summary>
+                    <p className="mt-3 rounded-xl border border-[#0d2d7f]/10 bg-white/75 px-3 py-2.5 text-left text-sm leading-relaxed text-muted">
+                      If you used a different email before or are new to this website, your details may still be in our
+                      database from the offline process. Enter the <strong>mobile number</strong> from your old form-we
+                      will show the saved <strong>address</strong> so you can confirm it is yours, then link it to this
+                      login.
+                    </p>
 
-                  <form onSubmit={handleLegacySearch} className="mt-3 space-y-3">
-                    <DonationFormRow label="Search mobile" labelFor="po-legacy-mobile">
-                      <input
-                        id="po-legacy-mobile"
-                        className="donation-input"
-                        inputMode="numeric"
-                        maxLength={10}
-                        autoComplete="tel"
-                        placeholder="10-digit number"
-                        value={legacyMobile}
-                        onChange={(e) => setLegacyMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      />
-                    </DonationFormRow>
-                    <div className="donation-form-actions !justify-start !pt-0">
-                      <button
-                        type="submit"
-                        disabled={legacyLoading}
-                        className="btn-secondary inline-flex min-h-10 items-center gap-2 px-5 py-2 text-sm font-semibold"
-                      >
-                        <Search size={18} aria-hidden />
-                        {legacyLoading ? 'Searching…' : 'Search database'}
-                      </button>
-                    </div>
-                  </form>
-
-                  {legacyError ? (
-                    <div className="mt-3">
-                      <Alert>{legacyError}</Alert>
-                    </div>
-                  ) : null}
-                  {claimInfo ? (
-                    <div className="mt-3">
-                      <Alert type="success">{claimInfo}</Alert>
-                    </div>
-                  ) : null}
-
-                  {legacyPreview ? (
-                    <div className="mt-4 rounded-lg border border-[#0d2d7f]/20 bg-white/90 px-3 py-3 sm:px-4">
-                      <p className="text-xs font-bold uppercase tracking-wide text-muted">Record found — confirm by address</p>
-                      {legacyPreview.type === 'matches' && legacyPreview.matches.length > 1 ? (
-                        <div className="mt-2">
-                          <label htmlFor="po-legacy-pick" className="text-xs font-semibold text-muted">
-                            Several records share this number — pick the one that matches you
+                    <form onSubmit={handleLegacySearch} className="mt-3 rounded-xl border border-[#0d2d7f]/12 bg-white/80 p-3 sm:p-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                        <div className="w-full sm:flex-1">
+                          <label htmlFor="po-legacy-mobile" className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted">
+                            Search mobile
                           </label>
-                          <select
-                            id="po-legacy-pick"
-                            className="donation-input mt-1 max-w-full"
-                            value={legacyPreview.selectedIndex}
-                            onChange={(e) =>
-                              setLegacyPreview((prev) =>
-                                prev?.type === 'matches'
-                                  ? { ...prev, selectedIndex: Number(e.target.value) }
-                                  : prev
-                              )
-                            }
-                          >
+                          <input
+                            id="po-legacy-mobile"
+                            className="donation-input !rounded-lg"
+                            inputMode="numeric"
+                            maxLength={10}
+                            autoComplete="tel"
+                            placeholder="10-digit number"
+                            value={legacyMobile}
+                            onChange={(e) => setLegacyMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={legacyLoading}
+                          className="btn-secondary inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2 text-sm font-semibold sm:min-w-[11rem]"
+                        >
+                          {legacyLoading ? <InlineLoader size={20} /> : <Search size={18} aria-hidden />}
+                          {legacyLoading ? 'Searching…' : 'Search database'}
+                        </button>
+                      </div>
+                    </form>
+
+                    {legacyError ? (
+                      <div className="mt-3">
+                        <Alert>{legacyError}</Alert>
+                      </div>
+                    ) : null}
+                    {claimInfo ? (
+                      <div className="mt-3">
+                        <Alert type="success">{claimInfo}</Alert>
+                      </div>
+                    ) : null}
+
+                    {legacyPreview ? (
+                      <div className="mt-4 rounded-xl border border-[#0d2d7f]/20 bg-white px-3 py-3 shadow-[0_10px_28px_-22px_rgba(13,45,127,0.55)] sm:px-4">
+                        <p className="text-xs font-bold uppercase tracking-wide text-[#234d36]">Record found - confirm by address</p>
+                        {legacyPreview.type === 'matches' && legacyPreview.matches.length > 1 ? (
+                          <div className="mt-2">
+                            <label htmlFor="po-legacy-pick" className="text-xs font-semibold text-muted">
+                              Several records share this number - pick the one that matches you
+                            </label>
+                            <select
+                              id="po-legacy-pick"
+                              className="donation-input mt-1 max-w-full !rounded-lg"
+                              value={legacyPreview.selectedIndex}
+                              onChange={(e) =>
+                                setLegacyPreview((prev) =>
+                                  prev?.type === 'matches'
+                                    ? { ...prev, selectedIndex: Number(e.target.value) }
+                                    : prev
+                                )
+                              }
+                            >
                             {legacyPreview.matches.map((m, i) => (
                               <option key={`${m.rowId ?? i}-${m.legacyClaimKey ?? ''}`} value={i}>
-                                {String(m.nameMasked || 'Record').trim()} · Sub. {m.subscriberNo ?? '—'} ·{' '}
+                                {String(m.nameMasked || 'Record').trim()} · Sub. {m.subscriberNo ?? '-'} ·{' '}
                                 {matchSummaryToAddressPreview(m)}
                               </option>
                             ))}
                           </select>
                         </div>
                       ) : null}
-                      {legacyNamePreview ? (
+                        {legacyNamePreview ? (
+                          <p className="mt-2 text-sm">
+                            <span className="font-semibold text-ink">Name on file:</span> {legacyNamePreview}
+                          </p>
+                        ) : null}
+                        {legacySubscriberHint ? (
+                          <p className="mt-2 text-sm">
+                            <span className="font-semibold text-ink">Subscriber no. (hint):</span> {legacySubscriberHint}
+                          </p>
+                        ) : null}
                         <p className="mt-2 text-sm">
-                          <span className="font-semibold text-ink">Name on file:</span> {legacyNamePreview}
+                          <span className="font-semibold text-ink">Email on file (masked):</span>{' '}
+                          {legacyEmailPreview || '-'}
                         </p>
-                      ) : null}
-                      {legacySubscriberHint ? (
-                        <p className="mt-2 text-sm">
-                          <span className="font-semibold text-ink">Subscriber no. (hint):</span> {legacySubscriberHint}
-                        </p>
-                      ) : null}
-                      <p className="mt-2 text-sm">
-                        <span className="font-semibold text-ink">Email on file (masked):</span>{' '}
-                        {legacyEmailPreview || '—'}
-                      </p>
-                      <p className="mt-2 text-sm font-semibold text-ink">Address on file</p>
-                      <pre className="mt-1 whitespace-pre-wrap font-sans text-sm leading-relaxed text-ink/90">
-                        {legacyAddressPreview || '—'}
-                      </pre>
-                      <div className="donation-form-actions !pb-0 !pt-3">
-                        <button
-                          type="button"
-                          disabled={claimLoading}
-                          onClick={handleClaimLegacy}
-                          className="btn-primary donation-form-submit-btn !min-h-10 !px-6 !py-2 !text-sm font-semibold"
-                        >
-                          {claimLoading ? 'Linking…' : 'This is my record — link to my account'}
-                        </button>
+                        <p className="mt-2 text-sm font-semibold text-ink">Address on file</p>
+                        <pre className="mt-1 whitespace-pre-wrap rounded-lg bg-[#f7f9fd] px-2.5 py-2 font-sans text-sm leading-relaxed text-ink/90">
+                          {legacyAddressPreview || '-'}
+                        </pre>
+                        <div className="donation-form-actions !pb-0 !pt-3">
+                          <button
+                            type="button"
+                            disabled={claimLoading}
+                            onClick={handleClaimLegacy}
+                            className="btn-primary donation-form-submit-btn !min-h-10 inline-flex !items-center !justify-center !gap-2 !px-6 !py-2 !text-sm font-semibold"
+                          >
+                            {claimLoading ? <InlineLoader size={20} /> : null}
+                            {claimLoading ? 'Linking…' : 'This is my record — link to my account'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ) : null}
-                </details>
-                <div className="group/icon relative shrink-0 pt-0.5">
+                    ) : null}
+                  </details>
+                  <div className="group/icon relative shrink-0 pt-0.5">
                   <span
                     tabIndex={0}
                     className="inline-flex h-11 w-11 cursor-help items-center justify-center rounded-lg border border-[#0d2d7f]/25 bg-white text-primary shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2"
@@ -381,6 +388,7 @@ export default function ProfileOverviewPage() {
                   >
                     {LEGACY_LOOKUP_TOOLTIP}
                   </span>
+                  </div>
                 </div>
               </div>
             </div>

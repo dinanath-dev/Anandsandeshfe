@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { CheckCircle2, CreditCard, LogOut } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
+import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import DonationFormRow from '../components/DonationFormRow.jsx';
 import { INDIAN_STATES } from '../data/indianStates.js';
 import { getCurrentUser, getMyFormSubmission, submitUserForm } from '../services/api.js';
@@ -389,6 +390,7 @@ export default function FormPage() {
 
   return (
     <DonationLayout subtitle="My Submission Details for Anand Sandesh">
+      {isSubmitting ? <LoadingBlock label="Saving your form…" /> : null}
       <button
         type="button"
         className="btn-secondary fixed right-3 top-[max(6.5rem,env(safe-area-inset-top)+5.25rem)] z-[60] inline-flex min-h-10 items-center gap-2 whitespace-nowrap px-3 py-2 text-sm font-semibold shadow-md sm:right-6 sm:top-5 sm:px-4"
@@ -398,7 +400,7 @@ export default function FormPage() {
       </button>
       <div className="donation-form-shell w-full px-1 py-2 sm:px-3 sm:py-3">
         {!submissionLoaded ? (
-          <p className="py-8 text-center text-sm text-muted">Loading your submission…</p>
+          <LoadingBlock label="Loading your submission…" />
         ) : submissionSnapshot?.payment_status === 'verified' ? (
           <div className="donation-form-banner mx-auto max-w-xl space-y-4 text-center sm:text-left">
             <div className="flex justify-center sm:justify-start">
@@ -734,7 +736,7 @@ export default function FormPage() {
               disabled={isSubmitting}
               className="btn-primary donation-form-submit-btn !min-h-10 inline-flex items-center gap-2 !px-8 !py-2 !text-sm font-semibold sm:!text-[0.9375rem]"
             >
-              <CreditCard size={18} />{' '}
+              {isSubmitting ? <InlineLoader size={22} /> : <CreditCard size={18} aria-hidden />}
               {isSubmitting ? 'Saving...' : 'Proceed to payment'}
             </button>
           </div>

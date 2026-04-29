@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CreditCard, Loader2 } from 'lucide-react';
+import { ArrowLeft, CreditCard } from 'lucide-react';
 import DonationLayout from '../components/DonationLayout.jsx';
+import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import Alert from '../components/Alert.jsx';
 import { createSubscription, getCurrentUser, verifySubscriptionPayment } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
@@ -135,6 +136,7 @@ export default function PaymentPage() {
 
   return (
     <DonationLayout subtitle="Payment">
+      {busy ? <LoadingBlock label="Starting secure checkout..." /> : null}
       <div className="donation-form-shell mx-auto max-w-lg px-2 py-4 text-center sm:px-4">
         <div className="rounded-lg border border-[#0d2d7f]/28 bg-white/90 px-5 py-8 shadow-md backdrop-blur-sm">
           <CreditCard className="mx-auto mb-4 text-primary" size={48} />
@@ -188,7 +190,7 @@ export default function PaymentPage() {
                   : undefined
               }
             >
-              {busy ? <Loader2 className="animate-spin" size={18} aria-hidden /> : <CreditCard size={18} aria-hidden />}
+              {busy ? <InlineLoader size={22} /> : <CreditCard size={18} aria-hidden />}
               {busy ? 'Starting checkout…' : 'Pay with Razorpay'}
             </button>
             <Link to="/form" className="btn-secondary inline-flex min-h-10 items-center gap-2 px-5 py-2 text-sm">

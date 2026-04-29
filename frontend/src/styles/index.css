@@ -450,6 +450,232 @@ select {
   border: 1px solid rgba(13, 45, 127, 0.1);
 }
 
+/* Orb loader (shared — see components/Loader.jsx) */
+.orb-wrap {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orb-wrap .halo {
+  position: absolute;
+  border-radius: 50%;
+  animation: halopulse var(--d, 4s) ease-in-out infinite;
+  animation-delay: var(--dl, 0s);
+}
+
+.orb-wrap .halo-1 {
+  width: 340px;
+  height: 340px;
+  background: radial-gradient(circle, rgba(165, 210, 145, 0.22) 0%, rgba(110, 165, 95, 0.08) 50%, transparent 72%);
+  --d: 4.2s;
+  --dl: 0s;
+}
+
+.orb-wrap .halo-2 {
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(190, 210, 185, 0.12) 0%, rgba(155, 185, 160, 0.05) 50%, transparent 70%);
+  --d: 5.8s;
+  --dl: -2.1s;
+}
+
+.orb-wrap .halo-3 {
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(200, 235, 175, 0.26) 0%, rgba(145, 195, 125, 0.12) 55%, transparent 75%);
+  --d: 3.5s;
+  --dl: -1.4s;
+}
+
+@keyframes halopulse {
+  0%,
+  100% {
+    transform: scale(0.93);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.07);
+    opacity: 1;
+  }
+}
+
+.orb-wrap .orb-core {
+  position: relative;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  z-index: 2;
+  animation: orb-breathe 3.8s ease-in-out infinite;
+}
+
+@keyframes orb-breathe {
+  0%,
+  100% {
+    transform: scale(0.96);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.orb-wrap .orb-body {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 40% 36%,
+    #f7faf4 0%,
+    #e2f0d4 14%,
+    #c5e3b0 30%,
+    #9ccc7a 48%,
+    #7aab88 68%,
+    #5d8f78 82%,
+    #3d6b58 100%
+  );
+  box-shadow:
+    0 0 28px 6px rgba(140, 195, 120, 0.45),
+    0 0 60px 18px rgba(100, 170, 95, 0.26),
+    0 0 110px 36px rgba(85, 150, 95, 0.14),
+    inset 0 0 24px rgba(230, 248, 220, 0.35);
+}
+
+.orb-wrap .orb-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.orb-wrap .orb-sheen::before {
+  content: "";
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    rgba(220, 248, 200, 0.28) 12%,
+    transparent 25%,
+    rgba(160, 210, 175, 0.2) 42%,
+    transparent 55%,
+    rgba(195, 235, 175, 0.24) 70%,
+    transparent 82%,
+    rgba(175, 220, 200, 0.16) 94%,
+    transparent 100%
+  );
+  animation: sheenSpin 9s linear infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes sheenSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.orb-wrap .orb-rim {
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  box-shadow:
+    inset -8px -6px 20px rgba(70, 120, 95, 0.35),
+    inset 4px 4px 16px rgba(235, 250, 225, 0.25);
+}
+
+.orb-wrap .orb-spec-main {
+  position: absolute;
+  width: 44px;
+  height: 28px;
+  top: 22px;
+  left: 30px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 252, 240, 0.8) 0%, transparent 100%);
+  transform: rotate(-18deg);
+  animation: specbreathe 3.8s ease-in-out infinite;
+}
+
+.orb-wrap .orb-spec-secondary {
+  position: absolute;
+  width: 14px;
+  height: 10px;
+  top: 58px;
+  left: 96px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(190, 215, 230, 0.45) 0%, transparent 100%);
+  animation: specbreathe 3.8s ease-in-out infinite 1.2s;
+}
+
+@keyframes specbreathe {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.orb-wrap .orb-mote {
+  position: absolute;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  animation: floatMote var(--d, 6s) ease-in-out infinite;
+  animation-delay: var(--dl, 0s);
+}
+
+@keyframes floatMote {
+  0% {
+    transform: translate(var(--x1, 30px), var(--y1, -60px)) scale(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: var(--op, 0.5);
+    transform: translate(var(--x1, 30px), var(--y1, -60px)) scale(1);
+  }
+  85% {
+    opacity: calc(var(--op, 0.5) * 0.6);
+  }
+  100% {
+    transform: translate(var(--x2, -20px), var(--y2, -120px)) scale(0);
+    opacity: 0;
+  }
+}
+
+.orb-wrap .orb-ray {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  width: 1px;
+  background: linear-gradient(to top, rgba(130, 195, 115, 0.42), transparent);
+  transform-origin: bottom center;
+  border-radius: 1px;
+  animation: rayPulse var(--d, 3s) ease-in-out infinite;
+  animation-delay: var(--dl, 0s);
+}
+
+@keyframes rayPulse {
+  0%,
+  100% {
+    height: 0px;
+    opacity: 0;
+  }
+  40%,
+  60% {
+    height: var(--h, 40px);
+    opacity: 0.6;
+  }
+}
+
 @media (max-width: 640px) {
   .auth-grid {
     border-radius: 1.6rem;
