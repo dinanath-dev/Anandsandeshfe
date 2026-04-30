@@ -9,6 +9,7 @@ import {
   verifyEmailOtp
 } from '../services/api.js';
 import { clearPendingOtp, getPendingOtp, isUserAuthenticated, savePendingOtp, saveUserAuth } from '../utils/auth.js';
+import { useSeo } from '../utils/seo.js';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import SubscriptionHeroVisual from '../components/SubscriptionHeroVisual.jsx';
 
@@ -82,6 +83,13 @@ function AuthMarketingCard({ compact = false, showGif = true }) {
 }
 
 export default function AuthPage() {
+  useSeo({
+    title: 'Anand Sandesh Karyalay — Shri Anandpur Dham Subscription Portal',
+    description:
+      'Official subscription portal of Anand Sandesh Karyalay, Shri Anandpur Dham. Subscribe to the Anand Sandesh magazine and manage your membership online.',
+    canonical: 'https://anandsandeshkaryalay.online/'
+  });
+
   const navigate = useNavigate();
   const otpRefs = useRef([]);
   const [mode, setMode] = useState('signup');

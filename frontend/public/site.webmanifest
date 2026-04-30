@@ -1,0 +1,27 @@
+{
+  "name": "Anand Sandesh Karyalay — Shri Anandpur Dham",
+  "short_name": "Anand Sandesh",
+  "description": "Official subscription portal of Anand Sandesh Karyalay, Shri Anandpur Dham.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#0d2d7f",
+  "lang": "en-IN",
+  "categories": ["lifestyle", "education", "books"],
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

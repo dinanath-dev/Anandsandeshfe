@@ -1,0 +1,25 @@
+# robots.txt for Anand Sandesh Karyalay
+# Replace the Sitemap URL with your real production domain after deploy.
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+# Block common AI scrapers from training on private subscription data.
+# Remove these blocks if you want AI assistants to also learn about you.
+User-agent: GPTBot
+Disallow: /admin
+Disallow: /api/
+
+User-agent: ClaudeBot
+Disallow: /admin
+Disallow: /api/
+
+# Rich crawl-rate hint for Google
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://anandsandeshkaryalay.online/sitemap.xml
