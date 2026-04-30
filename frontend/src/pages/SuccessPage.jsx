@@ -4,6 +4,8 @@ import { Link, useLocation } from 'react-router-dom';
 export default function SuccessPage() {
   const { state } = useLocation();
   const paymentVerified = Boolean(state?.paymentVerified);
+  const verificationPending = Boolean(state?.verificationPending);
+  const verificationMessage = String(state?.verificationMessage || '').trim();
 
   return (
     <main className="page-shell">
@@ -11,13 +13,18 @@ export default function SuccessPage() {
         <div className="card max-w-xl p-6 text-center sm:p-8 md:p-10">
           <CheckCircle2 className="mx-auto mb-5 text-primary" size={64} />
           <h1 className="text-3xl font-black text-ink sm:text-4xl">
-            {paymentVerified ? 'Payment successful' : 'Submission received'}
+            {paymentVerified ? 'Payment successful' : verificationPending ? 'Payment received' : 'Submission received'}
           </h1>
           <p className="mt-4 leading-7 text-muted">
             {paymentVerified
               ? 'Your subscription payment was verified. Your account will stay in sync with Razorpay via webhooks.'
-              : 'Your details have been saved with pending status. An administrator may review your submission and uploaded document.'}
+              : verificationPending
+                ? 'Your payment is completed at Razorpay. We are confirming it with the server and your subscription will reflect shortly.'
+                : 'Your details have been saved with pending status. An administrator may review your submission and uploaded document.'}
           </p>
+          {verificationPending && verificationMessage ? (
+            <p className="mt-3 text-sm text-muted">{verificationMessage}</p>
+          ) : null}
           <Link to="/" className="btn-primary mt-7">
             <Home size={20} /> Submit another
           </Link>

@@ -351,7 +351,16 @@ export default function FormPage() {
     event.preventDefault();
     setApiError('');
     setSaveInfo('');
-    if (!validate()) return;
+    if (!validate()) {
+      // Validation errors are shown inline per-field; this message + scroll helps the user notice.
+      setApiError('Please fix the highlighted fields and try again.');
+      window.setTimeout(() => {
+        const firstInvalid = document.querySelector('.donation-input--invalid');
+        firstInvalid?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+        if (typeof firstInvalid?.focus === 'function') firstInvalid.focus();
+      }, 0);
+      return;
+    }
 
     const payload = buildPayload();
     const formData = new FormData();

@@ -108,7 +108,13 @@ export default function PaymentPage() {
             });
             navigate('/success', { state: { paymentVerified: true } });
           } catch (err) {
-            setPaymentError(err.message || 'Payment verification failed.');
+            navigate('/success', {
+              state: {
+                paymentVerified: false,
+                verificationPending: true,
+                verificationMessage: err?.message || 'Payment was received, but verification is still pending.'
+              }
+            });
           }
         }
       });
