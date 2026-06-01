@@ -1,7 +1,9 @@
 import { CheckCircle2, Home } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from '../i18n/LanguageContext.jsx';
 
 export default function SuccessPage() {
+  const { t } = useTranslation();
   const { state } = useLocation();
   const paymentVerified = Boolean(state?.paymentVerified);
   const verificationPending = Boolean(state?.verificationPending);
@@ -13,20 +15,24 @@ export default function SuccessPage() {
         <div className="card max-w-xl p-6 text-center sm:p-8 md:p-10">
           <CheckCircle2 className="mx-auto mb-5 text-primary" size={64} />
           <h1 className="text-3xl font-black text-ink sm:text-4xl">
-            {paymentVerified ? 'Payment successful' : verificationPending ? 'Payment received' : 'Submission received'}
+            {paymentVerified
+              ? t('success.paymentSuccessful')
+              : verificationPending
+                ? t('success.paymentReceived')
+                : t('success.submissionReceived')}
           </h1>
           <p className="mt-4 leading-7 text-muted">
             {paymentVerified
-              ? 'Your subscription payment was verified. Your account will stay in sync with Razorpay via webhooks.'
+              ? t('success.paymentSuccessfulDesc')
               : verificationPending
-                ? 'Your payment is completed at Razorpay. We are confirming it with the server and your subscription will reflect shortly.'
-                : 'Your details have been saved with pending status. An administrator may review your submission and uploaded document.'}
+                ? t('success.paymentReceivedDesc')
+                : t('success.submissionReceivedDesc')}
           </p>
           {verificationPending && verificationMessage ? (
             <p className="mt-3 text-sm text-muted">{verificationMessage}</p>
           ) : null}
           <Link to="/" className="btn-primary mt-7">
-            <Home size={20} /> Submit another
+            <Home size={20} /> {t('success.submitAnother')}
           </Link>
         </div>
       </section>

@@ -109,25 +109,46 @@ body {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
-/* Donation form: stacked on mobile, label|field on tablet, 2×2 desktop grid */
+/* Donation form: pairs stack on mobile; side-by-side fields on large screens */
 .donation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.donation-form-pair {
   display: grid;
   grid-template-columns: 1fr;
-  column-gap: 0.8rem;
   row-gap: 0.55rem;
 }
 
 @media (min-width: 640px) {
   .donation-form {
+    gap: 0.4rem;
+  }
+
+  .donation-form-pair {
     grid-template-columns: minmax(6rem, 8.75rem) minmax(0, 1fr);
+    column-gap: 0.8rem;
     row-gap: 0.35rem;
+    align-items: start;
   }
 }
 
 @media (min-width: 1024px) {
-  .donation-form {
+  .donation-form-pair {
     grid-template-columns: minmax(6.5rem, 9rem) minmax(0, 1fr) minmax(6.5rem, 9rem) minmax(0, 1fr);
     column-gap: 1.2rem;
+  }
+}
+
+.donation-form-pair--single {
+  max-width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .donation-form-pair--single {
+    grid-template-columns: minmax(6.5rem, 9rem) minmax(0, 1fr);
   }
 }
 
@@ -141,7 +162,7 @@ body {
 }
 
 .donation-form-banner {
-  grid-column: 1 / -1;
+  width: 100%;
 }
 
 @media (min-width: 640px) {
@@ -216,12 +237,16 @@ select.donation-input {
 }
 
 textarea.donation-input {
-  min-height: 4.25rem;
+  min-height: 2.5rem;
   resize: vertical;
 }
 
+textarea.donation-input.donation-input--address {
+  min-height: 2.5rem;
+}
+
 .donation-form-actions {
-  grid-column: 1 / -1;
+  width: 100%;
   display: flex;
   justify-content: center;
   padding-top: 0.65rem;

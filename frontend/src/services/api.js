@@ -64,15 +64,23 @@ export function getMyFormSubmission() {
 }
 
 /**
- * Offline → online: find a legacy row by 10-digit mobile (not yet linked to this account).
- * Auth: user JWT. Backend should only return unlinked / offline-imported records.
+ * Offline → online: find a legacy row by 10-digit mobile or subscriber number.
+ * Auth: user JWT. Backend returns unlinked / offline-imported records.
  */
-export function lookupLegacyFormByMobile({ mobile }) {
+export function lookupLegacyForm({ mobile, subscriber_no }) {
+  const body = {};
+  if (mobile) body.mobile = mobile;
+  if (subscriber_no) body.subscriber_no = subscriber_no;
   return request('/form/lookup-legacy', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mobile })
+    body: JSON.stringify(body)
   });
+}
+
+/** @deprecated Use lookupLegacyForm */
+export function lookupLegacyFormByMobile({ mobile }) {
+  return lookupLegacyForm({ mobile });
 }
 
 /**

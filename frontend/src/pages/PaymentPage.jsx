@@ -6,11 +6,7 @@ import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import Alert from '../components/Alert.jsx';
 import { createSubscription, getCurrentUser, verifySubscriptionPayment } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
-
-const SUBSCRIPTION_LABELS = {
-  yearly: 'One year',
-  five_year: '5 year'
-};
+import { useTranslation } from '../i18n/LanguageContext.jsx';
 
 function planConfigForType(subscriptionType) {
   const keyId = String(import.meta.env.VITE_RAZORPAY_KEY_ID || '').trim();
@@ -41,6 +37,11 @@ function userDisplayName(user) {
 }
 
 export default function PaymentPage() {
+  const { t } = useTranslation();
+  const SUBSCRIPTION_LABELS = {
+    yearly: t('payment.oneYear'),
+    five_year: t('payment.fiveYear')
+  };
   const { state } = useLocation();
   const navigate = useNavigate();
   const submissionId = state?.submissionId;
@@ -63,15 +64,15 @@ export default function PaymentPage() {
     setPaymentError('');
     const auth = getUserAuth();
     if (!auth?.token) {
-      setError('You need to be signed in to pay.');
+      setError(t('payment.errors.notSignedIn'));
       return;
     }
     if (typeof window.Razorpay !== 'function') {
-      setError('Payment checkout did not load. Refresh the page and try again.');
+      setError(t('payment.errors.checkoutFailed'));
       return;
     }
     if (!keyId || !planId) {
-      setError('Razorpay is not fully configured for this plan. Contact support.');
+      setError(t('payment.errors.notConfigured'));
       return;
     }
 
@@ -84,7 +85,7 @@ export default function PaymentPage() {
       });
       const subscriptionRzId = createData?.subscription?.id;
       if (!subscriptionRzId) {
-        throw new Error('Could not start subscription. Please try again.');
+        throw new Error(t('payment.errors.couldNotStart'));
       }
 
       const user = auth.user || {};
@@ -112,7 +113,7 @@ export default function PaymentPage() {
               state: {
                 paymentVerified: false,
                 verificationPending: true,
-                verificationMessage: err?.message || 'Payment was received, but verification is still pending.'
+                verificationMessage: err?.message || t('payment.errors.verificationPending')
               }
             });
           }
@@ -124,13 +125,13 @@ export default function PaymentPage() {
         const msg =
           (typeof e?.description === 'string' && e.description) ||
           (typeof e?.reason === 'string' && e.reason) ||
-          'Payment failed.';
+          t('payment.errors.paymentFailed');
         setPaymentError(msg);
       });
 
       rzp.open();
     } catch (err) {
-      let msg = err.message || 'Could not start payment.';
+      let msg = err.message || t('payment.errors.couldNotStartShort');
       if (err.status === 401 && String(err.path || '').startsWith('/payment/')) {
         msg = `${msg} The app is already sending Authorization: Bearer … (check the request in Network). A 401 here means the API is rejecting that token: on the server, protect /api/payment/* with the exact same user-JWT middleware and secret as /api/auth/me, or log why verify fails (e.g. expired token—check the exp claim).`;
       }
@@ -141,35 +142,24 @@ export default function PaymentPage() {
   }, [keyId, planId, totalCount, navigate]);
 
   return (
-    <DonationLayout subtitle="Payment">
-      {busy ? <LoadingBlock label="Starting secure checkout..." /> : null}
+    <DonationLayout subtitle={t('payment.subtitle')}>
+      {busy ? <LoadingBlock label={t('loaders.startingCheckout')} /> : null}
       <div className="donation-form-shell mx-auto max-w-lg px-2 py-4 text-center sm:px-4">
         <div className="rounded-lg border border-[#0d2d7f]/28 bg-white/90 px-5 py-8 shadow-md backdrop-blur-sm">
           <CreditCard className="mx-auto mb-4 text-primary" size={48} />
-          <h2 className="text-xl font-black text-[#152a48] sm:text-2xl">Proceed to payment</h2>
+          <h2 className="text-xl font-black text-[#152a48] sm:text-2xl">{t('payment.heading')}</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            Pay securely with Razorpay. Your subscription is confirmed only after our server verifies the payment
-            signature.
+            {t('payment.summary')}
           </p>
           <p className="mt-4 text-base font-bold text-ink">
-            Plan: <span className="text-primary font-black">{planLabel}</span>
+            {t('payment.planLabel')} <span className="text-primary font-black">{planLabel}</span>
           </p>
-          <p className="mt-2 font-mono text-xs text-muted">Reference ID: {submissionId}</p>
+          <p className="mt-2 font-mono text-xs text-muted">{t('payment.referenceLabel')} {submissionId}</p>
 
           {!plansConfigured ? (
             <div className="mt-6 space-y-3 text-left text-sm text-muted">
-              <p>
-                Recurring payments need a <strong className="text-ink">subscription plan</strong> in Razorpay. Test mode
-                has the same feature: use the dashboard in <strong className="text-ink">Test mode</strong>, then{' '}
-                <span className="font-mono text-ink">Subscriptions → Plans → + Create plan</span>. Copy the plan id
-                (looks like <span className="font-mono">plan_…</span>).
-              </p>
-              <p>
-                For quick local testing, add one id to <span className="font-mono">VITE_RAZORPAY_PLAN_ID</span> in{' '}
-                <span className="font-mono">.env</span> (both 1-year and 5-year will use it until you set separate{' '}
-                <span className="font-mono">VITE_RAZORPAY_PLAN_ID_YEARLY</span> /{' '}
-                <span className="font-mono">FIVE_YEAR</span>). Restart the dev server after editing env.
-              </p>
+              <p>{t('payment.configHelpA')}</p>
+              <p>{t('payment.configHelpB')}</p>
             </div>
           ) : null}
 
@@ -197,10 +187,10 @@ export default function PaymentPage() {
               }
             >
               {busy ? <InlineLoader size={22} /> : <CreditCard size={18} aria-hidden />}
-              {busy ? 'Starting checkout…' : 'Pay with Razorpay'}
+              {busy ? t('payment.startingCheckout') : t('payment.payWithRazorpay')}
             </button>
             <Link to="/form" className="btn-secondary inline-flex min-h-10 items-center gap-2 px-5 py-2 text-sm">
-              <ArrowLeft size={18} /> Edit details
+              <ArrowLeft size={18} /> {t('payment.editDetails')}
             </Link>
           </div>
         </div>

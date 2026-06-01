@@ -1,7 +1,9 @@
 import ArchedOrgTitle from './ArchedOrgTitle.jsx';
 import anandpurLogo from '../assets/Shri_AnandpurDham_Logo.png';
+import { useTranslation } from '../i18n/LanguageContext.jsx';
 
 export default function DonationLayout({ subtitle, children }) {
+  const { t } = useTranslation();
   return (
     <div className="donation-page min-h-screen text-ink ps-[max(0px,env(safe-area-inset-left))] pe-[max(0px,env(safe-area-inset-right))]">
       <header className="donation-header relative z-[1] overflow-hidden px-3 pb-3 pt-4 text-center sm:px-4 sm:pb-4 sm:pt-6">
@@ -9,7 +11,7 @@ export default function DonationLayout({ subtitle, children }) {
           <span className="donation-mantra-flor select-none text-lg sm:text-xl md:text-2xl" aria-hidden>
             ✿
           </span>
-          <span>श्रीसद्गुरुदेवाय नमः</span>
+          <span>{t('layout.mantra')}</span>
           <span className="donation-mantra-flor select-none text-lg sm:text-xl md:text-2xl" aria-hidden>
             ✿
           </span>
@@ -23,7 +25,7 @@ export default function DonationLayout({ subtitle, children }) {
         <figure className="donation-seal relative z-[2] mx-auto -mt-1 flex justify-center sm:-mt-0.5">
           <img
             src={anandpurLogo}
-            alt="Shri Anandpur Dham — Shri Paramhans Advait Mat"
+            alt={t('layout.logoAlt')}
             className="h-auto w-[min(88vw,10.5rem)] object-contain drop-shadow-[0_6px_20px_rgba(15,80,40,0.2)] sm:w-[min(88vw,12.5rem)]"
             width={400}
             height={400}

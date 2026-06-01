@@ -12,6 +12,7 @@ import { clearPendingOtp, getPendingOtp, isUserAuthenticated, savePendingOtp, sa
 import { useSeo } from '../utils/seo.js';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import SubscriptionHeroVisual from '../components/SubscriptionHeroVisual.jsx';
+import { useTranslation } from '../i18n/LanguageContext.jsx';
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
@@ -24,6 +25,7 @@ function buildMaskedEmail(email) {
 }
 
 function AuthMarketingCard({ compact = false, showGif = true }) {
+  const { t } = useTranslation();
   return (
     <div
       className={`relative overflow-hidden rounded-2xl border border-white/25 bg-white/12 shadow-[0_24px_56px_-12px_rgba(6,13,26,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] ring-1 ring-white/10 backdrop-blur-xl ${
@@ -49,7 +51,7 @@ function AuthMarketingCard({ compact = false, showGif = true }) {
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/35 text-primary shadow-inner ring-1 ring-white/40 sm:h-8 sm:w-8">
               <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
             </span>
-            <span>Anand Sandesh — subscription portal</span>
+            <span>{t('auth.heroBadge')}</span>
           </div>
         </div>
         <h1
@@ -58,7 +60,7 @@ function AuthMarketingCard({ compact = false, showGif = true }) {
           }`}
         >
           <span className="bg-gradient-to-r from-[#041a33] via-[#0d2d7f] to-[#1e4a9e] bg-clip-text text-transparent">
-            Login and sign up
+            {t('auth.heroTitle')}
           </span>
         </h1>
         <div className="mt-5 flex gap-3 rounded-xl border border-white/25 bg-white/10 p-3.5 shadow-inner backdrop-blur-md sm:mt-6 sm:p-4">
@@ -66,8 +68,8 @@ function AuthMarketingCard({ compact = false, showGif = true }) {
             <MapPin className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={2.25} aria-hidden />
           </div>
           <p className="min-w-0 text-sm font-medium leading-relaxed text-slate-800 sm:text-base sm:leading-7">
-            Anand Sandesh Karyale, Shri Anandpur Dham, Post Office Shri Anandpur,{' '}
-            <span className="whitespace-nowrap font-semibold tabular-nums text-slate-900">473331</span>
+            {t('auth.heroAddress')}{' '}
+            <span className="whitespace-nowrap font-semibold tabular-nums text-slate-900">{t('auth.heroPin')}</span>
           </p>
         </div>
         {showGif ? (
@@ -90,6 +92,7 @@ export default function AuthPage() {
     canonical: 'https://anandsandeshkaryalay.online/'
   });
 
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const otpRefs = useRef([]);
   const [mode, setMode] = useState('signup');
@@ -179,12 +182,12 @@ export default function AuthPage() {
 
   function validateBeforeSendOtp() {
     if (!form.email.trim()) {
-      setError('Please enter your email address.');
+      setError(t('auth.errors.emailRequired'));
       return false;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      setError('Please enter a valid email address.');
+      setError(t('auth.errors.emailInvalid'));
       return false;
     }
 
@@ -192,15 +195,15 @@ export default function AuthPage() {
 
     if (mode === 'signup') {
       if (!form.fullName.trim()) {
-        setError('Please enter your full name to create your account.');
+        setError(t('auth.errors.nameRequired'));
         return false;
       }
       if (form.password.trim().length < 6) {
-        setError('Password must be at least 6 characters.');
+        setError(t('auth.errors.passwordTooShort'));
         return false;
       }
       if (form.password !== form.confirmPassword) {
-        setError('Passwords do not match.');
+        setError(t('auth.errors.passwordsMismatch'));
         return false;
       }
     }
@@ -235,7 +238,10 @@ export default function AuthPage() {
     setStep('otp');
     setResendIn(RESEND_SECONDS);
     resetOtpBoxes();
-    setStatus(data.message || `A 6-digit verification code has been sent to ${buildMaskedEmail(email)}.`);
+    setStatus(
+      data.message ||
+        t('auth.otpSentMessage', { email: buildMaskedEmail(email) })
+    );
   }
 
   async function handleSendOtp(event) {
@@ -261,15 +267,15 @@ export default function AuthPage() {
     setStatus('');
 
     if (!form.email.trim()) {
-      setError('Please enter your email address.');
+      setError(t('auth.errors.emailRequired'));
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      setError('Please enter a valid email address.');
+      setError(t('auth.errors.emailInvalid'));
       return;
     }
     if (!form.password.trim()) {
-      setError('Please enter your password.');
+      setError(t('auth.errors.passwordRequired'));
       return;
     }
 
@@ -313,15 +319,15 @@ export default function AuthPage() {
 
     const enteredOtp = otpValues.join('');
     if (enteredOtp.length !== OTP_LENGTH) {
-      setError('Please enter the complete 6-digit OTP.');
+      setError(t('auth.errors.otpIncomplete'));
       return;
     }
     if (form.newPassword.trim().length < 6) {
-      setError('New password must be at least 6 characters.');
+      setError(t('auth.errors.newPasswordTooShort'));
       return;
     }
     if (form.newPassword !== form.confirmNewPassword) {
-      setError('New passwords do not match.');
+      setError(t('auth.errors.newPasswordsMismatch'));
       return;
     }
 
@@ -332,7 +338,7 @@ export default function AuthPage() {
         otp: enteredOtp,
         newPassword: form.newPassword.trim()
       });
-      setStatus('Password reset successful. Sign in with your new password.');
+      setStatus(t('auth.passwordResetSuccess'));
       clearPendingOtp();
       setFlow('normal');
       setLoginTab('password');
@@ -400,7 +406,7 @@ export default function AuthPage() {
 
     const enteredOtp = otpValues.join('');
     if (enteredOtp.length !== OTP_LENGTH) {
-      setError('Please enter the complete 6-digit OTP.');
+      setError(t('auth.errors.otpIncomplete'));
       return;
     }
 
@@ -491,11 +497,15 @@ export default function AuthPage() {
       (mode === 'signup' || flow === 'forgot' || (mode === 'login' && loginTab === 'otp')));
 
   const cardTitle =
-    flow === 'forgot' ? 'Reset password' : mode === 'signup' ? 'Create account' : 'Welcome back';
+    flow === 'forgot'
+      ? t('auth.cardTitleReset')
+      : mode === 'signup'
+        ? t('auth.cardTitleSignup')
+        : t('auth.cardTitleLogin');
 
   return (
     <main className="auth-page min-h-screen overflow-x-hidden px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 lg:px-8">
-      {isLoggingIn ? <LoadingBlock label="Signing you in…" /> : null}
+      {isLoggingIn ? <LoadingBlock label={t('loaders.signingIn')} /> : null}
       <div className="auth-grid mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-7xl items-stretch overflow-x-hidden rounded-2xl border border-white/20 bg-white/10 shadow-[0_32px_120px_rgba(6,13,26,0.45)] backdrop-blur-2xl sm:min-h-[calc(100vh-2.5rem)] sm:rounded-[2rem]">
         <section className="auth-hero relative hidden flex-1 flex-col overflow-hidden px-6 py-8 text-[#0d2d7f] md:flex md:justify-between lg:px-8 lg:py-10 xl:px-12">
           <div className="auth-hero-glow" aria-hidden />
@@ -520,7 +530,7 @@ export default function AuthPage() {
             <div className="rounded-[2rem] border border-white/25 bg-white/15 p-5 shadow-[0_18px_50px_rgba(6,13,26,0.28)] ring-1 ring-white/15 backdrop-blur-xl sm:p-7">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-600">Welcome</p>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-600">{t('auth.welcomeEyebrow')}</p>
                   <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-slate-900">{cardTitle}</h2>
                 </div>
                 <div className="rounded-2xl bg-white/25 p-3 text-primary ring-1 ring-white/35 backdrop-blur-sm">
@@ -542,7 +552,7 @@ export default function AuthPage() {
                     }}
                     className="text-sm font-semibold text-primary transition hover:text-slate-900"
                   >
-                    ← Back to sign in
+                    {t('auth.backToSignIn')}
                   </button>
                 </div>
               ) : (
@@ -553,14 +563,14 @@ export default function AuthPage() {
                       onClick={() => switchMode('signup')}
                       className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${mode === 'signup' ? 'bg-white/45 text-slate-900 shadow-sm ring-1 ring-white/40 backdrop-blur-sm' : 'text-slate-600 hover:text-slate-900'}`}
                     >
-                      Sign up
+                      {t('auth.tabSignup')}
                     </button>
                     <button
                       type="button"
                       onClick={() => switchMode('login')}
                       className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${mode === 'login' ? 'bg-white/45 text-slate-900 shadow-sm ring-1 ring-white/40 backdrop-blur-sm' : 'text-slate-600 hover:text-slate-900'}`}
                     >
-                      Login
+                      {t('auth.tabLogin')}
                     </button>
                   </div>
 
@@ -571,14 +581,14 @@ export default function AuthPage() {
                         onClick={() => selectLoginTab('otp')}
                         className={`rounded-2xl px-3 py-2.5 text-xs font-bold transition sm:text-sm ${loginTab === 'otp' ? 'bg-white/45 text-slate-900 shadow-sm ring-1 ring-white/40 backdrop-blur-sm' : 'text-slate-600 hover:text-slate-900'}`}
                       >
-                        Email OTP
+                        {t('auth.tabOtp')}
                       </button>
                       <button
                         type="button"
                         onClick={() => selectLoginTab('password')}
                         className={`rounded-2xl px-3 py-2.5 text-xs font-bold transition sm:text-sm ${loginTab === 'password' ? 'bg-white/45 text-slate-900 shadow-sm ring-1 ring-white/40 backdrop-blur-sm' : 'text-slate-600 hover:text-slate-900'}`}
                       >
-                        Password
+                        {t('auth.tabPassword')}
                       </button>
                     </div>
                   ) : null}
@@ -605,23 +615,23 @@ export default function AuthPage() {
                 mode === 'login' && loginTab === 'password' && flow === 'normal' ? (
                   <form className="mt-6 space-y-4" onSubmit={handlePasswordLogin}>
                     <label className="block">
-                      <span className="auth-label">Email address</span>
+                      <span className="auth-label">{t('auth.labelEmail')}</span>
                       <input
                         className="auth-input"
                         type="email"
-                        placeholder="name@example.com"
+                        placeholder={t('auth.placeholderEmail')}
                         value={form.email}
                         onChange={(event) => updateField('email', event.target.value)}
                         autoComplete="email"
                       />
                     </label>
                     <label className="block">
-                      <span className="auth-label">Password</span>
+                      <span className="auth-label">{t('auth.labelPassword')}</span>
                       <div className="relative">
                         <input
                           className="auth-input pr-12"
                           type={visiblePasswords.password ? 'text' : 'password'}
-                          placeholder="Enter your password"
+                          placeholder={t('auth.placeholderPasswordLogin')}
                           value={form.password}
                           onChange={(event) => updateField('password', event.target.value)}
                           autoComplete="current-password"
@@ -630,7 +640,7 @@ export default function AuthPage() {
                           type="button"
                           onClick={() => togglePasswordVisibility('password')}
                           className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-600 transition hover:text-slate-900"
-                          aria-label={visiblePasswords.password ? 'Hide password' : 'Show password'}
+                          aria-label={visiblePasswords.password ? t('auth.togglePasswordHide') : t('auth.togglePasswordShow')}
                         >
                           {visiblePasswords.password ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
@@ -650,7 +660,7 @@ export default function AuthPage() {
                         }}
                         className="text-sm font-semibold text-[#234d36] underline-offset-2 transition hover:text-[#17311f] hover:underline"
                       >
-                        Forgot password?
+                        {t('auth.forgotPassword')}
                       </button>
                     </div>
 
@@ -659,7 +669,7 @@ export default function AuthPage() {
 
                     <button className="auth-primary-btn w-full" type="submit" disabled={isLoggingIn}>
                       {isLoggingIn ? <InlineLoader size={22} /> : null}
-                      {isLoggingIn ? 'Signing in...' : 'Sign in'}
+                      {isLoggingIn ? t('auth.signingIn') : t('auth.signIn')}
                       {!isLoggingIn ? <ArrowRight size={18} aria-hidden /> : null}
                     </button>
                   </form>
@@ -668,34 +678,34 @@ export default function AuthPage() {
                     {mode === 'signup' ? (
                       <>
                         <label className="block">
-                          <span className="auth-label">Full name</span>
+                          <span className="auth-label">{t('auth.labelFullName')}</span>
                           <input
                             className="auth-input"
                             type="text"
-                            placeholder="Enter your full name"
+                            placeholder={t('auth.placeholderFullName')}
                             value={form.fullName}
                             onChange={(event) => updateField('fullName', event.target.value)}
                             autoComplete="name"
                           />
                         </label>
                         <label className="block">
-                          <span className="auth-label">Email address</span>
+                          <span className="auth-label">{t('auth.labelEmail')}</span>
                           <input
                             className="auth-input"
                             type="email"
-                            placeholder="name@example.com"
+                            placeholder={t('auth.placeholderEmail')}
                             value={form.email}
                             onChange={(event) => updateField('email', event.target.value)}
                             autoComplete="email"
                           />
                         </label>
                         <label className="block">
-                          <span className="auth-label">Password</span>
+                          <span className="auth-label">{t('auth.labelPassword')}</span>
                           <div className="relative">
                             <input
                               className="auth-input pr-12"
                               type={visiblePasswords.password ? 'text' : 'password'}
-                              placeholder="At least 6 characters"
+                              placeholder={t('auth.placeholderPasswordSignup')}
                               value={form.password}
                               onChange={(event) => updateField('password', event.target.value)}
                               autoComplete="new-password"
@@ -704,19 +714,19 @@ export default function AuthPage() {
                               type="button"
                               onClick={() => togglePasswordVisibility('password')}
                               className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-600 transition hover:text-slate-900"
-                              aria-label={visiblePasswords.password ? 'Hide password' : 'Show password'}
+                              aria-label={visiblePasswords.password ? t('auth.togglePasswordHide') : t('auth.togglePasswordShow')}
                             >
                               {visiblePasswords.password ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
                           </div>
                         </label>
                         <label className="block">
-                          <span className="auth-label">Confirm password</span>
+                          <span className="auth-label">{t('auth.labelConfirmPassword')}</span>
                           <div className="relative">
                             <input
                               className="auth-input pr-12"
                               type={visiblePasswords.confirmPassword ? 'text' : 'password'}
-                              placeholder="Re-enter your password"
+                              placeholder={t('auth.placeholderConfirmPassword')}
                               value={form.confirmPassword}
                               onChange={(event) => updateField('confirmPassword', event.target.value)}
                               autoComplete="new-password"
@@ -725,7 +735,7 @@ export default function AuthPage() {
                               type="button"
                               onClick={() => togglePasswordVisibility('confirmPassword')}
                               className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-600 transition hover:text-slate-900"
-                              aria-label={visiblePasswords.confirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                              aria-label={visiblePasswords.confirmPassword ? t('auth.toggleConfirmHide') : t('auth.toggleConfirmShow')}
                             >
                               {visiblePasswords.confirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
@@ -734,11 +744,11 @@ export default function AuthPage() {
                       </>
                     ) : (
                       <label className="block">
-                        <span className="auth-label">Email address</span>
+                        <span className="auth-label">{t('auth.labelEmail')}</span>
                         <input
                           className="auth-input"
                           type="email"
-                          placeholder="name@example.com"
+                          placeholder={t('auth.placeholderEmail')}
                           value={form.email}
                           onChange={(event) => updateField('email', event.target.value)}
                           autoComplete="email"
@@ -752,19 +762,19 @@ export default function AuthPage() {
                     <button className="auth-primary-btn w-full" type="submit" disabled={isSendingOtp}>
                       {isSendingOtp ? <InlineLoader size={22} /> : null}
                       {isSendingOtp
-                        ? 'Sending OTP...'
+                        ? t('auth.sendingOtp')
                         : flow === 'forgot'
-                          ? 'Send reset code'
-                          : 'Continue with email OTP'}
+                          ? t('auth.sendResetCode')
+                          : t('auth.continueWithOtp')}
                       {!isSendingOtp ? <ArrowRight size={18} aria-hidden /> : null}
                     </button>
 
                     <p className="text-center text-sm text-[#6b806f]">
                       {flow === 'forgot'
-                        ? 'We will email a one-time code to set a new password.'
+                        ? t('auth.forgotHelp')
                         : mode === 'signup'
-                          ? 'A one-time OTP verifies your email and activates your account. You can sign in with this password later.'
-                          : 'A one-time 6-digit code will be sent to your email.'}
+                          ? t('auth.signupHelp')
+                          : t('auth.loginHelp')}
                     </p>
                   </form>
                 )
@@ -772,16 +782,17 @@ export default function AuthPage() {
                 <form className="mt-6" onSubmit={handleResetPassword}>
                   <div className="rounded-3xl border border-[#dfeadd] bg-[#f6faf2] p-4">
                     <p className="text-sm font-semibold text-[#1b4f35]">
-                      Enter the OTP sent to {buildMaskedEmail(form.email.trim().toLowerCase())}
+                      {t('auth.otpSentTo', { email: buildMaskedEmail(form.email.trim().toLowerCase()) })}
                     </p>
                     {devOtp ? (
                       <p className="mt-2 text-sm leading-6 text-[#5d7364]">
-                        SMTP is not configured yet, so use development OTP{' '}
-                        <span className="font-black text-[#17311f]">{devOtp}</span>.
+                        {t('auth.smtpDevHelper').split('{otp}')[0]}
+                        <span className="font-black text-[#17311f]">{devOtp}</span>
+                        {t('auth.smtpDevHelper').split('{otp}')[1] || ''}
                       </p>
                     ) : (
                       <p className="mt-2 text-sm leading-6 text-[#5d7364]">
-                        Then choose a new password below.
+                        {t('auth.chooseNewPassword')}
                       </p>
                     )}
                   </div>
@@ -800,18 +811,18 @@ export default function AuthPage() {
                         onChange={(event) => handleOtpChange(index, event.target.value)}
                         onKeyDown={(event) => handleOtpKeyDown(index, event)}
                         onPaste={handleOtpPaste}
-                        aria-label={`OTP digit ${index + 1}`}
+                        aria-label={t('auth.otpDigitAria', { n: index + 1 })}
                       />
                     ))}
                   </div>
 
                   <label className="mt-5 block">
-                    <span className="auth-label">New password</span>
+                    <span className="auth-label">{t('auth.labelNewPassword')}</span>
                     <div className="relative">
                       <input
                         className="auth-input pr-12"
                         type={visiblePasswords.newPassword ? 'text' : 'password'}
-                        placeholder="At least 6 characters"
+                        placeholder={t('auth.placeholderNewPassword')}
                         value={form.newPassword}
                         onChange={(event) => updateField('newPassword', event.target.value)}
                         autoComplete="new-password"
@@ -820,19 +831,19 @@ export default function AuthPage() {
                         type="button"
                         onClick={() => togglePasswordVisibility('newPassword')}
                         className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-600 transition hover:text-slate-900"
-                        aria-label={visiblePasswords.newPassword ? 'Hide new password' : 'Show new password'}
+                        aria-label={visiblePasswords.newPassword ? t('auth.toggleNewHide') : t('auth.toggleNewShow')}
                       >
                         {visiblePasswords.newPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
                   </label>
                   <label className="mt-3 block">
-                    <span className="auth-label">Confirm new password</span>
+                    <span className="auth-label">{t('auth.labelConfirmNewPassword')}</span>
                     <div className="relative">
                       <input
                         className="auth-input pr-12"
                         type={visiblePasswords.confirmNewPassword ? 'text' : 'password'}
-                        placeholder="Re-enter new password"
+                        placeholder={t('auth.placeholderConfirmNewPassword')}
                         value={form.confirmNewPassword}
                         onChange={(event) => updateField('confirmNewPassword', event.target.value)}
                         autoComplete="new-password"
@@ -841,7 +852,7 @@ export default function AuthPage() {
                         type="button"
                         onClick={() => togglePasswordVisibility('confirmNewPassword')}
                         className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-600 transition hover:text-slate-900"
-                        aria-label={visiblePasswords.confirmNewPassword ? 'Hide confirm new password' : 'Show confirm new password'}
+                        aria-label={visiblePasswords.confirmNewPassword ? t('auth.toggleConfirmNewHide') : t('auth.toggleConfirmNewShow')}
                       >
                         {visiblePasswords.confirmNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
@@ -857,7 +868,7 @@ export default function AuthPage() {
                     disabled={isResettingPassword}
                   >
                     {isResettingPassword ? <InlineLoader size={22} /> : null}
-                    {isResettingPassword ? 'Updating...' : 'Update password'}
+                    {isResettingPassword ? t('auth.updating') : t('auth.updatePassword')}
                     {!isResettingPassword ? <ChevronRight size={18} aria-hidden /> : null}
                   </button>
 
@@ -871,7 +882,7 @@ export default function AuthPage() {
                       }}
                       className="font-semibold text-[#234d36] transition hover:text-[#17311f]"
                     >
-                      Change email
+                      {t('common.changeEmail')}
                     </button>
 
                     <button
@@ -881,7 +892,11 @@ export default function AuthPage() {
                       className="inline-flex items-center gap-2 font-semibold text-[#234d36] transition hover:text-[#17311f] disabled:cursor-not-allowed disabled:text-[#97aa9b]"
                     >
                       {isSendingOtp ? <InlineLoader size={18} /> : null}
-                      {resendIn > 0 ? `Resend in ${resendIn}s` : isSendingOtp ? 'Sending...' : 'Resend OTP'}
+                      {resendIn > 0
+                        ? t('common.resendIn', { seconds: resendIn })
+                        : isSendingOtp
+                          ? t('common.sending')
+                          : t('common.resendOtp')}
                     </button>
                   </div>
                 </form>
@@ -889,16 +904,17 @@ export default function AuthPage() {
                 <form className="mt-6" onSubmit={handleVerifyOtp}>
                   <div className="rounded-3xl border border-[#dfeadd] bg-[#f6faf2] p-4">
                     <p className="text-sm font-semibold text-[#1b4f35]">
-                      Enter the OTP sent to {buildMaskedEmail(form.email.trim().toLowerCase())}
+                      {t('auth.otpSentTo', { email: buildMaskedEmail(form.email.trim().toLowerCase()) })}
                     </p>
                     {devOtp ? (
                       <p className="mt-2 text-sm leading-6 text-[#5d7364]">
-                        SMTP is not configured yet, so use development OTP{' '}
-                        <span className="font-black text-[#17311f]">{devOtp}</span>.
+                        {t('auth.smtpDevHelper').split('{otp}')[0]}
+                        <span className="font-black text-[#17311f]">{devOtp}</span>
+                        {t('auth.smtpDevHelper').split('{otp}')[1] || ''}
                       </p>
                     ) : (
                       <p className="mt-2 text-sm leading-6 text-[#5d7364]">
-                        Check your inbox and enter the 6-digit code to continue.
+                        {t('auth.checkInbox')}
                       </p>
                     )}
                   </div>
@@ -917,7 +933,7 @@ export default function AuthPage() {
                         onChange={(event) => handleOtpChange(index, event.target.value)}
                         onKeyDown={(event) => handleOtpKeyDown(index, event)}
                         onPaste={handleOtpPaste}
-                        aria-label={`OTP digit ${index + 1}`}
+                        aria-label={t('auth.otpDigitAria', { n: index + 1 })}
                       />
                     ))}
                   </div>
@@ -927,7 +943,7 @@ export default function AuthPage() {
 
                   <button className="auth-primary-btn mt-5 w-full" type="submit" disabled={isVerifyingOtp}>
                     {isVerifyingOtp ? <InlineLoader size={22} /> : null}
-                    {isVerifyingOtp ? 'Verifying...' : 'Verify and continue'}
+                    {isVerifyingOtp ? t('auth.verifying') : t('auth.verifyAndContinue')}
                     {!isVerifyingOtp ? <ChevronRight size={18} aria-hidden /> : null}
                   </button>
 
@@ -941,7 +957,7 @@ export default function AuthPage() {
                       }}
                       className="font-semibold text-[#234d36] transition hover:text-[#17311f]"
                     >
-                      Change email
+                      {t('common.changeEmail')}
                     </button>
 
                     <button
@@ -951,13 +967,17 @@ export default function AuthPage() {
                       className="inline-flex items-center gap-2 font-semibold text-[#234d36] transition hover:text-[#17311f] disabled:cursor-not-allowed disabled:text-[#97aa9b]"
                     >
                       {isSendingOtp ? <InlineLoader size={18} /> : null}
-                      {resendIn > 0 ? `Resend in ${resendIn}s` : isSendingOtp ? 'Sending...' : 'Resend OTP'}
+                      {resendIn > 0
+                        ? t('common.resendIn', { seconds: resendIn })
+                        : isSendingOtp
+                          ? t('common.sending')
+                          : t('common.resendOtp')}
                     </button>
                   </div>
 
                   <div className="mt-5 flex items-center gap-2 rounded-2xl bg-[#f7f8f7] px-4 py-3 text-sm text-[#5b7060]">
                     <CheckCircle2 size={18} className="text-[#2c7b49]" />
-                    After OTP verification you can use this password to sign in next time.
+                    {t('auth.afterOtpHint')}
                   </div>
                 </form>
               )}

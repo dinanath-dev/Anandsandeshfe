@@ -9,19 +9,24 @@ import {
   claimLegacyForm,
   getCurrentUser,
   getMyFormSubmission,
-  lookupLegacyFormByMobile
+  lookupLegacyForm
 } from '../services/api.js';
 import { clearPendingOtp, clearUserAuth, getUserAuth } from '../utils/auth.js';
 import { formatSubmissionAddress } from '../utils/formatSubmissionAddress.js';
 import { maskEmail, maskPhone } from '../utils/maskContact.js';
-
-const LEGACY_LOOKUP_TOOLTIP =
-  'If you subscribed offline, enter the same 10-digit mobile number from your paper form. We show your saved address so you can confirm it and link it to this login.';
+import { useTranslation } from '../i18n/LanguageContext.jsx';
 
 function normalizeMobile10(value) {
   const d = String(value ?? '').replace(/\D/g, '');
   if (d.length === 11 && d.startsWith('0')) return d.slice(1);
   return d.length === 10 ? d : '';
+}
+
+function normalizeSubscriberNo(value) {
+  const d = String(value ?? '').replace(/\D/g, '');
+  if (!d) return '';
+  const n = Number(d);
+  return Number.isInteger(n) && n > 0 ? d : '';
 }
 
 function submissionLooksEmpty(sub) {
@@ -33,14 +38,19 @@ function submissionLooksEmpty(sub) {
 }
 
 /** Backend may return privacy-safe hints instead of a full `submission`. */
-function matchSummaryToAddressPreview(m) {
+function matchSummaryToAddressPreview(m, pinHintTemplate) {
   if (!m || typeof m !== 'object') return '';
   const town = String(m.town || '').trim();
   const district = String(m.district || '').trim();
   const loc = [town, district].filter(Boolean);
   const rawPin = m.pinLast4 != null ? String(m.pinLast4).trim() : '';
   const last4 = rawPin.replace(/\D/g, '').slice(-4);
-  const pinHint = last4.length === 4 ? `PIN ending in ${last4}` : '';
+  const pinHint =
+    last4.length === 4
+      ? typeof pinHintTemplate === 'string'
+        ? pinHintTemplate.replace('{last4}', last4)
+        : `PIN ending in ${last4}`
+      : '';
   return [loc.join(', '), pinHint].filter(Boolean).join(' · ') || '—';
 }
 
@@ -64,55 +74,42 @@ function claimFieldString(value) {
 }
 
 export default function ProfileOverviewPage() {
+  const { t } = useTranslation();
+  const LEGACY_LOOKUP_TOOLTIP = t('profile.lookupTooltip');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [linkedSubmission, setLinkedSubmission] = useState(null);
-  const [phoneDisplay, setPhoneDisplay] = useState('');
-  const [emailDisplay, setEmailDisplay] = useState('');
-  const [addressText, setAddressText] = useState('');
 
-  const [legacyMobile, setLegacyMobile] = useState('');
+  const [searchMode, setSearchMode] = useState('mobile');
+  const [legacyQuery, setLegacyQuery] = useState('');
+  /** Confirms claim with the same mobile or subscriber no used in search. */
+  const [lastSearch, setLastSearch] = useState(null);
   const [legacyLoading, setLegacyLoading] = useState(false);
   const [legacyError, setLegacyError] = useState('');
   const [legacyPreview, setLegacyPreview] = useState(null);
   const [claimLoading, setClaimLoading] = useState(false);
   const [claimInfo, setClaimInfo] = useState('');
 
-  const applyServerProfile = useCallback((user, submission, fallbackEmail) => {
+  const applyServerProfile = useCallback((_user, submission) => {
     setLinkedSubmission(submission || null);
-    const rawMobile = String(submission?.mobile || user?.mobile || '').trim();
-    const rawEmail = String(submission?.email || user?.email || fallbackEmail).trim();
-    setPhoneDisplay(rawMobile ? maskPhone(rawMobile) : '');
-    setEmailDisplay(rawEmail ? maskEmail(rawEmail) : '');
-    setAddressText(formatSubmissionAddress(submission));
   }, []);
 
   const refreshProfile = useCallback(async () => {
-    const auth = getUserAuth();
-    const fallbackEmail = auth?.user?.email?.trim() || '';
     const [meRes, subRes] = await Promise.all([getCurrentUser(), getMyFormSubmission()]);
-    const user = meRes?.user;
-    const submission = subRes?.submission;
-    applyServerProfile(user, submission, fallbackEmail);
+    applyServerProfile(meRes?.user, subRes?.submission);
   }, [applyServerProfile]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      const auth = getUserAuth();
-      const fallbackEmail = auth?.user?.email?.trim() || '';
-
       try {
         const [meRes, subRes] = await Promise.all([getCurrentUser(), getMyFormSubmission()]);
         if (cancelled) return;
-        applyServerProfile(meRes?.user, subRes?.submission, fallbackEmail);
+        applyServerProfile(meRes?.user, subRes?.submission);
       } catch {
         if (cancelled) return;
         setLinkedSubmission(null);
-        setPhoneDisplay('');
-        setEmailDisplay(fallbackEmail ? maskEmail(fallbackEmail) : '');
-        setAddressText('');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -124,10 +121,82 @@ export default function ProfileOverviewPage() {
     };
   }, [applyServerProfile]);
 
-  const legacyOpenDefault = useMemo(
-    () => submissionLooksEmpty(linkedSubmission),
+  const hasSavedProfile = useMemo(
+    () => !submissionLooksEmpty(linkedSubmission),
     [linkedSubmission]
   );
+
+  const selectedLegacyMatch =
+    legacyPreview?.type === 'matches' ? legacyPreview.matches[legacyPreview.selectedIndex] : null;
+
+  const pinHintTemplate = t('profile.pinEnding');
+
+  const awaitingClaim = Boolean(legacyPreview && !hasSavedProfile);
+
+  const showContactSection = hasSavedProfile || Boolean(legacyPreview);
+
+  const showSearchSection = !hasSavedProfile;
+
+  const contactDisplay = useMemo(() => {
+    if (hasSavedProfile && linkedSubmission) {
+      const rawMobile = String(linkedSubmission.mobile || linkedSubmission.phone || '').trim();
+      const rawEmail = String(linkedSubmission.email || '').trim();
+      return {
+        name: String(linkedSubmission.name || '').trim(),
+        subscriberNo:
+          linkedSubmission.subscriber_no != null
+            ? String(linkedSubmission.subscriber_no)
+            : '',
+        phone: rawMobile ? maskPhone(rawMobile) : '',
+        email: rawEmail ? maskEmail(rawEmail) : '',
+        address: formatSubmissionAddress(linkedSubmission)
+      };
+    }
+
+    if (legacyPreview?.type === 'submission' && legacyPreview.submission) {
+      const s = legacyPreview.submission;
+      const rawMobile = String(s.mobile || s.phone || '').trim();
+      const rawEmail = String(s.email || '').trim();
+      return {
+        name: String(s.name || '').trim(),
+        subscriberNo: s.subscriber_no != null ? String(s.subscriber_no) : '',
+        phone: rawMobile ? maskPhone(rawMobile) : '',
+        email: rawEmail ? maskEmail(rawEmail) : '',
+        address: formatSubmissionAddress(s)
+      };
+    }
+
+    if (legacyPreview?.type === 'matches' && selectedLegacyMatch) {
+      return {
+        name: String(selectedLegacyMatch.nameMasked || '').trim(),
+        subscriberNo:
+          selectedLegacyMatch.subscriberNo != null
+            ? String(selectedLegacyMatch.subscriberNo)
+            : lastSearch?.mode === 'subscriber' && lastSearch.subscriberNo
+              ? String(lastSearch.subscriberNo)
+              : '',
+        phone: (() => {
+          const fromRow = selectedLegacyMatch?.phoneMasked;
+          if (fromRow) return String(fromRow);
+          if (lastSearch?.mode === 'mobile' && lastSearch.mobile) return maskPhone(lastSearch.mobile);
+          return '';
+        })(),
+        email: selectedLegacyMatch.emailMasked
+          ? String(selectedLegacyMatch.emailMasked)
+          : '',
+        address: matchSummaryToAddressPreview(selectedLegacyMatch, pinHintTemplate)
+      };
+    }
+
+    return null;
+  }, [
+    hasSavedProfile,
+    linkedSubmission,
+    legacyPreview,
+    selectedLegacyMatch,
+    lastSearch,
+    pinHintTemplate
+  ]);
 
   function handleLogout() {
     clearUserAuth();
@@ -141,15 +210,26 @@ export default function ProfileOverviewPage() {
     setClaimInfo('');
     setLegacyPreview(null);
 
-    const mobile = normalizeMobile10(legacyMobile);
-    if (!mobile) {
-      setLegacyError('Enter the same 10-digit mobile number you used for your offline subscription.');
+    const mobile = searchMode === 'mobile' ? normalizeMobile10(legacyQuery) : '';
+    const subscriberNo = searchMode === 'subscriber' ? normalizeSubscriberNo(legacyQuery) : '';
+
+    if (searchMode === 'mobile' && !mobile) {
+      setLegacyError(t('profile.errors.mobileRequired'));
+      return;
+    }
+    if (searchMode === 'subscriber' && !subscriberNo) {
+      setLegacyError(t('profile.errors.subscriberRequired'));
       return;
     }
 
     setLegacyLoading(true);
     try {
-      const data = await lookupLegacyFormByMobile({ mobile });
+      const data = await lookupLegacyForm(
+        searchMode === 'mobile' ? { mobile } : { subscriber_no: subscriberNo }
+      );
+      setLastSearch(
+        searchMode === 'mobile' ? { mode: 'mobile', mobile } : { mode: 'subscriber', subscriberNo }
+      );
       const sub = data?.submission;
       const rawMatches = data?.matches;
       const matches = Array.isArray(rawMatches)
@@ -166,23 +246,25 @@ export default function ProfileOverviewPage() {
         return;
       }
 
-      setLegacyError('No offline record found for this mobile. Check the number or contact support.');
+      setLegacyError(t('profile.errors.notFound'));
     } catch (err) {
-      setLegacyError(err.message || 'Could not search. Please try again.');
+      setLegacyError(err.message || t('profile.errors.searchFailed'));
     } finally {
       setLegacyLoading(false);
     }
   }
 
   async function handleClaimLegacy() {
-    const mobile = normalizeMobile10(legacyMobile);
-    if (!mobile || !legacyPreview) return;
+    if (!legacyPreview || !lastSearch) return;
 
     setClaimInfo('');
     setLegacyError('');
     setClaimLoading(true);
     try {
-      const payload = { mobile: String(mobile) };
+      const payload =
+        lastSearch.mode === 'mobile'
+          ? { mobile: String(lastSearch.mobile) }
+          : { subscriber_no: String(lastSearch.subscriberNo) };
       if (legacyPreview.type === 'matches') {
         const m = legacyPreview.matches[legacyPreview.selectedIndex];
         const key = claimFieldString(m?.legacyClaimKey);
@@ -195,97 +277,103 @@ export default function ProfileOverviewPage() {
       await claimLegacyForm(payload);
       await refreshProfile();
       setLegacyPreview(null);
-      setLegacyMobile('');
-      setClaimInfo('Your offline record is now linked to this account. You can continue to the form to pay or update details.');
+      setLegacyQuery('');
+      setLastSearch(null);
+      setClaimInfo(t('profile.claimSuccess'));
     } catch (err) {
-      setLegacyError(err.message || 'Could not link this record. Please try again.');
+      setLegacyError(err.message || t('profile.errors.claimFailed'));
     } finally {
       setClaimLoading(false);
     }
   }
 
-  const selectedLegacyMatch =
-    legacyPreview?.type === 'matches' ? legacyPreview.matches[legacyPreview.selectedIndex] : null;
-
-  const legacyAddressPreview =
-    legacyPreview?.type === 'submission'
-      ? formatSubmissionAddress(legacyPreview.submission)
-      : selectedLegacyMatch
-        ? matchSummaryToAddressPreview(selectedLegacyMatch)
-        : '';
-
-  const legacyNamePreview =
-    legacyPreview?.type === 'submission'
-      ? String(legacyPreview.submission.name || '').trim()
-      : selectedLegacyMatch
-        ? String(selectedLegacyMatch.nameMasked || '').trim()
-        : '';
-
-  const legacyEmailPreview =
-    legacyPreview?.type === 'submission'
-      ? maskEmail(String(legacyPreview.submission.email || '').trim())
-      : selectedLegacyMatch?.emailMasked
-        ? String(selectedLegacyMatch.emailMasked)
-        : '—';
-
-  const legacySubscriberHint =
-    selectedLegacyMatch?.subscriberNo != null
-      ? String(selectedLegacyMatch.subscriberNo)
-      : legacyPreview?.type === 'submission' && legacyPreview.submission?.subscriber_no != null
-        ? String(legacyPreview.submission.subscriber_no)
-        : '';
-
   return (
-    <DonationLayout subtitle="Your contact details on file">
-      {legacyLoading ? <LoadingBlock label="Searching records..." /> : null}
+    <DonationLayout subtitle={t('profile.subtitle')}>
+      {legacyLoading ? <LoadingBlock label={t('loaders.searchingRecords')} /> : null}
       <button
         type="button"
         className="btn-secondary fixed right-3 top-[max(6.5rem,env(safe-area-inset-top)+5.25rem)] z-[60] inline-flex min-h-10 items-center gap-2 whitespace-nowrap px-3 py-2 text-sm font-semibold shadow-md sm:right-6 sm:top-5 sm:px-4"
         onClick={handleLogout}
       >
-        <LogOut size={18} aria-hidden /> Log out
+        <LogOut size={18} aria-hidden /> {t('common.logout')}
       </button>
 
       <div className="donation-form-shell w-full px-1 py-2 sm:px-3 sm:py-3">
         {loading ? (
-          <LoadingBlock label="Loading your details…" />
+          <LoadingBlock label={t('loaders.loadingDetails')} />
         ) : (
           <div className="donation-form">
-            <p className="donation-form-banner mb-1 text-center text-sm text-muted sm:text-left">
-              Phone and email are partially hidden. You can review or update the full values on the next screen.
-            </p>
-
-            <div className="donation-form-banner mt-3 w-full text-center sm:text-left">
+            {showSearchSection ? (
+            <div className="donation-form-banner w-full text-center sm:text-left">
               <div className="rounded-2xl border border-[#0d2d7f]/20 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(244,248,255,0.92))] p-3 shadow-[0_10px_30px_-18px_rgba(13,45,127,0.45)] sm:p-4">
                 <div className="flex w-full flex-row items-start justify-center gap-2 sm:justify-start sm:gap-3">
-                  <details className="min-w-0 w-full max-w-xl sm:max-w-none sm:flex-1" defaultOpen={legacyOpenDefault}>
-                    <summary className="cursor-pointer list-none outline-none [&::-webkit-details-marker]:hidden focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[rgba(255,255,255,0.85)]">
-                      <span className="inline-flex w-full min-h-12 items-center justify-center rounded-xl border border-[#0d2d7f]/25 bg-white px-4 py-2.5 text-center text-sm font-bold text-[#0d2d7f] shadow-sm transition hover:border-[#0d2d7f]/40 hover:bg-[#f6f9ff] sm:justify-start sm:text-left">
-                        Subscribed offline before? Find your record by mobile
-                      </span>
-                    </summary>
+                  <div className="min-w-0 w-full max-w-xl sm:max-w-none sm:flex-1">
+                    <p className="inline-flex w-full min-h-12 items-center justify-center rounded-xl border border-[#0d2d7f]/25 bg-white px-4 py-2.5 text-center text-sm font-bold text-[#0d2d7f] shadow-sm sm:justify-start sm:text-left">
+                      {t('profile.offlineToggle')}
+                    </p>
                     <p className="mt-3 rounded-xl border border-[#0d2d7f]/10 bg-white/75 px-3 py-2.5 text-left text-sm leading-relaxed text-muted">
-                      If you used a different email before or are new to this website, your details may still be in our
-                      database from the offline process. Enter the <strong>mobile number</strong> from your old form-we
-                      will show the saved <strong>address</strong> so you can confirm it is yours, then link it to this
-                      login.
+                      {t('profile.offlineHelp')}
                     </p>
 
                     <form onSubmit={handleLegacySearch} className="mt-3 rounded-xl border border-[#0d2d7f]/12 bg-white/80 p-3 sm:p-4">
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
+                            searchMode === 'mobile'
+                              ? 'border-[#0d2d7f] bg-[#0d2d7f] text-white'
+                              : 'border-[#0d2d7f]/25 bg-white text-[#0d2d7f]'
+                          }`}
+                          onClick={() => {
+                            setSearchMode('mobile');
+                            setLegacyQuery('');
+                            setLegacyPreview(null);
+                            setLegacyError('');
+                          }}
+                        >
+                          {t('profile.searchByMobile')}
+                        </button>
+                        <button
+                          type="button"
+                          className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
+                            searchMode === 'subscriber'
+                              ? 'border-[#0d2d7f] bg-[#0d2d7f] text-white'
+                              : 'border-[#0d2d7f]/25 bg-white text-[#0d2d7f]'
+                          }`}
+                          onClick={() => {
+                            setSearchMode('subscriber');
+                            setLegacyQuery('');
+                            setLegacyPreview(null);
+                            setLegacyError('');
+                          }}
+                        >
+                          {t('profile.searchBySubscriber')}
+                        </button>
+                      </div>
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                         <div className="w-full sm:flex-1">
-                          <label htmlFor="po-legacy-mobile" className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted">
-                            Search mobile
+                          <label htmlFor="po-legacy-query" className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted">
+                            {searchMode === 'mobile'
+                              ? t('profile.labelSearchMobile')
+                              : t('profile.labelSearchSubscriber')}
                           </label>
                           <input
-                            id="po-legacy-mobile"
+                            id="po-legacy-query"
                             className="donation-input !rounded-lg"
                             inputMode="numeric"
-                            maxLength={10}
-                            autoComplete="tel"
-                            placeholder="10-digit number"
-                            value={legacyMobile}
-                            onChange={(e) => setLegacyMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                            maxLength={searchMode === 'mobile' ? 10 : 12}
+                            autoComplete="off"
+                            placeholder={
+                              searchMode === 'mobile'
+                                ? t('profile.placeholderSearchMobile')
+                                : t('profile.placeholderSearchSubscriber')
+                            }
+                            value={legacyQuery}
+                            onChange={(e) =>
+                              setLegacyQuery(
+                                e.target.value.replace(/\D/g, '').slice(0, searchMode === 'mobile' ? 10 : 12)
+                              )
+                            }
                           />
                         </div>
                         <button
@@ -294,7 +382,7 @@ export default function ProfileOverviewPage() {
                           className="btn-secondary inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2 text-sm font-semibold sm:min-w-[11rem]"
                         >
                           {legacyLoading ? <InlineLoader size={20} /> : <Search size={18} aria-hidden />}
-                          {legacyLoading ? 'Searching…' : 'Search database'}
+                          {legacyLoading ? t('profile.searching') : t('profile.searchDatabase')}
                         </button>
                       </div>
                     </form>
@@ -310,72 +398,38 @@ export default function ProfileOverviewPage() {
                       </div>
                     ) : null}
 
-                    {legacyPreview ? (
-                      <div className="mt-4 rounded-xl border border-[#0d2d7f]/20 bg-white px-3 py-3 shadow-[0_10px_28px_-22px_rgba(13,45,127,0.55)] sm:px-4">
-                        <p className="text-xs font-bold uppercase tracking-wide text-[#234d36]">Record found - confirm by address</p>
-                        {legacyPreview.type === 'matches' && legacyPreview.matches.length > 1 ? (
-                          <div className="mt-2">
-                            <label htmlFor="po-legacy-pick" className="text-xs font-semibold text-muted">
-                              Several records share this number - pick the one that matches you
-                            </label>
-                            <select
-                              id="po-legacy-pick"
-                              className="donation-input mt-1 max-w-full !rounded-lg"
-                              value={legacyPreview.selectedIndex}
-                              onChange={(e) =>
-                                setLegacyPreview((prev) =>
-                                  prev?.type === 'matches'
-                                    ? { ...prev, selectedIndex: Number(e.target.value) }
-                                    : prev
-                                )
-                              }
-                            >
-                            {legacyPreview.matches.map((m, i) => (
-                              <option key={`${m.rowId ?? i}-${m.legacyClaimKey ?? ''}`} value={i}>
-                                {String(m.nameMasked || 'Record').trim()} · Sub. {m.subscriberNo ?? '-'} ·{' '}
-                                {matchSummaryToAddressPreview(m)}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      ) : null}
-                        {legacyNamePreview ? (
-                          <p className="mt-2 text-sm">
-                            <span className="font-semibold text-ink">Name on file:</span> {legacyNamePreview}
-                          </p>
-                        ) : null}
-                        {legacySubscriberHint ? (
-                          <p className="mt-2 text-sm">
-                            <span className="font-semibold text-ink">Subscriber no. (hint):</span> {legacySubscriberHint}
-                          </p>
-                        ) : null}
-                        <p className="mt-2 text-sm">
-                          <span className="font-semibold text-ink">Email on file (masked):</span>{' '}
-                          {legacyEmailPreview || '-'}
-                        </p>
-                        <p className="mt-2 text-sm font-semibold text-ink">Address on file</p>
-                        <pre className="mt-1 whitespace-pre-wrap rounded-lg bg-[#f7f9fd] px-2.5 py-2 font-sans text-sm leading-relaxed text-ink/90">
-                          {legacyAddressPreview || '-'}
-                        </pre>
-                        <div className="donation-form-actions !pb-0 !pt-3">
-                          <button
-                            type="button"
-                            disabled={claimLoading}
-                            onClick={handleClaimLegacy}
-                            className="btn-primary donation-form-submit-btn !min-h-10 inline-flex !items-center !justify-center !gap-2 !px-6 !py-2 !text-sm font-semibold"
-                          >
-                            {claimLoading ? <InlineLoader size={20} /> : null}
-                            {claimLoading ? 'Linking…' : 'This is my record — link to my account'}
-                          </button>
-                        </div>
+                    {legacyPreview?.type === 'matches' && legacyPreview.matches.length > 1 ? (
+                      <div className="mt-4 rounded-xl border border-[#0d2d7f]/12 bg-white/90 px-3 py-3 sm:px-4">
+                        <label htmlFor="po-legacy-pick" className="text-xs font-semibold text-muted">
+                          {t('profile.pickRecord')}
+                        </label>
+                        <select
+                          id="po-legacy-pick"
+                          className="donation-input mt-1 max-w-full !rounded-lg"
+                          value={legacyPreview.selectedIndex}
+                          onChange={(e) =>
+                            setLegacyPreview((prev) =>
+                              prev?.type === 'matches'
+                                ? { ...prev, selectedIndex: Number(e.target.value) }
+                                : prev
+                            )
+                          }
+                        >
+                          {legacyPreview.matches.map((m, i) => (
+                            <option key={`${m.rowId ?? i}-${m.legacyClaimKey ?? ''}`} value={i}>
+                              {String(m.nameMasked || t('profile.record')).trim()} · {t('profile.sub')}{' '}
+                              {m.subscriberNo ?? '-'} · {matchSummaryToAddressPreview(m, pinHintTemplate)}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     ) : null}
-                  </details>
+                  </div>
                   <div className="group/icon relative shrink-0 pt-0.5">
                   <span
                     tabIndex={0}
                     className="inline-flex h-11 w-11 cursor-help items-center justify-center rounded-lg border border-[#0d2d7f]/25 bg-white text-primary shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2"
-                    aria-label="About offline subscription lookup"
+                    aria-label={t('profile.tooltipAria')}
                     aria-describedby="po-legacy-tooltip"
                     title={LEGACY_LOOKUP_TOOLTIP}
                   >
@@ -392,47 +446,94 @@ export default function ProfileOverviewPage() {
                 </div>
               </div>
             </div>
+            ) : null}
 
-            <DonationFormRow label="Mobile number" labelFor="po-mobile">
-              <input
-                id="po-mobile"
-                className="donation-input donation-input--readonly-subscriber"
-                value={phoneDisplay || '— Not on file yet —'}
-                readOnly
-                autoComplete="off"
-                aria-label="Mobile number (masked)"
-              />
-            </DonationFormRow>
+            {showContactSection && contactDisplay ? (
+              <>
+                <p className="donation-form-banner mb-1 mt-4 text-center text-sm text-muted sm:text-left">
+                  {awaitingClaim ? t('profile.recordFound') : t('profile.bannerMaskedHelp')}
+                </p>
 
-            <DonationFormRow label="Email" labelFor="po-email">
-              <input
-                id="po-email"
-                type="text"
-                className="donation-input donation-input--readonly-subscriber"
-                value={emailDisplay || '— Not on file yet —'}
-                readOnly
-                autoComplete="off"
-                aria-label="Email (masked)"
-              />
-            </DonationFormRow>
+                {contactDisplay.name ? (
+                  <DonationFormRow label={t('profile.nameLabel')} labelFor="po-name">
+                    <input
+                      id="po-name"
+                      className="donation-input donation-input--readonly-subscriber"
+                      value={contactDisplay.name}
+                      readOnly
+                      autoComplete="off"
+                    />
+                  </DonationFormRow>
+                ) : null}
 
-            <DonationFormRow label="Address" labelFor="po-address">
-              <textarea
-                id="po-address"
-                className="donation-input donation-input--readonly-subscriber min-h-[7rem]"
-                value={addressText || '— No saved address yet —'}
-                readOnly
-                rows={6}
-                aria-label="Postal address"
-              />
-            </DonationFormRow>
+                {contactDisplay.subscriberNo ? (
+                  <DonationFormRow label={t('profile.subscriberNoLabel')} labelFor="po-subscriber">
+                    <input
+                      id="po-subscriber"
+                      className="donation-input donation-input--readonly-subscriber"
+                      value={contactDisplay.subscriberNo}
+                      readOnly
+                      autoComplete="off"
+                    />
+                  </DonationFormRow>
+                ) : null}
+
+                <DonationFormRow label={t('profile.mobileLabel')} labelFor="po-mobile">
+                  <input
+                    id="po-mobile"
+                    className="donation-input donation-input--readonly-subscriber"
+                    value={contactDisplay.phone || t('profile.notOnFile')}
+                    readOnly
+                    autoComplete="off"
+                    aria-label={t('profile.mobileAria')}
+                  />
+                </DonationFormRow>
+
+                <DonationFormRow label={t('profile.emailLabel')} labelFor="po-email">
+                  <input
+                    id="po-email"
+                    type="text"
+                    className="donation-input donation-input--readonly-subscriber"
+                    value={contactDisplay.email || t('profile.notOnFile')}
+                    readOnly
+                    autoComplete="off"
+                    aria-label={t('profile.emailAria')}
+                  />
+                </DonationFormRow>
+
+                <DonationFormRow label={t('profile.addressLabel')} labelFor="po-address">
+                  <textarea
+                    id="po-address"
+                    className="donation-input donation-input--readonly-subscriber min-h-[7rem]"
+                    value={contactDisplay.address || t('profile.noSavedAddress')}
+                    readOnly
+                    rows={6}
+                    aria-label={t('profile.addressAria')}
+                  />
+                </DonationFormRow>
+
+                {awaitingClaim ? (
+                  <div className="donation-form-actions !pt-0">
+                    <button
+                      type="button"
+                      disabled={claimLoading}
+                      onClick={handleClaimLegacy}
+                      className="btn-primary donation-form-submit-btn !min-h-10 inline-flex !items-center !justify-center !gap-2 !px-6 !py-2 !text-sm font-semibold"
+                    >
+                      {claimLoading ? <InlineLoader size={20} /> : null}
+                      {claimLoading ? t('profile.linking') : t('profile.linkRecord')}
+                    </button>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
 
             <div className="donation-form-actions">
               <Link
                 to="/form"
                 className="btn-primary donation-form-submit-btn !min-h-10 inline-flex items-center justify-center gap-2 !px-8 !py-2 !text-sm font-semibold sm:!text-[0.9375rem]"
               >
-                Continue to subscription form <ArrowRight size={18} aria-hidden />
+                {t('profile.continueToForm')} <ArrowRight size={18} aria-hidden />
               </Link>
             </div>
           </div>

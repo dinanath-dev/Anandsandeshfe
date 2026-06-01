@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import LanguageToggle from './components/LanguageToggle.jsx';
 import { LoadingBlock } from './components/Loader.jsx';
+import { useTranslation } from './i18n/LanguageContext.jsx';
 import { isUserAuthenticated } from './utils/auth.js';
 
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
@@ -19,9 +21,12 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
+  const { t } = useTranslation();
   return (
-    <Suspense fallback={<LoadingBlock label="Loading page..." />}>
-      <Routes>
+    <>
+      <LanguageToggle />
+      <Suspense fallback={<LoadingBlock label={t('loaders.loadingPage')} />}>
+        <Routes>
         <Route path="/" element={<AuthPage />} />
         <Route
           path="/profile"
@@ -58,6 +63,7 @@ export default function App() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </Suspense>
+      </Suspense>
+    </>
   );
 }
