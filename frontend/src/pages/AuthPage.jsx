@@ -11,6 +11,7 @@ import {
 import { clearPendingOtp, getPendingOtp, isUserAuthenticated, savePendingOtp, saveUserAuth } from '../utils/auth.js';
 import { useSeo } from '../utils/seo.js';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
+import PublicSeoIntro from '../components/PublicSeoIntro.jsx';
 import SubscriptionHeroVisual from '../components/SubscriptionHeroVisual.jsx';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 
@@ -86,9 +87,9 @@ function AuthMarketingCard({ compact = false, showGif = true }) {
 
 export default function AuthPage() {
   useSeo({
-    title: 'Anand Sandesh Karyalay — Shri Anandpur Dham Subscription Portal',
+    title: 'Official Anand Sandesh Karyalay | Subscribe Online — Shri Anandpur Dham',
     description:
-      'Official Anand Sandesh (anandsandesh) subscription portal — Anand Sandesh Karyalay, Shri Anandpur Dham. Subscribe to the magazine and manage your membership online.',
+      'Official Anand Sandesh (anand sandesh) magazine subscription — Anand Sandesh Karyalay, Shri Anandpur Dham, 473331. Monthly Hindi & English. Subscribe at anandsandeshkaryalay.online.',
     canonical: 'https://anandsandeshkaryalay.online/'
   });
 
@@ -506,6 +507,7 @@ export default function AuthPage() {
   return (
     <main className="auth-page min-h-screen overflow-x-hidden px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 lg:px-8">
       {isLoggingIn ? <LoadingBlock label={t('loaders.signingIn')} /> : null}
+      <PublicSeoIntro />
       <div className="auth-grid mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-7xl items-stretch overflow-x-hidden rounded-2xl border border-white/20 bg-white/10 shadow-[0_32px_120px_rgba(6,13,26,0.45)] backdrop-blur-2xl sm:min-h-[calc(100vh-2.5rem)] sm:rounded-[2rem]">
         <section className="auth-hero relative hidden flex-1 flex-col overflow-hidden px-6 py-8 text-[#0d2d7f] md:flex md:justify-between lg:px-8 lg:py-10 xl:px-12">
           <div className="auth-hero-glow" aria-hidden />

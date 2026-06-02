@@ -107,6 +107,16 @@ export default function AboutPage() {
         </section>
 
         <section
+          className="rounded-2xl border border-primary/15 bg-primary/5 p-6 shadow-soft sm:p-8"
+          aria-labelledby="about-official-site"
+        >
+          <h2 id="about-official-site" className="text-lg font-bold text-ink sm:text-xl">
+            {t('about.officialSiteHeading')}
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-muted sm:text-base">{t('about.officialSiteBody')}</p>
+        </section>
+
+        <section
           id="contact"
           className="rounded-2xl border border-white/40 bg-white/90 p-6 shadow-soft backdrop-blur-sm sm:p-8"
           aria-labelledby="about-contact"

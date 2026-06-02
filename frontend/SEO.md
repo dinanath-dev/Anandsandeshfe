@@ -183,3 +183,32 @@ After deploying to your real domain, validate with:
 
 There is no faster path. Anyone promising "instant #1 ranking" is selling
 something fake.
+
+---
+
+## Your official domain only
+
+The **only** official website for Anand Sandesh Karyalay subscription is:
+
+**https://anandsandeshkaryalay.online**
+
+Other domains that use similar words (for example `.in` blogs) are **not**
+affiliated with Shri Paramhans Advait Mat Publication Society. Do not link to
+them from your site.
+
+For generic searches like "anand sandesh", Google may show unrelated older
+sites first. Focus on queries that match **your** name and purpose:
+
+- `anand sandesh karyalay`
+- `anandsandeshkaryalay online`
+- `anand sandesh subscription shri anandpur`
+
+### What helps **your** site rank
+
+| Action | Why |
+| --- | --- |
+| **Google Search Console** for `anandsandeshkaryalay.online` | Required before Google lists you |
+| **Google Business Profile** — Anand Sandesh Karyalay, Shri Anandpur Dham | Local + brand name |
+| **Magazine + office** print `anandsandeshkaryalay.online` | Trust and backlinks |
+| **Visible H1** on homepage (`PublicSeoIntro`) | States official karyalay portal |
+| **About page** (`/about`) | Indexable text about the magazine |

@@ -315,6 +315,16 @@ export const translations = {
       submitAnother: 'Submit another'
     },
 
+    seo: {
+      officialBadge: 'Official subscription portal',
+      homeH1: 'Anand Sandesh Karyalay — Anand Sandesh magazine subscription',
+      homeLead:
+        'Subscribe to the Anand Sandesh (आनंद संदेश) monthly spiritual magazine in Hindi and English. Published by Shri Paramhans Advait Mat Publication Society from Shri Anandpur Dham, Madhya Pradesh.',
+      homePublisher:
+        'Address: Anand Sandesh Karyalay, Shri Anandpur Dham, Post Office Shri Anandpur — 473331, India.',
+      officialDomain: 'Official website: anandsandeshkaryalay.online'
+    },
+
     about: {
       eyebrow: 'Shri Anandpur Dham',
       pageTitle: 'About Anand Sandesh',
@@ -353,6 +363,9 @@ export const translations = {
       addressRegion: 'Madhya Pradesh, India',
       contactNote:
         'For subscription enquiries, visit Anand Sandesh Karyalay at the address above or use this website to register and manage your membership.',
+      officialSiteHeading: 'Official website only',
+      officialSiteBody:
+        'anandsandeshkaryalay.online is the official online portal of Anand Sandesh Karyalay, Shri Anandpur Dham — for magazine subscription, membership, and delivery. Other websites using a similar name are not affiliated with Shri Paramhans Advait Mat Publication Society.',
       backHome: 'Back to subscription portal',
       footerLink: 'About Anand Sandesh'
     },
@@ -708,6 +721,16 @@ export const translations = {
       submitAnother: 'एक और जमा करें'
     },
 
+    seo: {
+      officialBadge: 'आधिकारिक सदस्यता पोर्टल',
+      homeH1: 'आनंद संदेश कार्यालय — आनंद संदेश पत्रिका सदस्यता',
+      homeLead:
+        'हिन्दी और अंग्रेज़ी में आनंद संदेश (Anand Sandesh) मासिक आध्यात्मिक पत्रिका की सदस्यता लें। श्री परमहंस अद्वैत मत प्रकाशन सोसायटी, श्री आनंदपुर धाम, मध्य प्रदेश से प्रकाशित।',
+      homePublisher:
+        'पता: आनंद संदेश कार्यालय, श्री आनंदपुर धाम, पोस्ट ऑफिस श्री आनंदपुर — 473331, भारत।',
+      officialDomain: 'आधिकारिक वेबसाइट: anandsandeshkaryalay.online'
+    },
+
     about: {
       eyebrow: 'श्री आनंदपुर धाम',
       pageTitle: 'आनंद संदेश के बारे में',
@@ -746,6 +769,9 @@ export const translations = {
       addressRegion: 'मध्य प्रदेश, भारत',
       contactNote:
         'सदस्यता संबंधी पूछताछ के लिए उपरोक्त पते पर आनंद संदेश कार्यालय पर आएँ या इस वेबसाइट पर पंजीकरण और सदस्यता प्रबंधन करें।',
+      officialSiteHeading: 'केवल आधिकारिक वेबसाइट',
+      officialSiteBody:
+        'anandsandeshkaryalay.online आनंद संदेश कार्यालय, श्री आनंदपुर धाम की आधिकारिक ऑनलाइन साइट है — पत्रिका सदस्यता, सदस्यता प्रबंधन और डिलीवरी के लिए। समान नाम वाली अन्य वेबसाइटें श्री परमहंस अद्वैत मत प्रकाशन सोसायटी से संबद्ध नहीं हैं।',
       backHome: 'सदस्यता पोर्टल पर वापस जाएँ',
       footerLink: 'आनंद संदेश के बारे में'
     },
