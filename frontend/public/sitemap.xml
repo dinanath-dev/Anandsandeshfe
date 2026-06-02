@@ -9,7 +9,7 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://anandsandeshkaryalay.online/</loc>
-    <lastmod>2026-04-30</lastmod>
+    <lastmod>2026-06-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://anandsandeshkaryalay.online/" />
@@ -17,21 +17,36 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://anandsandeshkaryalay.online/" />
   </url>
   <url>
+    <loc>https://anandsandeshkaryalay.online/about</loc>
+    <lastmod>2026-06-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://anandsandeshkaryalay.online/about" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://anandsandeshkaryalay.online/about" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://anandsandeshkaryalay.online/about" />
+  </url>
+  <url>
     <loc>https://anandsandeshkaryalay.online/profile</loc>
-    <lastmod>2026-04-30</lastmod>
+    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://anandsandeshkaryalay.online/form</loc>
-    <lastmod>2026-04-30</lastmod>
+    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://anandsandeshkaryalay.online/payment</loc>
-    <lastmod>2026-04-30</lastmod>
+    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://anandsandeshkaryalay.online/success</loc>
+    <lastmod>2026-06-02</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>

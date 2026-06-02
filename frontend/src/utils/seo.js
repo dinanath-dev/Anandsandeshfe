@@ -13,10 +13,11 @@ import { useEffect } from 'react';
  *   useSeo({
  *     title: 'Subscribe — Anand Sandesh Karyalay',
  *     description: 'Subscribe to the Anand Sandesh magazine in a few clicks.',
- *     canonical: 'https://anandsandeshkaryalay.online/form'
+ *     canonical: 'https://anandsandeshkaryalay.online/form',
+ *     noindex: false
  *   });
  */
-export function useSeo({ title, description, canonical } = {}) {
+export function useSeo({ title, description, canonical, noindex = false } = {}) {
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
 
@@ -67,6 +68,9 @@ export function useSeo({ title, description, canonical } = {}) {
     const ogDesc = setProperty('og:description', description);
     const ogUrl = setProperty('og:url', canonical);
     const canon = setCanonical(canonical);
+    const robots = noindex
+      ? setMeta('robots', 'noindex, nofollow')
+      : null;
 
     return () => {
       document.title = previousTitle;
@@ -75,6 +79,7 @@ export function useSeo({ title, description, canonical } = {}) {
       if (ogDesc?.previous != null) ogDesc.tag.setAttribute('content', ogDesc.previous);
       if (ogUrl?.previous != null) ogUrl.tag.setAttribute('content', ogUrl.previous);
       if (canon?.previous != null) canon.link.setAttribute('href', canon.previous);
+      if (robots?.previous != null) robots.tag.setAttribute('content', robots.previous);
     };
-  }, [title, description, canonical]);
+  }, [title, description, canonical, noindex]);
 }

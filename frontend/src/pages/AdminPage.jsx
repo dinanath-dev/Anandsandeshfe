@@ -5,6 +5,7 @@ import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import { adminLogin, getSubmissions, verifySubmission } from '../services/api.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useSeo } from '../utils/seo.js';
 
 function formatSubmissionAddress(item) {
   const line = [
@@ -26,6 +27,13 @@ function formatSubmissionAddress(item) {
 }
 
 export default function AdminPage() {
+  useSeo({
+    title: 'Admin — Anand Sandesh Karyalay',
+    description: 'Staff administration for Anand Sandesh Karyalay subscriptions.',
+    canonical: 'https://anandsandeshkaryalay.online/admin',
+    noindex: true
+  });
+
   const { t } = useTranslation();
   const FILTER_LABELS = {
     all: t('admin.filterAll'),

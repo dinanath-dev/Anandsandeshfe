@@ -315,6 +315,48 @@ export const translations = {
       submitAnother: 'Submit another'
     },
 
+    about: {
+      eyebrow: 'Shri Anandpur Dham',
+      pageTitle: 'About Anand Sandesh',
+      pageSubtitle: 'Monthly spiritual magazine — Hindi & English',
+      intro:
+        'Anand Sandesh (आनंद संदेश, anandsandesh) is the beloved monthly magazine of Shri Paramhans Advait Mat. Readers across India and abroad receive spiritual articles, satsang, and teachings rooted in Indian philosophy and devotion.',
+      publisherHeading: 'Publisher',
+      publisherBody:
+        'Anand Sandesh and related publications are published by the Shri Paramhans Advait Mat Publication Society from Shri Anandpur Dham, serving seekers with authentic spiritual literature.',
+      magazineHeading: 'The Anand Sandesh Monthly Magazine',
+      magazineBody:
+        'Anand Sandesh is published every month as a printed magazine. Each issue brings readers closer to the path of satsang and inner peace through essays, serial chapters, and devotional writings.',
+      magazinePoint1: 'Available in Hindi and English editions.',
+      magazinePoint2:
+        'Topics include spirituality, Indian philosophy, devotion (bhakti), satsang, and practical guidance for daily life.',
+      magazinePoint3:
+        'Distributed from Anand Sandesh Karyalay at Shri Anandpur Dham to subscribers across India and worldwide.',
+      booksHeading: 'Other Spiritual Books & Publications',
+      booksBody:
+        'In addition to the monthly Anand Sandesh magazine, the Publication Society offers other books and literature related to spirituality, satsang, and the teachings of Shri Paramhans Advait Mat, including:',
+      books: {
+        item1: 'Spiritual discourses and satsang literature.',
+        item2: 'Books on devotion, meditation, and Indian philosophy.',
+        item3: 'Hindi and English publications for seekers and families.',
+        item4: 'Periodic special editions and related spiritual titles.'
+      },
+      subscribeHeading: 'Online Subscription',
+      subscribeBody:
+        'Subscribe to Anand Sandesh through this official portal — create an account, complete your details, and pay securely online for yearly or multi-year membership.',
+      subscribeCta: 'Subscribe to Anand Sandesh online',
+      contactHeading: 'Contact & Address',
+      addressName: 'Anand Sandesh Karyalay',
+      addressLine1: 'Shri Anandpur Dham',
+      addressLine2: 'Post Office Shri Anandpur',
+      addressPin: '473331',
+      addressRegion: 'Madhya Pradesh, India',
+      contactNote:
+        'For subscription enquiries, visit Anand Sandesh Karyalay at the address above or use this website to register and manage your membership.',
+      backHome: 'Back to subscription portal',
+      footerLink: 'About Anand Sandesh'
+    },
+
     admin: {
       loginTitle: 'Admin Login',
       loginSubtitle:
@@ -664,6 +706,48 @@ export const translations = {
       submissionReceivedDesc:
         'आपका विवरण लंबित स्थिति के साथ सहेज लिया गया है। एक प्रशासक आपकी प्रविष्टि और अपलोड किए गए दस्तावेज़ की समीक्षा कर सकता है।',
       submitAnother: 'एक और जमा करें'
+    },
+
+    about: {
+      eyebrow: 'श्री आनंदपुर धाम',
+      pageTitle: 'आनंद संदेश के बारे में',
+      pageSubtitle: 'मासिक आध्यात्मिक पत्रिका — हिन्दी और अंग्रेज़ी',
+      intro:
+        'आनंद संदेश (Anand Sandesh, anandsandesh) श्री परमहंस अद्वैत मत की प्रिय मासिक पत्रिका है। पूरे भारत और विदेश में पाठक आध्यात्म, सत्संग और भारतीय दर्शन पर आधारित लेख पढ़ते हैं।',
+      publisherHeading: 'प्रकाशक',
+      publisherBody:
+        'आनंद संदेश और संबंधित प्रकाशन श्री परमहंस अद्वैत मत प्रकाशन सोसायटी, श्री आनंदपुर धाम से प्रकाशित होते हैं — साधकों को प्रामाणिक आध्यात्मिक साहित्य से जोड़ने के लिए।',
+      magazineHeading: 'आनंद संदेश मासिक पत्रिका',
+      magazineBody:
+        'आनंद संदेश प्रत्येक माह मुद्रित पत्रिका के रूप में प्रकाशित होती है। प्रत्येक अंक में सत्संग, भक्ति और आंतरिक शांति के मार्ग पर लेख, धारावाहिक अध्याय और भक्तिमय लेखन होते हैं।',
+      magazinePoint1: 'हिन्दी और अंग्रेज़ी संस्करण में उपलब्ध।',
+      magazinePoint2:
+        'विषयों में आध्यात्म, भारतीय दर्शन, भक्ति, सत्संग और दैनिक जीवन के लिए मार्गदर्शन शामिल हैं।',
+      magazinePoint3:
+        'श्री आनंदपुर धाम स्थित आनंद संदेश कार्यालय से भारत और विश्व भर के सदस्यों तक वितरण।',
+      booksHeading: 'अन्य आध्यात्मिक पुस्तकें और प्रकाशन',
+      booksBody:
+        'मासिक आनंद संदेश पत्रिका के अतिरिक्त, प्रकाशन सोसायटी आध्यात्म, सत्संग और श्री परमहंस अद्वैत मत की शिक्षाओं से संबंधित अन्य पुस्तकें और साहित्य भी प्रदान करती है, जिनमें शामिल हैं:',
+      books: {
+        item1: 'आध्यात्मिक प्रवचन और सत्संग साहित्य।',
+        item2: 'भक्ति, ध्यान और भारतीय दर्शन पर पुस्तकें।',
+        item3: 'साधकों और परिवारों के लिए हिन्दी और अंग्रेज़ी प्रकाशन।',
+        item4: 'विशेष संस्करण और संबंधित आध्यात्मिक शीर्षक।'
+      },
+      subscribeHeading: 'ऑनलाइन सदस्यता',
+      subscribeBody:
+        'इस आधिकारिक पोर्टल के माध्यम से आनंद संदेश की सदस्यता लें — खाता बनाएँ, विवरण भरें, और वार्षिक या बहु-वर्षीय सदस्यता के लिए सुरक्षित ऑनलाइन भुगतान करें।',
+      subscribeCta: 'आनंद संदेश की ऑनलाइन सदस्यता लें',
+      contactHeading: 'संपर्क और पता',
+      addressName: 'आनंद संदेश कार्यालय',
+      addressLine1: 'श्री आनंदपुर धाम',
+      addressLine2: 'पोस्ट ऑफिस श्री आनंदपुर',
+      addressPin: '473331',
+      addressRegion: 'मध्य प्रदेश, भारत',
+      contactNote:
+        'सदस्यता संबंधी पूछताछ के लिए उपरोक्त पते पर आनंद संदेश कार्यालय पर आएँ या इस वेबसाइट पर पंजीकरण और सदस्यता प्रबंधन करें।',
+      backHome: 'सदस्यता पोर्टल पर वापस जाएँ',
+      footerLink: 'आनंद संदेश के बारे में'
     },
 
     admin: {

@@ -11,6 +11,7 @@ const ProfileOverviewPage = lazy(() => import('./pages/ProfileOverviewPage.jsx')
 const PaymentPage = lazy(() => import('./pages/PaymentPage.jsx'));
 const SuccessPage = lazy(() => import('./pages/SuccessPage.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
+const AboutPage = lazy(() => import('./pages/AboutPage.jsx'));
 
 function ProtectedRoute({ children }) {
   if (!isUserAuthenticated()) {
@@ -28,6 +29,7 @@ export default function App() {
       <Suspense fallback={<LoadingBlock label={t('loaders.loadingPage')} />}>
         <Routes>
         <Route path="/" element={<AuthPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route
           path="/profile"
           element={(

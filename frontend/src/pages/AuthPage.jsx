@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, CheckCircle2, ChevronRight, Eye, EyeOff, Mail, MapPin, Sparkles } from 'lucide-react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import {
   getCurrentUser,
   loginWithPassword,
@@ -88,7 +88,7 @@ export default function AuthPage() {
   useSeo({
     title: 'Anand Sandesh Karyalay — Shri Anandpur Dham Subscription Portal',
     description:
-      'Official subscription portal of Anand Sandesh Karyalay, Shri Anandpur Dham. Subscribe to the Anand Sandesh magazine and manage your membership online.',
+      'Official Anand Sandesh (anandsandesh) subscription portal — Anand Sandesh Karyalay, Shri Anandpur Dham. Subscribe to the magazine and manage your membership online.',
     canonical: 'https://anandsandeshkaryalay.online/'
   });
 
@@ -985,6 +985,15 @@ export default function AuthPage() {
           </div>
         </section>
       </div>
+
+      <footer className="auth-footer relative z-[1] mx-auto mt-6 max-w-6xl px-1 text-center text-sm">
+        <Link
+          to="/about"
+          className="font-semibold text-white/90 underline decoration-white/40 underline-offset-4 transition hover:text-white hover:decoration-white"
+        >
+          {t('about.footerLink')}
+        </Link>
+      </footer>
     </main>
   );
 }

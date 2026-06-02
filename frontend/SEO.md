@@ -2,7 +2,8 @@
 
 This document explains everything that has been added to the codebase for SEO,
 **and the manual steps you must do** so that searching for **"anandsandeshkarlay"**
-on Google / Bing actually shows your site at the top.
+on Google / Bing actually shows your site at the top (including searches for
+**anandsandesh**, **anand sandesh**, and common misspellings like **anandsandeshkarlay**).
 
 > **Reality check first**
 > A code change alone will *never* put a brand-new website at #1. Google ranks
@@ -23,7 +24,13 @@ on Google / Bing actually shows your site at the top.
 | `public/site.webmanifest` | PWA manifest — lets Google show your logo/colors in mobile search and lets users "install" the site. |
 | `public/logo.png` | Logo copied here so `/logo.png` is reachable from the public root (used by Open Graph, Twitter card, manifest, favicon). |
 | `src/utils/seo.js` | `useSeo({ title, description, canonical })` hook so each page can set its own title/description. |
-| `src/pages/AuthPage.jsx` | Uses `useSeo` to set the homepage title/description after React mounts. |
+| `src/pages/AboutPage.jsx` | Public **About** page (magazine, publisher, books, address) — high priority for Google indexing. |
+| `src/pages/AuthPage.jsx` | Homepage `useSeo` (includes **anandsandesh** / **anand sandesh** in description). Link to `/about` in footer. |
+| `src/pages/FormPage.jsx` | Subscription form route SEO. |
+| `src/pages/ProfileOverviewPage.jsx` | Profile route SEO. |
+| `src/pages/PaymentPage.jsx` | Payment route SEO. |
+| `src/pages/SuccessPage.jsx` | Confirmation route SEO. |
+| `src/pages/AdminPage.jsx` | Admin route SEO with `noindex` (not for public search). |
 
 ### Domain (already set)
 
@@ -94,21 +101,20 @@ linking to you. Do these:
 4. Mention the website on every Anand Sandesh magazine printed copy, every
    email, every social media bio. Each public mention is a signal.
 
-### Step 5 — Add real, indexable content
+### Step 5 — Public About page (DONE)
 
-A login-only portal has *very little* for Google to read. Add a small public
-section (no login required) with:
+The public page **`/about`** describes:
 
-- An "About Anand Sandesh Karyalay" page describing the magazine.
-- A "Contact" page with the address, phone, email.
-- A "Subscription Plans" page describing the yearly / 5-yearly options.
+- Anand Sandesh monthly magazine (Hindi & English)
+- Shri Paramhans Advait Mat Publication Society
+- Other spiritual books
+- Full address at Shri Anandpur Dham
 
-These pages give Google something to rank. Each should:
+It is listed in `public/sitemap.xml` with priority `0.9`. After deploy, request
+indexing for `https://anandsandeshkaryalay.online/about` in Search Console.
 
-- Have its own `<title>` and `<meta description>` via `useSeo(...)`.
-- Mention "Anand Sandesh", "Anand Sandesh Karyalay", "Shri Anandpur Dham"
-  naturally in the headings and paragraphs.
-- Be added as a `<url>` entry in `public/sitemap.xml`.
+Optional later: a dedicated Contact page or Subscription Plans page (still
+useful, but `/about` covers the main SEO need).
 
 ### Step 6 — (Recommended) Add pre-rendering
 

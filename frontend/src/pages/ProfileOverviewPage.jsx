@@ -15,6 +15,7 @@ import { clearPendingOtp, clearUserAuth, getUserAuth } from '../utils/auth.js';
 import { formatSubmissionAddress } from '../utils/formatSubmissionAddress.js';
 import { maskEmail, maskPhone } from '../utils/maskContact.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useSeo } from '../utils/seo.js';
 
 function normalizeMobile10(value) {
   const d = String(value ?? '').replace(/\D/g, '');
@@ -74,6 +75,13 @@ function claimFieldString(value) {
 }
 
 export default function ProfileOverviewPage() {
+  useSeo({
+    title: 'My Profile — Anand Sandesh Karyalay | anandsandesh',
+    description:
+      'View and manage your Anand Sandesh magazine subscription profile at Anand Sandesh Karyalay, Shri Anandpur Dham.',
+    canonical: 'https://anandsandeshkaryalay.online/profile'
+  });
+
   const { t } = useTranslation();
   const LEGACY_LOOKUP_TOOLTIP = t('profile.lookupTooltip');
   const navigate = useNavigate();

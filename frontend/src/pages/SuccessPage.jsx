@@ -1,8 +1,16 @@
 import { CheckCircle2, Home } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useSeo } from '../utils/seo.js';
 
 export default function SuccessPage() {
+  useSeo({
+    title: 'Subscription Confirmed — Anand Sandesh Karyalay',
+    description:
+      'Your Anand Sandesh (anandsandesh) magazine subscription at Shri Anandpur Dham has been received.',
+    canonical: 'https://anandsandeshkaryalay.online/success'
+  });
+
   const { t } = useTranslation();
   const { state } = useLocation();
   const paymentVerified = Boolean(state?.paymentVerified);

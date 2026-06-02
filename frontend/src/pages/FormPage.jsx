@@ -10,6 +10,7 @@ import { INDIAN_STATES } from '../data/indianStates.js';
 import { getCurrentUser, getMyFormSubmission, submitUserForm } from '../services/api.js';
 import { clearPendingOtp, clearUserAuth, getUserAuth } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useSeo } from '../utils/seo.js';
 
 /** Normalize API payment_status so verified subscriptions never show as “pending” in the UI. */
 function normalizePaymentStatus(raw) {
@@ -111,6 +112,13 @@ function submissionToFormState(sub) {
 }
 
 export default function FormPage() {
+  useSeo({
+    title: 'Subscribe — Anand Sandesh Karyalay | anandsandesh',
+    description:
+      'Complete your Anand Sandesh (anand sandesh) magazine subscription form at Shri Anandpur Dham — yearly or five-year plans.',
+    canonical: 'https://anandsandeshkaryalay.online/form'
+  });
+
   const { t } = useTranslation();
   const SUBSCRIPTION_LABELS = useMemo(
     () => ({ yearly: t('form.oneYear'), five_year: t('form.fiveYear') }),

@@ -7,6 +7,7 @@ import Alert from '../components/Alert.jsx';
 import { createSubscription, getCurrentUser, verifySubscriptionPayment } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useSeo } from '../utils/seo.js';
 
 function planConfigForType(subscriptionType) {
   const keyId = String(import.meta.env.VITE_RAZORPAY_KEY_ID || '').trim();
@@ -37,6 +38,13 @@ function userDisplayName(user) {
 }
 
 export default function PaymentPage() {
+  useSeo({
+    title: 'Payment — Anand Sandesh Karyalay | anandsandesh',
+    description:
+      'Secure online payment for your Anand Sandesh (anandsandesh) magazine subscription at Shri Anandpur Dham.',
+    canonical: 'https://anandsandeshkaryalay.online/payment'
+  });
+
   const { t } = useTranslation();
   const SUBSCRIPTION_LABELS = {
     yearly: t('payment.oneYear'),
