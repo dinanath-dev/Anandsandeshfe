@@ -269,6 +269,136 @@ textarea.donation-input.donation-input--address {
   cursor: not-allowed;
 }
 
+/* Book order page — card sections over background art */
+.book-order-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.book-order-card {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(13, 45, 127, 0.14);
+  background: rgba(255, 255, 255, 0.96);
+  padding: 1rem 1.1rem;
+  box-shadow: 0 4px 24px rgba(13, 45, 127, 0.08);
+  backdrop-filter: blur(6px);
+}
+
+@media (min-width: 640px) {
+  .book-order-card {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
+.book-order-section-title {
+  margin: 0 0 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand-royal);
+}
+
+.book-order-cart {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(30, 74, 158, 0.22);
+  background: linear-gradient(180deg, rgba(248, 250, 255, 0.98), rgba(255, 255, 255, 0.96));
+  padding: 1rem 1.1rem;
+  box-shadow: 0 4px 20px rgba(13, 45, 127, 0.07);
+}
+
+.book-order-cart-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(30, 74, 158, 0.15);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--brand-royal);
+}
+
+.book-order-form {
+  gap: 0.65rem;
+}
+
+.book-order-form .donation-form-pair {
+  row-gap: 0.65rem;
+}
+
+.book-order-form .donation-form-actions {
+  padding-top: 1rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid rgba(13, 45, 127, 0.1);
+}
+
+.book-order-catalog {
+  max-height: min(22rem, 50vh);
+  overflow-y: auto;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(13, 45, 127, 0.12);
+  background: #fff;
+  padding: 0.35rem;
+}
+
+.book-order-book-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.65rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.book-order-book-row:last-child {
+  margin-bottom: 0;
+}
+
+.book-order-book-row--selected {
+  border-color: rgba(30, 74, 158, 0.28);
+  background: rgba(30, 74, 158, 0.05);
+}
+
+.book-order-breakdown {
+  margin-top: 0.5rem;
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(13, 45, 127, 0.1);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.book-order-breakdown dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.2rem 1rem;
+}
+
+.book-order-breakdown dt {
+  font-weight: 600;
+}
+
+.book-order-breakdown dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-on-surface);
+  text-align: right;
+}
+
+.book-order-breakdown dt.is-total,
+.book-order-breakdown dd.is-total {
+  padding-top: 0.25rem;
+  font-weight: 800;
+  color: var(--brand-royal);
+}
+
 .profile-detail-grid {
   display: grid;
   gap: 1rem;

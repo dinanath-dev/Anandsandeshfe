@@ -51,24 +51,24 @@ function BookLineBreakdown({ book, quantity, t }) {
   const weight = formatWeightGrams(book.weight_grams);
 
   return (
-    <div className="mt-1.5 w-full rounded-md border border-primary/10 bg-white/80 px-2.5 py-2 text-xs text-muted">
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5">
+    <div className="book-order-breakdown">
+      <dl>
         {weight ? (
           <>
             <dt>{t('books.weight')}</dt>
-            <dd className="text-right tabular-nums text-ink">{weight}</dd>
+            <dd>{weight}</dd>
           </>
         ) : null}
         <dt>{t('books.bookRate')}</dt>
-        <dd className="text-right tabular-nums text-ink">{formatInr(rate)}</dd>
+        <dd>{formatInr(rate)}</dd>
         <dt>{t('books.postage')}</dt>
-        <dd className="text-right tabular-nums text-ink">{formatInr(postage)}</dd>
+        <dd>{formatInr(postage)}</dd>
         <dt>{t('books.gstOnPostage')}</dt>
-        <dd className="text-right tabular-nums text-ink">{formatInr(gst)}</dd>
-        <dt className="font-semibold text-primary">{t('books.totalPostage')}</dt>
-        <dd className="text-right font-semibold tabular-nums text-ink">{formatInr(totalPostage)}</dd>
-        <dt className="font-bold text-primary">{t('books.payableTotal')}</dt>
-        <dd className="text-right font-bold tabular-nums text-primary">
+        <dd>{formatInr(gst)}</dd>
+        <dt>{t('books.totalPostage')}</dt>
+        <dd>{formatInr(totalPostage)}</dd>
+        <dt className="is-total">{t('books.payableTotal')}</dt>
+        <dd className="is-total">
           {formatInr(unitTotal)}
           {qty > 1 ? ` × ${qty} = ${formatInr(unitTotal * qty)}` : ''}
         </dd>
@@ -226,8 +226,8 @@ export default function BookFormPage() {
 
   return (
     <DonationLayout subtitle={t('books.subtitle')}>
-      <div className="donation-form-shell mx-auto max-w-3xl px-2 py-4 sm:px-4">
-        <div className="mb-4">
+      <div className="book-order-shell mx-auto max-w-3xl px-2 py-4 sm:px-4">
+        <div>
           <Link to="/profile" className="text-sm font-semibold text-primary hover:underline">
             ← {t('books.backToProfile')}
           </Link>
@@ -236,202 +236,214 @@ export default function BookFormPage() {
         {loadError ? (
           <Alert>{loadError}</Alert>
         ) : (
-          <form onSubmit={handleSubmit} className="donation-form" noValidate>
-            <DonationFormPair className="donation-form-pair--single">
-              <DonationFormRow label={t('books.selectBooks')} required error={errors.books} labelFor="bf-books">
-                <div
-                  id="bf-books"
-                  className={`max-h-[min(22rem,50vh)] overflow-y-auto rounded-xl border bg-white/90 p-2 shadow-inner ${
-                    errors.books ? 'border-red-400' : 'border-[#0d2d7f]/15'
-                  }`}
-                >
-                  {books.map((b) => {
-                    const selected = cart[b.id] > 0;
-                    return (
-                      <div
-                        key={b.id}
-                        className={`mb-2 flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2.5 last:mb-0 sm:flex-nowrap ${
-                          selected ? 'border-primary/30 bg-primary/5' : 'border-transparent bg-white'
-                        }`}
-                      >
-                        <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-2.5">
-                          <input
-                            type="checkbox"
-                            className="mt-1 h-4 w-4 shrink-0 accent-primary"
-                            checked={selected}
-                            onChange={() => toggleBook(b.id)}
-                          />
-                          <span className="min-w-0 flex-1 text-sm leading-snug">
-                            <span className="font-semibold text-ink">
-                              {b.s_no}. {b.name}
-                            </span>
-                            <span className="mt-0.5 block text-xs text-muted">
-                              {t('books.payableTotal')}: {formatInr(b.total_price ?? b.sales_rate)}
-                              {b.measurements ? ` · ${b.measurements}` : ''}
-                            </span>
-                            {selected ? <BookLineBreakdown book={b} quantity={cart[b.id]} t={t} /> : null}
+          <form onSubmit={handleSubmit} className="donation-form book-order-form" noValidate>
+            <section className="book-order-card">
+              <h3 className="book-order-section-title">{t('books.selectBooks')}</h3>
+              <div
+                id="bf-books"
+                className={`book-order-catalog ${errors.books ? '!border-red-400' : ''}`}
+                aria-invalid={Boolean(errors.books)}
+              >
+                {books.map((b) => {
+                  const selected = cart[b.id] > 0;
+                  return (
+                    <div
+                      key={b.id}
+                      className={`book-order-book-row ${selected ? 'book-order-book-row--selected' : ''}`}
+                    >
+                      <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-2.5">
+                        <input
+                          type="checkbox"
+                          className="mt-1 h-4 w-4 shrink-0 accent-primary"
+                          checked={selected}
+                          onChange={() => toggleBook(b.id)}
+                        />
+                        <span className="min-w-0 flex-1 text-sm leading-snug">
+                          <span className="font-semibold text-ink">
+                            {b.s_no}. {b.name}
                           </span>
-                        </label>
-                        {selected ? (
-                          <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0">
-                            <label htmlFor={`bf-qty-${b.id}`} className="text-xs font-semibold text-muted">
-                              {t('books.quantity')}
-                            </label>
-                            <input
-                              id={`bf-qty-${b.id}`}
-                              type="number"
-                              min={1}
-                              max={10}
-                              className="donation-input !w-16 !min-w-0 !rounded-lg !py-1.5 !text-center !text-sm"
-                              value={cart[b.id]}
-                              onChange={(e) => updateBookQuantity(b.id, e.target.value)}
-                            />
-                          </div>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
-              </DonationFormRow>
-            </DonationFormPair>
+                          <span className="mt-0.5 block text-xs text-muted">
+                            {t('books.payableTotal')}: {formatInr(b.total_price ?? b.sales_rate)}
+                            {b.measurements ? ` · ${b.measurements}` : ''}
+                          </span>
+                          {selected ? <BookLineBreakdown book={b} quantity={cart[b.id]} t={t} /> : null}
+                        </span>
+                      </label>
+                      {selected ? (
+                        <div className="flex w-full shrink-0 items-center gap-2 sm:w-auto">
+                          <label htmlFor={`bf-qty-${b.id}`} className="text-xs font-semibold text-muted">
+                            {t('books.quantity')}
+                          </label>
+                          <input
+                            id={`bf-qty-${b.id}`}
+                            type="number"
+                            min={1}
+                            max={10}
+                            className="donation-input !w-16 !min-w-0 !rounded-lg !py-1.5 !text-center !text-sm"
+                            value={cart[b.id]}
+                            onChange={(e) => updateBookQuantity(b.id, e.target.value)}
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+              {errors.books ? <p className="donation-form-hint mt-1">{errors.books}</p> : null}
+
+              {books.length === 0 ? (
+                <p className="mt-2 text-center text-sm text-muted">{t('books.noBooks')}</p>
+              ) : null}
+            </section>
 
             {selectedLines.length > 0 ? (
-              <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-primary">{t('books.cartSummary')}</p>
-                <ul className="mt-2 space-y-2 text-sm text-ink">
+              <section className="book-order-cart" aria-live="polite">
+                <p className="book-order-section-title !mb-2">{t('books.cartSummary')}</p>
+                <ul className="space-y-2 text-sm text-ink">
                   {selectedLines.map(({ book, quantity }) => {
                     const unitTotal = Number(book.total_price ?? book.sales_rate);
                     return (
-                      <li key={book.id} className="rounded-lg border border-primary/10 bg-white/70 px-3 py-2">
-                        <div className="flex justify-between gap-3 font-semibold">
-                          <span className="min-w-0 truncate">
-                            {book.name} × {quantity}
+                      <li
+                        key={book.id}
+                        className="flex flex-col gap-0.5 rounded-lg border border-primary/10 bg-white/80 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <span className="min-w-0 font-semibold">
+                          {book.name} × {quantity}
+                        </span>
+                        <span className="shrink-0 text-sm">
+                          <span className="tabular-nums font-bold text-primary">{formatInr(unitTotal * quantity)}</span>
+                          <span className="ml-2 text-xs font-normal text-muted">
+                            ({formatInr(book.sales_rate)} + {formatInr(book.total_postage ?? 0)} {t('books.totalPostage').toLowerCase()})
                           </span>
-                          <span className="shrink-0 tabular-nums">{formatInr(unitTotal * quantity)}</span>
-                        </div>
-                        <p className="mt-1 text-xs text-muted">
-                          {t('books.bookRate')} {formatInr(book.sales_rate)} + {t('books.totalPostage')}{' '}
-                          {formatInr(book.total_postage ?? 0)}
-                        </p>
+                        </span>
                       </li>
                     );
                   })}
                 </ul>
-                <p className="mt-3 border-t border-primary/15 pt-2 text-right text-base font-black text-primary">
-                  {t('books.totalLabel')}: {formatInr(cartTotal)}
-                </p>
-              </div>
+                <div className="book-order-cart-total">
+                  <span>{t('books.totalLabel')}</span>
+                  <span className="tabular-nums text-lg">{formatInr(cartTotal)}</span>
+                </div>
+              </section>
             ) : null}
 
-            <DonationFormPair>
-              <DonationFormRow label={t('form.labels.name')} required error={errors.name} labelFor="bf-name">
-                <input
-                  id="bf-name"
-                  className={inputClass('name', errors)}
-                  value={form.name}
-                  onChange={(e) => updateField('name', e.target.value)}
-                  autoComplete="name"
-                />
-              </DonationFormRow>
-              <DonationFormRow label={t('form.labels.gender')} required error={errors.gender} labelFor="bf-gender">
-                <select
-                  id="bf-gender"
-                  className={inputClass('gender', errors)}
-                  value={form.gender}
-                  onChange={(e) => updateField('gender', e.target.value)}
-                >
-                  <option value="">{t('form.placeholders.selectGender')}</option>
-                  <option value="male">{t('form.placeholders.male')}</option>
-                  <option value="female">{t('form.placeholders.female')}</option>
-                </select>
-              </DonationFormRow>
-              <DonationFormRow label={t('form.labels.mobile')} required error={errors.mobile} labelFor="bf-mobile">
-                <input
-                  id="bf-mobile"
-                  className={inputClass('mobile', errors)}
-                  inputMode="numeric"
-                  maxLength={10}
-                  value={form.mobile}
-                  onChange={(e) => updateField('mobile', e.target.value.replace(/\D/g, ''))}
-                />
-              </DonationFormRow>
-            </DonationFormPair>
+            <section className="book-order-card">
+              <h3 className="book-order-section-title">{t('books.deliveryDetails')}</h3>
 
-            <DonationFormPair>
-              <DonationFormRow label={t('form.labels.email')} required error={errors.email} labelFor="bf-email">
-                <input id="bf-email" type="email" className={inputClass('email', errors)} value={form.email} readOnly />
-              </DonationFormRow>
-            </DonationFormPair>
+              <DonationFormPair>
+                <DonationFormRow label={t('form.labels.name')} required error={errors.name} labelFor="bf-name">
+                  <input
+                    id="bf-name"
+                    className={inputClass('name', errors)}
+                    value={form.name}
+                    onChange={(e) => updateField('name', e.target.value)}
+                    autoComplete="name"
+                  />
+                </DonationFormRow>
+                <DonationFormRow label={t('form.labels.gender')} required error={errors.gender} labelFor="bf-gender">
+                  <select
+                    id="bf-gender"
+                    className={inputClass('gender', errors)}
+                    value={form.gender}
+                    onChange={(e) => updateField('gender', e.target.value)}
+                  >
+                    <option value="">{t('form.placeholders.selectGender')}</option>
+                    <option value="male">{t('form.placeholders.male')}</option>
+                    <option value="female">{t('form.placeholders.female')}</option>
+                  </select>
+                </DonationFormRow>
+              </DonationFormPair>
 
-            <DonationFormPair className="donation-form-pair--single">
-              <DonationFormRow label={t('form.labels.address')} required error={errors.address} labelFor="bf-address">
-                <textarea
-                  id="bf-address"
-                  className={`${inputClass('address', errors)} donation-input--address`}
-                  value={form.address}
-                  onChange={(e) => updateField('address', e.target.value)}
-                  rows={2}
-                />
-              </DonationFormRow>
-            </DonationFormPair>
+              <DonationFormPair>
+                <DonationFormRow label={t('form.labels.mobile')} required error={errors.mobile} labelFor="bf-mobile">
+                  <input
+                    id="bf-mobile"
+                    className={inputClass('mobile', errors)}
+                    inputMode="numeric"
+                    maxLength={10}
+                    value={form.mobile}
+                    onChange={(e) => updateField('mobile', e.target.value.replace(/\D/g, ''))}
+                  />
+                </DonationFormRow>
+                <DonationFormRow label={t('form.labels.email')} required error={errors.email} labelFor="bf-email">
+                  <input id="bf-email" type="email" className={inputClass('email', errors)} value={form.email} readOnly />
+                </DonationFormRow>
+              </DonationFormPair>
 
-            <DonationFormPair>
-              <DonationFormRow label={t('form.labels.state')} required error={errors.state} labelFor="bf-state">
-                <select
-                  id="bf-state"
-                  className={inputClass('state', errors)}
-                  value={form.state}
-                  onChange={(e) => updateField('state', e.target.value)}
-                >
-                  <option value="">{t('form.placeholders.selectState')}</option>
-                  {INDIAN_STATES.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </DonationFormRow>
-              <DonationFormRow label={t('form.labels.town')} required error={errors.town} labelFor="bf-town">
-                <input id="bf-town" className={inputClass('town', errors)} value={form.town} onChange={(e) => updateField('town', e.target.value)} />
-              </DonationFormRow>
-            </DonationFormPair>
+              <DonationFormPair className="donation-form-pair--single">
+                <DonationFormRow label={t('form.labels.address')} required error={errors.address} labelFor="bf-address">
+                  <textarea
+                    id="bf-address"
+                    className={`${inputClass('address', errors)} donation-input--address`}
+                    value={form.address}
+                    onChange={(e) => updateField('address', e.target.value)}
+                    rows={3}
+                  />
+                </DonationFormRow>
+              </DonationFormPair>
 
-            <DonationFormPair>
-              <DonationFormRow label={t('form.labels.district')} required error={errors.district} labelFor="bf-district">
-                <input id="bf-district" className={inputClass('district', errors)} value={form.district} onChange={(e) => updateField('district', e.target.value)} />
-              </DonationFormRow>
-              <DonationFormRow label={t('form.labels.pin')} required error={errors.pin} labelFor="bf-pin">
-                <input
-                  id="bf-pin"
-                  className={inputClass('pin', errors)}
-                  inputMode="numeric"
-                  maxLength={10}
-                  value={form.pin}
-                  onChange={(e) => updateField('pin', e.target.value.replace(/\D/g, ''))}
-                />
-              </DonationFormRow>
-            </DonationFormPair>
+              <DonationFormPair>
+                <DonationFormRow label={t('form.labels.state')} required error={errors.state} labelFor="bf-state">
+                  <select
+                    id="bf-state"
+                    className={inputClass('state', errors)}
+                    value={form.state}
+                    onChange={(e) => updateField('state', e.target.value)}
+                  >
+                    <option value="">{t('form.placeholders.selectState')}</option>
+                    {INDIAN_STATES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </DonationFormRow>
+                <DonationFormRow label={t('form.labels.town')} required error={errors.town} labelFor="bf-town">
+                  <input
+                    id="bf-town"
+                    className={inputClass('town', errors)}
+                    value={form.town}
+                    onChange={(e) => updateField('town', e.target.value)}
+                  />
+                </DonationFormRow>
+              </DonationFormPair>
+
+              <DonationFormPair>
+                <DonationFormRow label={t('form.labels.district')} required error={errors.district} labelFor="bf-district">
+                  <input
+                    id="bf-district"
+                    className={inputClass('district', errors)}
+                    value={form.district}
+                    onChange={(e) => updateField('district', e.target.value)}
+                  />
+                </DonationFormRow>
+                <DonationFormRow label={t('form.labels.pin')} required error={errors.pin} labelFor="bf-pin">
+                  <input
+                    id="bf-pin"
+                    className={inputClass('pin', errors)}
+                    inputMode="numeric"
+                    maxLength={10}
+                    value={form.pin}
+                    onChange={(e) => updateField('pin', e.target.value.replace(/\D/g, ''))}
+                  />
+                </DonationFormRow>
+              </DonationFormPair>
+            </section>
 
             {errors.submit ? (
-              <div className="mt-4">
-                <Alert>{errors.submit}</Alert>
-              </div>
+              <Alert>{errors.submit}</Alert>
             ) : null}
 
             <div className="donation-form-actions">
               <button
                 type="submit"
                 disabled={isSubmitting || books.length === 0 || selectedLines.length === 0}
-                className="btn-primary donation-form-submit-btn !min-h-10 inline-flex items-center gap-2 !px-8 !py-2 !text-sm font-semibold"
+                className="btn-primary donation-form-submit-btn !min-h-11 inline-flex w-full max-w-md items-center justify-center gap-2 !px-8 !py-2.5 !text-sm font-semibold sm:w-auto"
               >
                 {isSubmitting ? <InlineLoader size={22} /> : <BookOpen size={18} aria-hidden />}
                 {isSubmitting ? t('books.saving') : t('books.proceedToPayment')}
               </button>
             </div>
-
-            {books.length === 0 ? (
-              <p className="mt-4 text-center text-sm text-muted">{t('books.noBooks')}</p>
-            ) : null}
           </form>
         )}
       </div>
