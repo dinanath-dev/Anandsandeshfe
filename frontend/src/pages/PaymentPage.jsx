@@ -20,7 +20,7 @@ function planConfigForType(subscriptionType) {
   const planYearly = String(import.meta.env.VITE_RAZORPAY_PLAN_ID_YEARLY || '').trim() || planDevFallback;
   const planFive =
     String(import.meta.env.VITE_RAZORPAY_PLAN_ID_FIVE_YEAR || '').trim() || planDevFallback;
-  const countYearly = Number(import.meta.env.VITE_RAZORPAY_TOTAL_COUNT_YEARLY) || 94;
+  const countYearly = Number(import.meta.env.VITE_RAZORPAY_TOTAL_COUNT_YEARLY) || 30;
   const countFive = Number(import.meta.env.VITE_RAZORPAY_TOTAL_COUNT_FIVE_YEAR) || 5;
 
   if (subscriptionType === 'yearly') {
