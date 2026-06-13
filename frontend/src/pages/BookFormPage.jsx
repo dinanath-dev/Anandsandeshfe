@@ -34,6 +34,49 @@ function formatInr(rupees) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(n);
 }
 
+function formatWeightGrams(grams) {
+  const n = Number(grams);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  if (n >= 1000) return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 3)} kg`;
+  return `${n} g`;
+}
+
+function BookLineBreakdown({ book, quantity, t }) {
+  const qty = Number(quantity) || 1;
+  const rate = Number(book.sales_rate) || 0;
+  const postage = Number(book.postage) || 0;
+  const gst = Number(book.gst_on_postage) || 0;
+  const totalPostage = Number(book.total_postage) || 0;
+  const unitTotal = Number(book.total_price) || rate + totalPostage;
+  const weight = formatWeightGrams(book.weight_grams);
+
+  return (
+    <div className="mt-1.5 w-full rounded-md border border-primary/10 bg-white/80 px-2.5 py-2 text-xs text-muted">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5">
+        {weight ? (
+          <>
+            <dt>{t('books.weight')}</dt>
+            <dd className="text-right tabular-nums text-ink">{weight}</dd>
+          </>
+        ) : null}
+        <dt>{t('books.bookRate')}</dt>
+        <dd className="text-right tabular-nums text-ink">{formatInr(rate)}</dd>
+        <dt>{t('books.postage')}</dt>
+        <dd className="text-right tabular-nums text-ink">{formatInr(postage)}</dd>
+        <dt>{t('books.gstOnPostage')}</dt>
+        <dd className="text-right tabular-nums text-ink">{formatInr(gst)}</dd>
+        <dt className="font-semibold text-primary">{t('books.totalPostage')}</dt>
+        <dd className="text-right font-semibold tabular-nums text-ink">{formatInr(totalPostage)}</dd>
+        <dt className="font-bold text-primary">{t('books.payableTotal')}</dt>
+        <dd className="text-right font-bold tabular-nums text-primary">
+          {formatInr(unitTotal)}
+          {qty > 1 ? ` × ${qty} = ${formatInr(unitTotal * qty)}` : ''}
+        </dd>
+      </dl>
+    </div>
+  );
+}
+
 export default function BookFormPage() {
   useSeo({
     title: 'Buy Books — Anand Sandesh Karyalay',
@@ -63,7 +106,10 @@ export default function BookFormPage() {
 
   const cartTotal = useMemo(
     () =>
-      selectedLines.reduce((sum, line) => sum + Number(line.book.sales_rate) * line.quantity, 0),
+      selectedLines.reduce(
+        (sum, line) => sum + Number(line.book.total_price ?? line.book.sales_rate) * line.quantity,
+        0
+      ),
     [selectedLines]
   );
 
@@ -215,14 +261,15 @@ export default function BookFormPage() {
                             checked={selected}
                             onChange={() => toggleBook(b.id)}
                           />
-                          <span className="min-w-0 text-sm leading-snug">
+                          <span className="min-w-0 flex-1 text-sm leading-snug">
                             <span className="font-semibold text-ink">
                               {b.s_no}. {b.name}
                             </span>
                             <span className="mt-0.5 block text-xs text-muted">
-                              {formatInr(b.sales_rate)}
+                              {t('books.payableTotal')}: {formatInr(b.total_price ?? b.sales_rate)}
                               {b.measurements ? ` · ${b.measurements}` : ''}
                             </span>
+                            {selected ? <BookLineBreakdown book={b} quantity={cart[b.id]} t={t} /> : null}
                           </span>
                         </label>
                         {selected ? (
@@ -251,17 +298,24 @@ export default function BookFormPage() {
             {selectedLines.length > 0 ? (
               <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
                 <p className="text-xs font-bold uppercase tracking-wide text-primary">{t('books.cartSummary')}</p>
-                <ul className="mt-2 space-y-1 text-sm text-ink">
-                  {selectedLines.map(({ book, quantity }) => (
-                    <li key={book.id} className="flex justify-between gap-3">
-                      <span className="min-w-0 truncate">
-                        {book.name} × {quantity}
-                      </span>
-                      <span className="shrink-0 font-semibold tabular-nums">
-                        {formatInr(Number(book.sales_rate) * quantity)}
-                      </span>
-                    </li>
-                  ))}
+                <ul className="mt-2 space-y-2 text-sm text-ink">
+                  {selectedLines.map(({ book, quantity }) => {
+                    const unitTotal = Number(book.total_price ?? book.sales_rate);
+                    return (
+                      <li key={book.id} className="rounded-lg border border-primary/10 bg-white/70 px-3 py-2">
+                        <div className="flex justify-between gap-3 font-semibold">
+                          <span className="min-w-0 truncate">
+                            {book.name} × {quantity}
+                          </span>
+                          <span className="shrink-0 tabular-nums">{formatInr(unitTotal * quantity)}</span>
+                        </div>
+                        <p className="mt-1 text-xs text-muted">
+                          {t('books.bookRate')} {formatInr(book.sales_rate)} + {t('books.totalPostage')}{' '}
+                          {formatInr(book.total_postage ?? 0)}
+                        </p>
+                      </li>
+                    );
+                  })}
                 </ul>
                 <p className="mt-3 border-t border-primary/15 pt-2 text-right text-base font-black text-primary">
                   {t('books.totalLabel')}: {formatInr(cartTotal)}

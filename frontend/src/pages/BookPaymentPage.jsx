@@ -164,16 +164,33 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise }) {
           {items.length > 0 ? (
             <div className="mt-4 rounded-xl border border-[#0d2d7f]/12 bg-[#f8faff] px-4 py-3 text-left">
               <p className="text-xs font-bold uppercase tracking-wide text-primary">{t('books.orderItems')}</p>
-              <ul className="mt-2 space-y-1.5 text-sm text-ink">
+              <ul className="mt-2 space-y-2 text-sm text-ink">
                 {items.map((item) => (
-                  <li key={item.book_id || `${item.book_name}-${item.quantity}`} className="flex justify-between gap-3">
-                    <span className="min-w-0">
-                      {item.book_name} × {item.quantity}
-                    </span>
-                    <span className="shrink-0 font-semibold tabular-nums">
-                      {formatLineAmount(item.line_total_paise) ||
-                        formatInr(Number(item.unit_price_paise || 0) * Number(item.quantity || 1) / 100)}
-                    </span>
+                  <li
+                    key={item.book_id || `${item.book_name}-${item.quantity}`}
+                    className="rounded-lg border border-[#0d2d7f]/10 bg-white px-3 py-2"
+                  >
+                    <div className="flex justify-between gap-3 font-semibold">
+                      <span className="min-w-0">
+                        {item.book_name} × {item.quantity}
+                      </span>
+                      <span className="shrink-0 tabular-nums">
+                        {formatLineAmount(item.line_total_paise) ||
+                          formatInr(Number(item.unit_price_paise || 0) * Number(item.quantity || 1))}
+                      </span>
+                    </div>
+                    {item.sales_rate != null ? (
+                      <p className="mt-1 text-xs text-muted">
+                        {t('books.bookRate')}{' '}
+                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(
+                          Number(item.sales_rate)
+                        )}{' '}
+                        + {t('books.totalPostage')}{' '}
+                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(
+                          Number(item.total_postage || 0)
+                        )}
+                      </p>
+                    ) : null}
                   </li>
                 ))}
               </ul>
