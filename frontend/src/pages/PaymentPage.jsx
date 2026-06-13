@@ -59,7 +59,14 @@ export default function PaymentPage() {
   );
 }
 
-function PaymentPageContent({ submissionId, subscriptionType }) {
+function normalizeSubscriptionType(value) {
+  const t = String(value || '').trim().toLowerCase();
+  if (t === 'five_year' || t === '5_year' || t === '5year') return 'five_year';
+  if (t === 'yearly' || t === 'year' || t === '1_year') return 'yearly';
+  return t || 'yearly';
+}
+
+function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFromRoute }) {
   useSeo({
     title: 'Payment — Anand Sandesh Karyalay | anandsandesh',
     description:
@@ -79,11 +86,14 @@ function PaymentPageContent({ submissionId, subscriptionType }) {
   const [alreadyPaid, setAlreadyPaid] = useState(false);
   const [error, setError] = useState('');
   const [paymentError, setPaymentError] = useState('');
+  const [resolvedSubscriptionType, setResolvedSubscriptionType] = useState(
+    normalizeSubscriptionType(subscriptionTypeFromRoute)
+  );
   const checkoutOpenRef = useRef(false);
 
-  const planLabel = SUBSCRIPTION_LABELS[subscriptionType] || subscriptionType;
-  const { keyId, planId, totalCount } = planConfigForType(subscriptionType);
-  const plansConfigured = Boolean(keyId && planId);
+  const planLabel = SUBSCRIPTION_LABELS[resolvedSubscriptionType] || resolvedSubscriptionType;
+  const { keyId } = planConfigForType(resolvedSubscriptionType);
+  const plansConfigured = Boolean(keyId);
 
   useEffect(() => {
     let cancelled = false;
@@ -91,8 +101,19 @@ function PaymentPageContent({ submissionId, subscriptionType }) {
       try {
         const data = await getMyFormSubmission();
         const sub = data?.submission;
-        if (!cancelled && sub && normalizePaymentStatus(sub.payment_status) === 'verified') {
+        if (cancelled || !sub) return;
+
+        if (normalizePaymentStatus(sub.payment_status) === 'verified') {
           setAlreadyPaid(true);
+        }
+
+        const dbType = normalizeSubscriptionType(sub.subscription_type);
+        if (dbType) {
+          setResolvedSubscriptionType(dbType);
+        }
+
+        if (String(sub.id) !== String(submissionId)) {
+          setError(t('payment.errors.couldNotStartShort'));
         }
       } catch {
         /* optional pre-check */
@@ -103,7 +124,7 @@ function PaymentPageContent({ submissionId, subscriptionType }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [submissionId, t]);
 
   const releaseCheckout = useCallback(() => {
     checkoutOpenRef.current = false;
@@ -124,7 +145,7 @@ function PaymentPageContent({ submissionId, subscriptionType }) {
       setError(t('payment.errors.checkoutFailed'));
       return;
     }
-    if (!keyId || !planId) {
+    if (!keyId) {
       setError(t('payment.errors.notConfigured'));
       return;
     }
@@ -133,8 +154,6 @@ function PaymentPageContent({ submissionId, subscriptionType }) {
     try {
       await getCurrentUser();
       const createData = await createSubscription({
-        plan_id: planId,
-        total_count: totalCount,
         submission_id: String(submissionId)
       });
       const subscriptionRzId = createData?.subscription?.id;
@@ -211,12 +230,10 @@ function PaymentPageContent({ submissionId, subscriptionType }) {
     busy,
     keyId,
     navigate,
-    planId,
     planLabel,
     releaseCheckout,
     submissionId,
-    t,
-    totalCount
+    t
   ]);
 
   if (checkingStatus) {

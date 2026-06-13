@@ -196,10 +196,13 @@ export function verifyPayment(body) {
 
 /** Razorpay recurring: create subscription. Auth: Bearer user JWT only (not admin). */
 export function createSubscription({ plan_id, total_count, submission_id }) {
+  const body = { submission_id };
+  if (plan_id) body.plan_id = plan_id;
+  if (total_count != null) body.total_count = total_count;
   return request('/payment/subscriptions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ plan_id, total_count, submission_id })
+    body: JSON.stringify(body)
   });
 }
 
