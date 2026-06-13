@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BookOpen } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
@@ -11,6 +11,11 @@ import { createBookOrder, getBooks, getCurrentUser } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
+import {
+  draftFromBookOrder,
+  loadBookOrderDraft,
+  saveBookOrderDraft
+} from '../utils/bookOrderDraft.js';
 
 const initialForm = {
   name: '',
@@ -86,6 +91,7 @@ export default function BookFormPage() {
 
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [books, setBooks] = useState([]);
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [form, setForm] = useState(initialForm);
@@ -123,6 +129,16 @@ export default function BookFormPage() {
         ]);
         if (cancelled) return;
         setBooks(booksData?.books || []);
+
+        const routeDraft = location.state?.bookDraft;
+        const storedDraft = routeDraft || loadBookOrderDraft();
+
+        if (storedDraft?.form) {
+          setForm({ ...initialForm, ...storedDraft.form });
+          setCart(storedDraft.cart && typeof storedDraft.cart === 'object' ? storedDraft.cart : {});
+          return;
+        }
+
         const auth = getUserAuth();
         const user = userData?.user || auth?.user || {};
         setForm((prev) => ({
@@ -140,7 +156,7 @@ export default function BookFormPage() {
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  }, [t, location.state]);
 
   function updateField(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -201,12 +217,17 @@ export default function BookFormPage() {
       });
       const orderId = data?.order?.id;
       if (!orderId) throw new Error(t('books.errors.orderFailed'));
+
+      const draft = { form: { ...form }, cart: { ...cart }, bookOrderId: orderId };
+      saveBookOrderDraft(draft);
+
       navigate('/books/payment', {
         state: {
           bookOrderId: orderId,
           bookName: data.order.book_name,
           orderItems: data.order.order_items || items,
-          totalPaise: data.order.total_amount_paise
+          totalPaise: data.order.total_amount_paise,
+          bookDraft: draft
         }
       });
     } catch (err) {

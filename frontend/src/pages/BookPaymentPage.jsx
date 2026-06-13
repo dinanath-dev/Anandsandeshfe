@@ -1,11 +1,17 @@
 import { useCallback, useRef, useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import Alert from '../components/Alert.jsx';
-import { createOrder, getCurrentUser, verifyPayment } from '../services/api.js';
+import { createOrder, getBookOrder, getCurrentUser, verifyPayment } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
+import {
+  clearBookOrderDraft,
+  draftFromBookOrder,
+  loadBookOrderDraft,
+  saveBookOrderDraft
+} from '../utils/bookOrderDraft.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
 
@@ -32,6 +38,7 @@ export default function BookPaymentPage() {
       bookName={bookName}
       orderItems={orderItems}
       totalPaise={totalPaise}
+      bookDraft={state?.bookDraft}
     />
   );
 }
@@ -42,7 +49,7 @@ function formatLineAmount(paise) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(n / 100);
 }
 
-function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise }) {
+function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, bookDraft }) {
   useSeo({
     title: 'Book Payment — Anand Sandesh Karyalay',
     canonical: 'https://anandsandeshkaryalay.online/books/payment'
@@ -61,6 +68,20 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise }) {
     checkoutOpenRef.current = false;
     setBusy(false);
   }, []);
+
+  const goEditOrder = useCallback(async () => {
+    let draft = bookDraft || loadBookOrderDraft();
+    if (!draft?.form) {
+      try {
+        const data = await getBookOrder(bookOrderId);
+        draft = draftFromBookOrder(data?.order);
+        if (draft) saveBookOrderDraft(draft);
+      } catch {
+        /* fall through — still navigate; form may partially restore from storage */
+      }
+    }
+    navigate('/books', { state: { bookDraft: draft } });
+  }, [bookDraft, bookOrderId, navigate]);
 
   const startCheckout = useCallback(async () => {
     if (checkoutOpenRef.current || busy) return;
@@ -113,6 +134,7 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise }) {
               razorpay_signature: response.razorpay_signature,
               book_order_id: bookOrderId
             });
+            clearBookOrderDraft();
             navigate('/success', { state: { paymentVerified: true, bookOrder: true } });
           } catch (err) {
             navigate('/success', {
@@ -225,9 +247,13 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise }) {
               {busy ? <InlineLoader size={22} /> : <BookOpen size={18} aria-hidden />}
               {busy ? t('payment.startingCheckout') : t('books.payNow')}
             </button>
-            <Link to="/books" className="btn-secondary inline-flex min-h-10 items-center gap-2 px-5 py-2 text-sm">
+            <button
+              type="button"
+              className="btn-secondary inline-flex min-h-10 items-center gap-2 px-5 py-2 text-sm"
+              onClick={goEditOrder}
+            >
               <ArrowLeft size={18} /> {t('books.editOrder')}
-            </Link>
+            </button>
           </div>
         </div>
       </div>
