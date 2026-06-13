@@ -1,15 +1,55 @@
 /**
- * User session in localStorage. We read/write both keys so older builds (`ssdnUserAuth`)
- * and setups that only have `samUserAuth` (e.g. manual env) still send the same JWT on API calls.
+ * User session in sessionStorage (cleared when the browser tab closes).
+ * Tokens are still visible in DevTools while the tab is open — never put secrets in the client bundle.
  */
 const AUTH_STORAGE_PRIMARY = 'samUserAuth';
 const AUTH_STORAGE_LEGACY = 'ssdnUserAuth';
 const OTP_STORAGE_KEY = 'ssdnPendingAuth';
 
-function readAuthRaw() {
+function readFromSession(key) {
   try {
-    let raw = localStorage.getItem(AUTH_STORAGE_PRIMARY);
-    if (!raw) raw = localStorage.getItem(AUTH_STORAGE_LEGACY);
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeToSession(key, value) {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+function removeFromSession(key) {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** One-time migration from older builds that stored auth in localStorage. */
+function migrateLegacyLocalAuth() {
+  try {
+    for (const key of [AUTH_STORAGE_PRIMARY, AUTH_STORAGE_LEGACY]) {
+      const legacy = localStorage.getItem(key);
+      if (legacy && !readFromSession(key)) {
+        writeToSession(key, legacy);
+      }
+      localStorage.removeItem(key);
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function readAuthRaw() {
+  migrateLegacyLocalAuth();
+  try {
+    let raw = readFromSession(AUTH_STORAGE_PRIMARY);
+    if (!raw) raw = readFromSession(AUTH_STORAGE_LEGACY);
     return raw;
   } catch {
     return null;
@@ -38,13 +78,13 @@ export function getUserAuth() {
 
 export function saveUserAuth(payload) {
   const serialized = JSON.stringify(payload);
-  localStorage.setItem(AUTH_STORAGE_PRIMARY, serialized);
-  localStorage.setItem(AUTH_STORAGE_LEGACY, serialized);
+  writeToSession(AUTH_STORAGE_PRIMARY, serialized);
+  writeToSession(AUTH_STORAGE_LEGACY, serialized);
 }
 
 export function clearUserAuth() {
-  localStorage.removeItem(AUTH_STORAGE_PRIMARY);
-  localStorage.removeItem(AUTH_STORAGE_LEGACY);
+  removeFromSession(AUTH_STORAGE_PRIMARY);
+  removeFromSession(AUTH_STORAGE_LEGACY);
 }
 
 export function getUserToken() {

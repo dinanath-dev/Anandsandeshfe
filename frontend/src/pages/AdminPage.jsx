@@ -7,6 +7,31 @@ import { adminLogin, getSubmissions, verifySubmission } from '../services/api.js
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
 
+const ADMIN_TOKEN_KEY = 'adminToken';
+
+function readAdminToken() {
+  try {
+    const legacy = localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (legacy && !sessionStorage.getItem(ADMIN_TOKEN_KEY)) {
+      sessionStorage.setItem(ADMIN_TOKEN_KEY, legacy);
+    }
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    return sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+function saveAdminToken(token) {
+  sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+}
+
+function clearAdminToken() {
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+}
+
 function formatSubmissionAddress(item) {
   const line = [
     item.house_no || item.address_1,
@@ -40,7 +65,7 @@ export default function AdminPage() {
     pending: t('admin.filterPending'),
     verified: t('admin.filterVerified')
   };
-  const [token, setToken] = useState(() => localStorage.getItem('adminToken') || '');
+  const [token, setToken] = useState(() => readAdminToken());
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [filter, setFilter] = useState('all');
@@ -69,7 +94,7 @@ export default function AdminPage() {
     } catch (err) {
       setError(err.message);
       if (err.message.toLowerCase().includes('admin')) {
-        localStorage.removeItem('adminToken');
+        clearAdminToken();
         setToken('');
       }
     } finally {
@@ -82,7 +107,7 @@ export default function AdminPage() {
     setError('');
     try {
       const data = await adminLogin({ email, password });
-      localStorage.setItem('adminToken', data.token);
+      saveAdminToken(data.token);
       setToken(data.token);
       setEmail('');
       setPassword('');

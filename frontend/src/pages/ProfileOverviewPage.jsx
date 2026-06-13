@@ -184,18 +184,6 @@ export default function ProfileOverviewPage() {
       };
     }
 
-    if (legacyPreview?.type === 'submission' && legacyPreview.submission) {
-      const s = legacyPreview.submission;
-      const rawMobile = String(s.mobile || s.phone || '').trim();
-      const rawEmail = String(s.email || '').trim();
-      return {
-        name: String(s.name || '').trim(),
-        phone: rawMobile ? maskPhone(rawMobile) : '',
-        email: rawEmail ? maskEmail(rawEmail) : '',
-        address: formatSubmissionAddress(s)
-      };
-    }
-
     if (legacyPreview?.type === 'matches' && selectedLegacyMatch) {
       return {
         name: String(selectedLegacyMatch.nameMasked || '').trim(),
@@ -248,16 +236,10 @@ export default function ProfileOverviewPage() {
       setLastSearch(
         searchMode === 'mobile' ? { mode: 'mobile', mobile } : { mode: 'subscriber', subscriberNo }
       );
-      const sub = data?.submission;
       const rawMatches = data?.matches;
       const matches = Array.isArray(rawMatches)
         ? rawMatches.filter((m) => legacyMatchHasSignal(m))
         : [];
-
-      if (sub && !submissionLooksEmpty(sub)) {
-        setLegacyPreview({ type: 'submission', submission: sub });
-        return;
-      }
 
       if (matches.length > 0) {
         setLegacyPreview({ type: 'matches', matches, selectedIndex: 0 });
