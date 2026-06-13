@@ -95,6 +95,8 @@ export const translations = {
       smtpDevHelper:
         'SMTP is not configured yet, so use development OTP {otp}.',
       checkInbox: 'Check your inbox and enter the 6-digit code to continue.',
+      checkSpamHint:
+        "Can't find the email? Check your spam or junk folder — the OTP sometimes lands there.",
       chooseNewPassword: 'Then choose a new password below.',
       forgotHelp: 'We will email a one-time code to set a new password.',
       signupHelp:
@@ -547,6 +549,8 @@ export const translations = {
         'SMTP अभी कॉन्फ़िगर नहीं हुआ है, इसलिए डेवलपमेंट ओटीपी {otp} का उपयोग करें।',
       checkInbox:
         'अपना इनबॉक्स देखें और जारी रखने के लिए 6-अंकीय कोड दर्ज करें।',
+      checkSpamHint:
+        'ईमेल नहीं मिला? स्पैम या जंक फ़ोल्डर भी देखें — ओटीपी कभी-कभी वहाँ पहुँच जाता है।',
       chooseNewPassword: 'फिर नीचे एक नया पासवर्ड चुनें।',
       forgotHelp:
         'हम नया पासवर्ड सेट करने के लिए ईमेल पर एक बार का कोड भेजेंगे।',

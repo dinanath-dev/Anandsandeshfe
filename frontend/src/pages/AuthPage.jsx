@@ -745,9 +745,15 @@ export default function AuthPage() {
                         {t('auth.smtpDevHelper').split('{otp}')[1] || ''}
                       </p>
                     ) : (
-                      <p className="mt-2 text-sm leading-6 text-[#5d7364]">
-                        {t('auth.chooseNewPassword')}
-                      </p>
+                      <>
+                        <p className="mt-2 text-sm leading-6 text-[#5d7364]">
+                          {t('auth.checkInbox')}
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-[#5d7364]">{t('auth.checkSpamHint')}</p>
+                        <p className="mt-2 text-sm leading-6 text-[#5d7364]">
+                          {t('auth.chooseNewPassword')}
+                        </p>
+                      </>
                     )}
                   </div>
 
@@ -867,9 +873,12 @@ export default function AuthPage() {
                         {t('auth.smtpDevHelper').split('{otp}')[1] || ''}
                       </p>
                     ) : (
-                      <p className="mt-2 text-sm leading-6 text-[#5d7364]">
-                        {t('auth.checkInbox')}
-                      </p>
+                      <>
+                        <p className="mt-2 text-sm leading-6 text-[#5d7364]">
+                          {t('auth.checkInbox')}
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-[#5d7364]">{t('auth.checkSpamHint')}</p>
+                      </>
                     )}
                   </div>
 
