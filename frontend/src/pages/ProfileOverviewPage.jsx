@@ -1,21 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Info, LogOut, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, BookOpen, CheckCircle2, Info, Mail, MapPin, Phone, Search, User } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
-import DonationFormRow from '../components/DonationFormRow.jsx';
 import {
   claimLegacyForm,
   getCurrentUser,
   getMyFormSubmission,
   lookupLegacyForm
 } from '../services/api.js';
-import { clearPendingOtp, clearUserAuth, getUserAuth } from '../utils/auth.js';
 import { formatSubmissionAddress } from '../utils/formatSubmissionAddress.js';
 import { maskEmail, maskPhone } from '../utils/maskContact.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
+import { getSubscriptionPeriodSummary } from '../utils/subscriptionPeriod.js';
 
 function normalizeMobile10(value) {
   const d = String(value ?? '').replace(/\D/g, '');
@@ -36,6 +35,13 @@ function submissionLooksEmpty(sub) {
   const addr = formatSubmissionAddress(sub);
   const name = String(sub.name || '').trim();
   return !mob && !addr && !name;
+}
+
+/** Normalize API payment_status so verified subscriptions are treated as paid. */
+function normalizePaymentStatus(raw) {
+  const s = String(raw || '').toLowerCase();
+  if (s === 'verified' || s === 'paid' || s === 'active') return 'verified';
+  return 'pending';
 }
 
 /** Backend may return privacy-safe hints instead of a full `submission`. */
@@ -74,6 +80,18 @@ function claimFieldString(value) {
   return String(value);
 }
 
+function ProfileDetail({ icon: Icon, label, value, wide = false }) {
+  return (
+    <div className={`profile-detail ${wide ? 'profile-detail--wide' : ''}`}>
+      <dt className="profile-detail-label">
+        <Icon size={15} aria-hidden />
+        {label}
+      </dt>
+      <dd className="profile-detail-value">{value}</dd>
+    </div>
+  );
+}
+
 export default function ProfileOverviewPage() {
   useSeo({
     title: 'My Profile — Anand Sandesh Karyalay | anandsandesh',
@@ -84,7 +102,6 @@ export default function ProfileOverviewPage() {
 
   const { t } = useTranslation();
   const LEGACY_LOOKUP_TOOLTIP = t('profile.lookupTooltip');
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [linkedSubmission, setLinkedSubmission] = useState(null);
 
@@ -134,6 +151,16 @@ export default function ProfileOverviewPage() {
     [linkedSubmission]
   );
 
+  const subscriptionPaid = useMemo(
+    () => normalizePaymentStatus(linkedSubmission?.payment_status) === 'verified',
+    [linkedSubmission]
+  );
+
+  const subscriptionPeriod = useMemo(() => {
+    if (!subscriptionPaid || !linkedSubmission) return null;
+    return getSubscriptionPeriodSummary(linkedSubmission, t);
+  }, [subscriptionPaid, linkedSubmission, t]);
+
   const selectedLegacyMatch =
     legacyPreview?.type === 'matches' ? legacyPreview.matches[legacyPreview.selectedIndex] : null;
 
@@ -151,10 +178,6 @@ export default function ProfileOverviewPage() {
       const rawEmail = String(linkedSubmission.email || '').trim();
       return {
         name: String(linkedSubmission.name || '').trim(),
-        subscriberNo:
-          linkedSubmission.subscriber_no != null
-            ? String(linkedSubmission.subscriber_no)
-            : '',
         phone: rawMobile ? maskPhone(rawMobile) : '',
         email: rawEmail ? maskEmail(rawEmail) : '',
         address: formatSubmissionAddress(linkedSubmission)
@@ -167,7 +190,6 @@ export default function ProfileOverviewPage() {
       const rawEmail = String(s.email || '').trim();
       return {
         name: String(s.name || '').trim(),
-        subscriberNo: s.subscriber_no != null ? String(s.subscriber_no) : '',
         phone: rawMobile ? maskPhone(rawMobile) : '',
         email: rawEmail ? maskEmail(rawEmail) : '',
         address: formatSubmissionAddress(s)
@@ -177,12 +199,6 @@ export default function ProfileOverviewPage() {
     if (legacyPreview?.type === 'matches' && selectedLegacyMatch) {
       return {
         name: String(selectedLegacyMatch.nameMasked || '').trim(),
-        subscriberNo:
-          selectedLegacyMatch.subscriberNo != null
-            ? String(selectedLegacyMatch.subscriberNo)
-            : lastSearch?.mode === 'subscriber' && lastSearch.subscriberNo
-              ? String(lastSearch.subscriberNo)
-              : '',
         phone: (() => {
           const fromRow = selectedLegacyMatch?.phoneMasked;
           if (fromRow) return String(fromRow);
@@ -205,12 +221,6 @@ export default function ProfileOverviewPage() {
     lastSearch,
     pinHintTemplate
   ]);
-
-  function handleLogout() {
-    clearUserAuth();
-    clearPendingOtp();
-    navigate('/', { replace: true });
-  }
 
   async function handleLegacySearch(event) {
     event.preventDefault();
@@ -298,254 +308,248 @@ export default function ProfileOverviewPage() {
   return (
     <DonationLayout subtitle={t('profile.subtitle')}>
       {legacyLoading ? <LoadingBlock label={t('loaders.searchingRecords')} /> : null}
-      <button
-        type="button"
-        className="btn-secondary fixed right-3 top-[max(6.5rem,env(safe-area-inset-top)+5.25rem)] z-[60] inline-flex min-h-10 items-center gap-2 whitespace-nowrap px-3 py-2 text-sm font-semibold shadow-md sm:right-6 sm:top-5 sm:px-4"
-        onClick={handleLogout}
-      >
-        <LogOut size={18} aria-hidden /> {t('common.logout')}
-      </button>
 
-      <div className="donation-form-shell w-full px-1 py-2 sm:px-3 sm:py-3">
-        {loading ? (
-          <LoadingBlock label={t('loaders.loadingDetails')} />
-        ) : (
-          <div className="donation-form">
-            {showSearchSection ? (
-            <div className="donation-form-banner w-full text-center sm:text-left">
-              <div className="rounded-2xl border border-[#0d2d7f]/20 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(244,248,255,0.92))] p-3 shadow-[0_10px_30px_-18px_rgba(13,45,127,0.45)] sm:p-4">
-                <div className="flex w-full flex-row items-start justify-center gap-2 sm:justify-start sm:gap-3">
-                  <div className="min-w-0 w-full max-w-xl sm:max-w-none sm:flex-1">
-                    <p className="inline-flex w-full min-h-12 items-center justify-center rounded-xl border border-[#0d2d7f]/25 bg-white px-4 py-2.5 text-center text-sm font-bold text-[#0d2d7f] shadow-sm sm:justify-start sm:text-left">
-                      {t('profile.offlineToggle')}
-                    </p>
-                    <p className="mt-3 rounded-xl border border-[#0d2d7f]/10 bg-white/75 px-3 py-2.5 text-left text-sm leading-relaxed text-muted">
-                      {t('profile.offlineHelp')}
-                    </p>
-
-                    <form onSubmit={handleLegacySearch} className="mt-3 rounded-xl border border-[#0d2d7f]/12 bg-white/80 p-3 sm:p-4">
-                      <div className="mb-3 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
-                            searchMode === 'mobile'
-                              ? 'border-[#0d2d7f] bg-[#0d2d7f] text-white'
-                              : 'border-[#0d2d7f]/25 bg-white text-[#0d2d7f]'
-                          }`}
-                          onClick={() => {
-                            setSearchMode('mobile');
-                            setLegacyQuery('');
-                            setLegacyPreview(null);
-                            setLegacyError('');
-                          }}
-                        >
-                          {t('profile.searchByMobile')}
-                        </button>
-                        <button
-                          type="button"
-                          className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
-                            searchMode === 'subscriber'
-                              ? 'border-[#0d2d7f] bg-[#0d2d7f] text-white'
-                              : 'border-[#0d2d7f]/25 bg-white text-[#0d2d7f]'
-                          }`}
-                          onClick={() => {
-                            setSearchMode('subscriber');
-                            setLegacyQuery('');
-                            setLegacyPreview(null);
-                            setLegacyError('');
-                          }}
-                        >
-                          {t('profile.searchBySubscriber')}
-                        </button>
-                      </div>
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                        <div className="w-full sm:flex-1">
-                          <label htmlFor="po-legacy-query" className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted">
-                            {searchMode === 'mobile'
-                              ? t('profile.labelSearchMobile')
-                              : t('profile.labelSearchSubscriber')}
-                          </label>
-                          <input
-                            id="po-legacy-query"
-                            className="donation-input !rounded-lg"
-                            inputMode="numeric"
-                            maxLength={searchMode === 'mobile' ? 10 : 12}
-                            autoComplete="off"
-                            placeholder={
-                              searchMode === 'mobile'
-                                ? t('profile.placeholderSearchMobile')
-                                : t('profile.placeholderSearchSubscriber')
-                            }
-                            value={legacyQuery}
-                            onChange={(e) =>
-                              setLegacyQuery(
-                                e.target.value.replace(/\D/g, '').slice(0, searchMode === 'mobile' ? 10 : 12)
-                              )
-                            }
-                          />
-                        </div>
-                        <button
-                          type="submit"
-                          disabled={legacyLoading}
-                          className="btn-secondary inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2 text-sm font-semibold sm:min-w-[11rem]"
-                        >
-                          {legacyLoading ? <InlineLoader size={20} /> : <Search size={18} aria-hidden />}
-                          {legacyLoading ? t('profile.searching') : t('profile.searchDatabase')}
-                        </button>
-                      </div>
-                    </form>
-
-                    {legacyError ? (
-                      <div className="mt-3">
-                        <Alert>{legacyError}</Alert>
-                      </div>
-                    ) : null}
-                    {claimInfo ? (
-                      <div className="mt-3">
-                        <Alert type="success">{claimInfo}</Alert>
-                      </div>
-                    ) : null}
-
-                    {legacyPreview?.type === 'matches' && legacyPreview.matches.length > 1 ? (
-                      <div className="mt-4 rounded-xl border border-[#0d2d7f]/12 bg-white/90 px-3 py-3 sm:px-4">
-                        <label htmlFor="po-legacy-pick" className="text-xs font-semibold text-muted">
-                          {t('profile.pickRecord')}
-                        </label>
-                        <select
-                          id="po-legacy-pick"
-                          className="donation-input mt-1 max-w-full !rounded-lg"
-                          value={legacyPreview.selectedIndex}
-                          onChange={(e) =>
-                            setLegacyPreview((prev) =>
-                              prev?.type === 'matches'
-                                ? { ...prev, selectedIndex: Number(e.target.value) }
-                                : prev
-                            )
-                          }
-                        >
-                          {legacyPreview.matches.map((m, i) => (
-                            <option key={`${m.rowId ?? i}-${m.legacyClaimKey ?? ''}`} value={i}>
-                              {String(m.nameMasked || t('profile.record')).trim()} · {t('profile.sub')}{' '}
-                              {m.subscriberNo ?? '-'} · {matchSummaryToAddressPreview(m, pinHintTemplate)}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="group/icon relative shrink-0 pt-0.5">
-                  <span
-                    tabIndex={0}
-                    className="inline-flex h-11 w-11 cursor-help items-center justify-center rounded-lg border border-[#0d2d7f]/25 bg-white text-primary shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2"
-                    aria-label={t('profile.tooltipAria')}
-                    aria-describedby="po-legacy-tooltip"
-                    title={LEGACY_LOOKUP_TOOLTIP}
-                  >
-                    <Info className="h-5 w-5" strokeWidth={2.25} aria-hidden />
-                  </span>
-                  <span
-                    id="po-legacy-tooltip"
-                    role="tooltip"
-                    className="pointer-events-none invisible absolute bottom-full right-0 z-30 mb-2 w-[min(20rem,calc(100vw-2.5rem))] rounded-lg border border-[#0d2d7f]/20 bg-white px-3 py-2.5 text-left text-xs font-medium leading-relaxed text-ink shadow-lg opacity-0 transition-[opacity,visibility] duration-150 max-sm:right-1/2 max-sm:translate-x-1/2 [@media(hover:hover)]:group-hover/icon:visible [@media(hover:hover)]:group-hover/icon:opacity-100 group-focus-within/icon:visible group-focus-within/icon:opacity-100"
-                  >
-                    {LEGACY_LOOKUP_TOOLTIP}
-                  </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            ) : null}
-
-            {showContactSection && contactDisplay ? (
-              <>
-                <p className="donation-form-banner mb-1 mt-4 text-center text-sm text-muted sm:text-left">
-                  {awaitingClaim ? t('profile.recordFound') : t('profile.bannerMaskedHelp')}
-                </p>
-
-                {contactDisplay.name ? (
-                  <DonationFormRow label={t('profile.nameLabel')} labelFor="po-name">
-                    <input
-                      id="po-name"
-                      className="donation-input donation-input--readonly-subscriber"
-                      value={contactDisplay.name}
-                      readOnly
-                      autoComplete="off"
-                    />
-                  </DonationFormRow>
-                ) : null}
-
-                {contactDisplay.subscriberNo ? (
-                  <DonationFormRow label={t('profile.subscriberNoLabel')} labelFor="po-subscriber">
-                    <input
-                      id="po-subscriber"
-                      className="donation-input donation-input--readonly-subscriber"
-                      value={contactDisplay.subscriberNo}
-                      readOnly
-                      autoComplete="off"
-                    />
-                  </DonationFormRow>
-                ) : null}
-
-                <DonationFormRow label={t('profile.mobileLabel')} labelFor="po-mobile">
-                  <input
-                    id="po-mobile"
-                    className="donation-input donation-input--readonly-subscriber"
-                    value={contactDisplay.phone || t('profile.notOnFile')}
-                    readOnly
-                    autoComplete="off"
-                    aria-label={t('profile.mobileAria')}
-                  />
-                </DonationFormRow>
-
-                <DonationFormRow label={t('profile.emailLabel')} labelFor="po-email">
-                  <input
-                    id="po-email"
-                    type="text"
-                    className="donation-input donation-input--readonly-subscriber"
-                    value={contactDisplay.email || t('profile.notOnFile')}
-                    readOnly
-                    autoComplete="off"
-                    aria-label={t('profile.emailAria')}
-                  />
-                </DonationFormRow>
-
-                <DonationFormRow label={t('profile.addressLabel')} labelFor="po-address">
-                  <textarea
-                    id="po-address"
-                    className="donation-input donation-input--readonly-subscriber min-h-[7rem]"
-                    value={contactDisplay.address || t('profile.noSavedAddress')}
-                    readOnly
-                    rows={6}
-                    aria-label={t('profile.addressAria')}
-                  />
-                </DonationFormRow>
-
-                {awaitingClaim ? (
-                  <div className="donation-form-actions !pt-0">
-                    <button
-                      type="button"
-                      disabled={claimLoading}
-                      onClick={handleClaimLegacy}
-                      className="btn-primary donation-form-submit-btn !min-h-10 inline-flex !items-center !justify-center !gap-2 !px-6 !py-2 !text-sm font-semibold"
-                    >
-                      {claimLoading ? <InlineLoader size={20} /> : null}
-                      {claimLoading ? t('profile.linking') : t('profile.linkRecord')}
-                    </button>
-                  </div>
-                ) : null}
-              </>
-            ) : null}
-
-            <div className="donation-form-actions">
-              <Link
-                to="/form"
-                className="btn-primary donation-form-submit-btn !min-h-10 inline-flex items-center justify-center gap-2 !px-8 !py-2 !text-sm font-semibold sm:!text-[0.9375rem]"
-              >
-                {t('profile.continueToForm')} <ArrowRight size={18} aria-hidden />
-              </Link>
+      <div className="profile-page mx-auto w-full max-w-3xl px-2 pb-10 sm:px-4">
+        <div className="profile-card overflow-hidden rounded-2xl border border-[#0d2d7f]/15 bg-white/95 shadow-[0_18px_50px_-22px_rgba(13,45,127,0.4)] backdrop-blur-sm">
+          <div className="profile-card-header border-b border-[#0d2d7f]/10 bg-gradient-to-r from-[#f8faff] via-white to-[#fafcff] px-4 py-4 sm:px-6 sm:py-5">
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">{t('profile.cardEyebrow')}</p>
+              <h2 className="mt-1 text-lg font-black text-ink sm:text-xl">{t('profile.cardTitle')}</h2>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
+                {awaitingClaim ? t('profile.recordFound') : t('profile.bannerMaskedHelp')}
+              </p>
             </div>
           </div>
-        )}
+
+          {subscriptionPaid ? (
+            <div className="mx-4 mt-4 flex items-start gap-3 rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 sm:mx-6">
+              <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-700" size={20} aria-hidden />
+              <div className="min-w-0 text-left">
+                <p className="text-sm font-semibold leading-relaxed text-emerald-900">
+                  {t('profile.subscriptionActive')}
+                </p>
+                {subscriptionPeriod?.validThrough ? (
+                  <p className="mt-1 text-sm text-emerald-800">
+                    {t('profile.validThrough', { date: subscriptionPeriod.validThrough })}
+                  </p>
+                ) : null}
+                {subscriptionPeriod?.remaining ? (
+                  <p className="mt-1 text-sm font-bold text-emerald-900">{subscriptionPeriod.remaining}</p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {showSearchSection ? (
+            <div className="border-b border-[#0d2d7f]/8 px-4 py-5 sm:px-6">
+              <div className="rounded-xl border border-[#0d2d7f]/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(244,248,255,0.92))] p-4 sm:p-5">
+                <p className="text-sm font-bold text-[#0d2d7f]">{t('profile.offlineToggle')}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{t('profile.offlineHelp')}</p>
+
+                <form onSubmit={handleLegacySearch} className="mt-4 rounded-xl border border-[#0d2d7f]/10 bg-white p-3 sm:p-4">
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
+                        searchMode === 'mobile'
+                          ? 'border-[#0d2d7f] bg-[#0d2d7f] text-white'
+                          : 'border-[#0d2d7f]/25 bg-white text-[#0d2d7f]'
+                      }`}
+                      onClick={() => {
+                        setSearchMode('mobile');
+                        setLegacyQuery('');
+                        setLegacyPreview(null);
+                        setLegacyError('');
+                      }}
+                    >
+                      {t('profile.searchByMobile')}
+                    </button>
+                    <button
+                      type="button"
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
+                        searchMode === 'subscriber'
+                          ? 'border-[#0d2d7f] bg-[#0d2d7f] text-white'
+                          : 'border-[#0d2d7f]/25 bg-white text-[#0d2d7f]'
+                      }`}
+                      onClick={() => {
+                        setSearchMode('subscriber');
+                        setLegacyQuery('');
+                        setLegacyPreview(null);
+                        setLegacyError('');
+                      }}
+                    >
+                      {t('profile.searchBySubscriber')}
+                    </button>
+                    <span
+                      tabIndex={0}
+                      className="group/icon relative ml-auto inline-flex h-9 w-9 cursor-help items-center justify-center rounded-lg border border-[#0d2d7f]/20 bg-white text-primary"
+                      aria-label={t('profile.tooltipAria')}
+                      title={LEGACY_LOOKUP_TOOLTIP}
+                    >
+                      <Info className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+                      <span
+                        role="tooltip"
+                        className="pointer-events-none invisible absolute bottom-full right-0 z-30 mb-2 w-[min(18rem,calc(100vw-2.5rem))] rounded-lg border border-[#0d2d7f]/20 bg-white px-3 py-2 text-left text-xs font-medium leading-relaxed text-ink shadow-lg opacity-0 transition [@media(hover:hover)]:group-hover/icon:visible [@media(hover:hover)]:group-hover/icon:opacity-100 group-focus-within/icon:visible group-focus-within/icon:opacity-100"
+                      >
+                        {LEGACY_LOOKUP_TOOLTIP}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <div className="w-full sm:flex-1">
+                      <label htmlFor="po-legacy-query" className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted">
+                        {searchMode === 'mobile'
+                          ? t('profile.labelSearchMobile')
+                          : t('profile.labelSearchSubscriber')}
+                      </label>
+                      <input
+                        id="po-legacy-query"
+                        className="donation-input !rounded-lg"
+                        inputMode="numeric"
+                        maxLength={searchMode === 'mobile' ? 10 : 12}
+                        autoComplete="off"
+                        placeholder={
+                          searchMode === 'mobile'
+                            ? t('profile.placeholderSearchMobile')
+                            : t('profile.placeholderSearchSubscriber')
+                        }
+                        value={legacyQuery}
+                        onChange={(e) =>
+                          setLegacyQuery(
+                            e.target.value.replace(/\D/g, '').slice(0, searchMode === 'mobile' ? 10 : 12)
+                          )
+                        }
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={legacyLoading}
+                      className="btn-secondary inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2 text-sm font-semibold sm:min-w-[11rem]"
+                    >
+                      {legacyLoading ? <InlineLoader size={20} /> : <Search size={18} aria-hidden />}
+                      {legacyLoading ? t('profile.searching') : t('profile.searchDatabase')}
+                    </button>
+                  </div>
+                </form>
+
+                {legacyError ? (
+                  <div className="mt-3">
+                    <Alert>{legacyError}</Alert>
+                  </div>
+                ) : null}
+                {claimInfo ? (
+                  <div className="mt-3">
+                    <Alert type="success">{claimInfo}</Alert>
+                  </div>
+                ) : null}
+
+                {legacyPreview?.type === 'matches' && legacyPreview.matches.length > 1 ? (
+                  <div className="mt-4 rounded-xl border border-[#0d2d7f]/12 bg-white px-3 py-3 sm:px-4">
+                    <label htmlFor="po-legacy-pick" className="text-xs font-semibold text-muted">
+                      {t('profile.pickRecord')}
+                    </label>
+                    <select
+                      id="po-legacy-pick"
+                      className="donation-input mt-1 max-w-full !rounded-lg"
+                      value={legacyPreview.selectedIndex}
+                      onChange={(e) =>
+                        setLegacyPreview((prev) =>
+                          prev?.type === 'matches'
+                            ? { ...prev, selectedIndex: Number(e.target.value) }
+                            : prev
+                        )
+                      }
+                    >
+                      {legacyPreview.matches.map((m, i) => (
+                        <option key={`${m.rowId ?? i}-${m.legacyClaimKey ?? ''}`} value={i}>
+                          {String(m.nameMasked || t('profile.record')).trim()} · {t('profile.sub')}{' '}
+                          {m.subscriberNo ?? '-'} · {matchSummaryToAddressPreview(m, pinHintTemplate)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {loading ? (
+            <div className="px-4 py-10 sm:px-6">
+              <LoadingBlock label={t('loaders.loadingDetails')} />
+            </div>
+          ) : showContactSection && contactDisplay ? (
+            <div className="px-4 py-5 sm:px-6">
+              <dl className="profile-detail-grid">
+                {contactDisplay.name ? (
+                  <ProfileDetail icon={User} label={t('profile.nameLabel')} value={contactDisplay.name} />
+                ) : null}
+                <ProfileDetail
+                  icon={Phone}
+                  label={t('profile.mobileLabel')}
+                  value={contactDisplay.phone || t('profile.notOnFile')}
+                />
+                <ProfileDetail
+                  icon={Mail}
+                  label={t('profile.emailLabel')}
+                  value={contactDisplay.email || t('profile.notOnFile')}
+                />
+                <ProfileDetail
+                  icon={MapPin}
+                  label={t('profile.addressLabel')}
+                  value={contactDisplay.address || t('profile.noSavedAddress')}
+                  wide
+                />
+              </dl>
+
+              {awaitingClaim ? (
+                <div className="mt-5 flex justify-center">
+                  <button
+                    type="button"
+                    disabled={claimLoading}
+                    onClick={handleClaimLegacy}
+                    className="btn-primary inline-flex min-h-10 items-center justify-center gap-2 px-6 py-2 text-sm font-semibold"
+                  >
+                    {claimLoading ? <InlineLoader size={20} /> : null}
+                    {claimLoading ? t('profile.linking') : t('profile.linkRecord')}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {!loading ? (
+            <div className="profile-actions border-t border-[#0d2d7f]/10 bg-[#f8faff]/80 px-4 py-5 sm:px-6">
+              <p className="mb-4 text-center text-xs font-bold uppercase tracking-[0.14em] text-muted">
+                {t('profile.actionsHeading')}
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+                {!subscriptionPaid ? (
+                  <Link
+                    to="/form"
+                    className="btn-primary inline-flex min-h-11 items-center justify-center gap-2 px-8 py-2.5 text-sm font-semibold"
+                  >
+                    {t('profile.continueToForm')} <ArrowRight size={18} aria-hidden />
+                  </Link>
+                ) : null}
+                <Link
+                  to="/books"
+                  className="btn-secondary inline-flex min-h-11 items-center justify-center gap-2 px-8 py-2.5 text-sm font-semibold"
+                >
+                  <BookOpen size={18} aria-hidden /> {t('profile.buyBooks')}
+                </Link>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <footer className="profile-footer mt-6 text-center">
+          <Link
+            to="/about"
+            className="text-sm font-semibold text-primary underline decoration-primary/30 underline-offset-4 hover:text-brand-royal"
+          >
+            {t('about.footerLink')}
+          </Link>
+        </footer>
       </div>
     </DonationLayout>
   );

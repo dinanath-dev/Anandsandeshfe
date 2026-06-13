@@ -269,6 +269,55 @@ textarea.donation-input.donation-input--address {
   cursor: not-allowed;
 }
 
+.profile-detail-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .profile-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.1rem 1.25rem;
+  }
+}
+
+.profile-detail--wide {
+  grid-column: 1 / -1;
+}
+
+.profile-detail-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.profile-detail-value {
+  margin: 0.45rem 0 0;
+  min-height: 2.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(13, 45, 127, 0.12);
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 0.65rem 0.85rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text-on-surface);
+  white-space: pre-line;
+}
+
+.profile-detail--wide .profile-detail-value {
+  min-height: 5.5rem;
+}
+
+.profile-footer {
+  color: var(--text-on-surface);
+}
+
 * {
   box-sizing: border-box;
 }

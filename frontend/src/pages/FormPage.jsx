@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CheckCircle2, CreditCard, LogOut } from 'lucide-react';
+import { CheckCircle2, CreditCard } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
@@ -8,7 +8,7 @@ import DonationFormRow from '../components/DonationFormRow.jsx';
 import DonationFormPair from '../components/DonationFormPair.jsx';
 import { INDIAN_STATES } from '../data/indianStates.js';
 import { getCurrentUser, getMyFormSubmission, submitUserForm } from '../services/api.js';
-import { clearPendingOtp, clearUserAuth, getUserAuth } from '../utils/auth.js';
+import { getUserAuth } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
 
@@ -277,12 +277,6 @@ export default function FormPage() {
     };
   }
 
-  function handleLogout() {
-    clearUserAuth();
-    clearPendingOtp();
-    navigate('/', { replace: true });
-  }
-
   async function handleSubmit(event) {
     event.preventDefault();
     setApiError('');
@@ -336,13 +330,6 @@ export default function FormPage() {
   return (
     <DonationLayout subtitle={t('form.subtitle')}>
       {isSubmitting ? <LoadingBlock label={t('loaders.savingForm')} /> : null}
-      <button
-        type="button"
-        className="btn-secondary fixed right-3 top-[max(6.5rem,env(safe-area-inset-top)+5.25rem)] z-[60] inline-flex min-h-10 items-center gap-2 whitespace-nowrap px-3 py-2 text-sm font-semibold shadow-md sm:right-6 sm:top-5 sm:px-4"
-        onClick={handleLogout}
-      >
-        <LogOut size={18} aria-hidden /> {t('common.logout')}
-      </button>
       <div className="donation-form-shell w-full px-1 py-2 sm:px-3 sm:py-3">
         {!submissionLoaded ? (
           <LoadingBlock label={t('loaders.loadingSubmission')} />

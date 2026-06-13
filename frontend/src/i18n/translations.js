@@ -130,6 +130,17 @@ export const translations = {
 
     profile: {
       subtitle: 'Your contact details on file',
+      cardEyebrow: 'Member portal',
+      cardTitle: 'Account overview',
+      subscriptionActive: 'Your Anand Sandesh subscription is paid and active.',
+      validThrough: 'Valid through {date}',
+      periodRemainingToday: 'Expires today',
+      periodRemainingOneDay: '1 day remaining',
+      periodRemainingDays: '{count} days remaining',
+      periodRemainingOneMonth: '1 month remaining',
+      periodRemainingMonths: '{count} months remaining',
+      periodExpired: 'Subscription period has ended',
+      actionsHeading: 'What would you like to do?',
       bannerMaskedHelp:
         'Phone and email are partially hidden. You can review or update the full values on the next screen.',
       offlineToggle: 'Subscribed offline before? Find your record',
@@ -166,6 +177,7 @@ export const translations = {
       emailAria: 'Email (masked)',
       addressAria: 'Postal address',
       continueToForm: 'Continue to subscription form',
+      buyBooks: 'Buy books',
       tooltipAria: 'About offline subscription lookup',
       pinEnding: 'PIN ending in {last4}',
       record: 'Record',
@@ -181,6 +193,36 @@ export const translations = {
       },
       claimSuccess:
         'Your offline record is now linked to this account. You can continue to the form to pay or update details.'
+    },
+
+    books: {
+      subtitle: 'Buy spiritual books',
+      backToProfile: 'Back to profile',
+      selectBook: 'Select a book',
+      selectBooks: 'Select books',
+      chooseBook: 'Choose a book…',
+      priceLabel: 'Price',
+      quantity: 'Qty',
+      cartSummary: 'Your selection',
+      totalLabel: 'Total',
+      orderItems: 'Books in this order',
+      saving: 'Saving order…',
+      proceedToPayment: 'Proceed to payment',
+      noBooks: 'No books are available right now. Please check back later.',
+      paymentSubtitle: 'Book payment',
+      paymentHeading: 'Complete your book order',
+      paymentSummary: 'One-time secure payment via Razorpay. Your order is confirmed after server verification.',
+      bookLabel: 'Book:',
+      orderRef: 'Order ID:',
+      payNow: 'Pay now',
+      editOrder: 'Edit order',
+      oneTimePayment: 'Book purchase',
+      loadingCatalog: 'Loading book catalog…',
+      errors: {
+        loadFailed: 'Could not load books. Please try again.',
+        bookRequired: 'Please select at least one book.',
+        orderFailed: 'Could not create your order. Please try again.'
+      }
     },
 
     form: {
@@ -277,6 +319,9 @@ export const translations = {
       heading: 'Proceed to payment',
       summary:
         'Pay securely with Razorpay. Your subscription is confirmed only after our server verifies the payment signature.',
+      summaryRecurring:
+        'Pay securely with Razorpay. Your card or UPI will be charged automatically every year until you cancel. Renewals are handled by Razorpay and confirmed by our server via webhooks.',
+      recurringDescription: 'Anand Sandesh — {plan} (auto-renews yearly)',
       planLabel: 'Plan:',
       referenceLabel: 'Reference ID:',
       configHelpA:
@@ -286,6 +331,9 @@ export const translations = {
       payWithRazorpay: 'Pay with Razorpay',
       startingCheckout: 'Starting checkout…',
       editDetails: 'Edit details',
+      alreadyPaidHeading: 'Already subscribed',
+      alreadyPaidSummary: 'Your payment is already verified. No further action is needed.',
+      viewConfirmation: 'View confirmation',
       oneYear: 'One year',
       fiveYear: '5 year',
       errors: {
@@ -296,7 +344,9 @@ export const translations = {
           'Razorpay is not fully configured for this plan. Contact support.',
         couldNotStart: 'Could not start subscription. Please try again.',
         paymentFailed: 'Payment failed.',
+        paymentCancelled: 'Payment cancelled.',
         couldNotStartShort: 'Could not start payment.',
+        alreadyPaid: 'This subscription is already paid.',
         verificationPending:
           'Payment was received, but verification is still pending.'
       }
@@ -528,6 +578,17 @@ export const translations = {
 
     profile: {
       subtitle: 'फ़ाइल पर मौजूद आपकी संपर्क जानकारी',
+      cardEyebrow: 'सदस्य पोर्टल',
+      cardTitle: 'खाता अवलोकन',
+      subscriptionActive: 'आपकी आनंद संदेश सदस्यता भुगतान सहित सक्रिय है।',
+      validThrough: '{date} तक मान्य',
+      periodRemainingToday: 'आज समाप्त हो रही है',
+      periodRemainingOneDay: '1 दिन शेष',
+      periodRemainingDays: '{count} दिन शेष',
+      periodRemainingOneMonth: '1 महीना शेष',
+      periodRemainingMonths: '{count} महीने शेष',
+      periodExpired: 'सदस्यता अवधि समाप्त हो गई है',
+      actionsHeading: 'आप क्या करना चाहेंगे?',
       bannerMaskedHelp:
         'फ़ोन और ईमेल आंशिक रूप से छिपे हुए हैं। आप अगली स्क्रीन पर पूरी जानकारी देख या अपडेट कर सकते हैं।',
       offlineToggle: 'पहले ऑफ़लाइन सदस्यता ली थी? अपना रिकॉर्ड खोजें',
@@ -565,6 +626,7 @@ export const translations = {
       emailAria: 'ईमेल (छिपा हुआ)',
       addressAria: 'डाक पता',
       continueToForm: 'सदस्यता फ़ॉर्म पर जारी रखें',
+      buyBooks: 'पुस्तकें खरीदें',
       tooltipAria: 'ऑफ़लाइन सदस्यता खोज के बारे में',
       pinEnding: 'पिन के अंतिम 4 अंक: {last4}',
       record: 'रिकॉर्ड',
@@ -581,6 +643,36 @@ export const translations = {
       },
       claimSuccess:
         'आपका ऑफ़लाइन रिकॉर्ड अब इस खाते से जुड़ गया है। आप भुगतान करने या विवरण अपडेट करने के लिए फ़ॉर्म पर जारी रख सकते हैं।'
+    },
+
+    books: {
+      subtitle: 'आध्यात्मिक पुस्तकें खरीदें',
+      backToProfile: 'प्रोफ़ाइल पर वापस',
+      selectBook: 'पुस्तक चुनें',
+      selectBooks: 'पुस्तकें चुनें',
+      chooseBook: 'पुस्तक चुनें…',
+      priceLabel: 'मूल्य',
+      quantity: 'मात्रा',
+      cartSummary: 'आपका चयन',
+      totalLabel: 'कुल',
+      orderItems: 'इस ऑर्डर में पुस्तकें',
+      saving: 'ऑर्डर सहेजा जा रहा है…',
+      proceedToPayment: 'भुगतान पर जाएँ',
+      noBooks: 'अभी कोई पुस्तक उपलब्ध नहीं है। बाद में पुनः देखें।',
+      paymentSubtitle: 'पुस्तक भुगतान',
+      paymentHeading: 'अपना पुस्तक ऑर्डर पूरा करें',
+      paymentSummary: 'Razorpay के माध्यम से एक बार का सुरक्षित भुगतान। सर्वर सत्यापन के बाद ऑर्डर पुष्ट होगा।',
+      bookLabel: 'पुस्तक:',
+      orderRef: 'ऑर्डर आईडी:',
+      payNow: 'अभी भुगतान करें',
+      editOrder: 'ऑर्डर संपादित करें',
+      oneTimePayment: 'पुस्तक खरीद',
+      loadingCatalog: 'पुस्तक सूची लोड हो रही है…',
+      errors: {
+        loadFailed: 'पुस्तकें लोड नहीं हो सकीं। पुनः प्रयास करें।',
+        bookRequired: 'कृपया कम से कम एक पुस्तक चुनें।',
+        orderFailed: 'ऑर्डर नहीं बन सका। पुनः प्रयास करें।'
+      }
     },
 
     form: {
@@ -682,6 +774,9 @@ export const translations = {
       heading: 'भुगतान पर जाएँ',
       summary:
         'Razorpay के साथ सुरक्षित भुगतान करें। आपकी सदस्यता तभी पुष्ट होगी जब हमारा सर्वर भुगतान हस्ताक्षर सत्यापित कर ले।',
+      summaryRecurring:
+        'Razorpay के साथ सुरक्षित भुगतान करें। रद्द करने तक हर वर्ष आपके कार्ड या UPI से स्वचालित रूप से शुल्क लिया जाएगा। नवीनीकरण Razorpay द्वारा किया जाता है और वेबहुक के माध्यम से हमारे सर्वर द्वारा पुष्ट किया जाता है।',
+      recurringDescription: 'Anand Sandesh — {plan} (प्रतिवर्ष स्वतः नवीनीकरण)',
       planLabel: 'योजना:',
       referenceLabel: 'संदर्भ आईडी:',
       configHelpA:
@@ -691,6 +786,9 @@ export const translations = {
       payWithRazorpay: 'Razorpay से भुगतान करें',
       startingCheckout: 'चेकआउट शुरू हो रहा है…',
       editDetails: 'विवरण संपादित करें',
+      alreadyPaidHeading: 'सदस्यता पहले से सक्रिय',
+      alreadyPaidSummary: 'आपका भुगतान पहले ही सत्यापित है। आगे कोई कार्रवाई आवश्यक नहीं है।',
+      viewConfirmation: 'पुष्टि देखें',
       oneYear: 'एक वर्ष',
       fiveYear: '5 वर्ष',
       errors: {
@@ -702,7 +800,9 @@ export const translations = {
         couldNotStart:
           'सदस्यता शुरू नहीं हो सकी। कृपया पुनः प्रयास करें।',
         paymentFailed: 'भुगतान विफल हुआ।',
+        paymentCancelled: 'भुगतान रद्द किया गया।',
         couldNotStartShort: 'भुगतान शुरू नहीं हो सका।',
+        alreadyPaid: 'यह सदस्यता पहले ही भुगतान की जा चुकी है।',
         verificationPending:
           'भुगतान प्राप्त हो गया है, लेकिन सत्यापन अभी लंबित है।'
       }

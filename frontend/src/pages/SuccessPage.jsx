@@ -1,5 +1,6 @@
 import { CheckCircle2, Home } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import LogoutButton from '../components/LogoutButton.jsx';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
 
@@ -19,6 +20,7 @@ export default function SuccessPage() {
 
   return (
     <main className="page-shell">
+      <LogoutButton />
       <section className="content-wrap flex min-h-[calc(100vh-3rem)] items-center justify-center">
         <div className="card max-w-xl p-6 text-center sm:p-8 md:p-10">
           <CheckCircle2 className="mx-auto mb-5 text-primary" size={64} />

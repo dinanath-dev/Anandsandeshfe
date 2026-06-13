@@ -8,6 +8,8 @@ import { isUserAuthenticated } from './utils/auth.js';
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
 const FormPage = lazy(() => import('./pages/FormPage.jsx'));
 const ProfileOverviewPage = lazy(() => import('./pages/ProfileOverviewPage.jsx'));
+const BookFormPage = lazy(() => import('./pages/BookFormPage.jsx'));
+const BookPaymentPage = lazy(() => import('./pages/BookPaymentPage.jsx'));
 const PaymentPage = lazy(() => import('./pages/PaymentPage.jsx'));
 const SuccessPage = lazy(() => import('./pages/SuccessPage.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
@@ -43,6 +45,22 @@ export default function App() {
           element={(
             <ProtectedRoute>
               <FormPage />
+            </ProtectedRoute>
+          )}
+        />
+        <Route
+          path="/books"
+          element={(
+            <ProtectedRoute>
+              <BookFormPage />
+            </ProtectedRoute>
+          )}
+        />
+        <Route
+          path="/books/payment"
+          element={(
+            <ProtectedRoute>
+              <BookPaymentPage />
             </ProtectedRoute>
           )}
         />

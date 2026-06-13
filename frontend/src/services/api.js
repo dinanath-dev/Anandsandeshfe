@@ -160,12 +160,46 @@ export function verifySubmission(token, id) {
   });
 }
 
+export function getBooks() {
+  return request('/books');
+}
+
+export function createBookOrder(body) {
+  return request('/books/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+export function getBookOrder(orderId) {
+  return request(`/books/orders/${orderId}`);
+}
+
+/** Razorpay one-time order (books or legacy). Auth: Bearer user JWT. */
+export function createOrder(body) {
+  return request('/payment/create-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+/** Verify one-time payment after Razorpay modal. Auth: Bearer user JWT. */
+export function verifyPayment(body) {
+  return request('/payment/verify-payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
 /** Razorpay recurring: create subscription. Auth: Bearer user JWT only (not admin). */
-export function createSubscription({ plan_id, total_count }) {
+export function createSubscription({ plan_id, total_count, submission_id }) {
   return request('/payment/subscriptions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ plan_id, total_count })
+    body: JSON.stringify({ plan_id, total_count, submission_id })
   });
 }
 

@@ -1,11 +1,16 @@
 import ArchedOrgTitle from './ArchedOrgTitle.jsx';
+import LogoutButton from './LogoutButton.jsx';
 import anandpurLogo from '../assets/Shri_AnandpurDham_Logo.png';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { isUserAuthenticated } from '../utils/auth.js';
 
-export default function DonationLayout({ subtitle, children }) {
+export default function DonationLayout({ subtitle, children, showLogout }) {
   const { t } = useTranslation();
+  const shouldShowLogout = showLogout ?? isUserAuthenticated();
+
   return (
     <div className="donation-page min-h-screen text-ink ps-[max(0px,env(safe-area-inset-left))] pe-[max(0px,env(safe-area-inset-right))]">
+      {shouldShowLogout ? <LogoutButton /> : null}
       <header className="donation-header relative z-[1] overflow-hidden px-3 pb-3 pt-4 text-center sm:px-4 sm:pb-4 sm:pt-6">
         <p className="donation-mantra relative z-[2] mx-auto flex max-w-4xl items-center justify-center gap-3 font-devanagari text-xl font-bold sm:gap-4 sm:text-2xl md:text-3xl">
           <span className="donation-mantra-flor select-none text-lg sm:text-xl md:text-2xl" aria-hidden>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, CheckCircle2, ChevronRight, Eye, EyeOff, Mail, MapPin, Sparkles } from 'lucide-react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { ArrowRight, CheckCircle2, ChevronRight, Eye, EyeOff, Mail } from 'lucide-react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import {
   getCurrentUser,
   loginWithPassword,
@@ -15,6 +15,18 @@ import PublicSeoIntro from '../components/PublicSeoIntro.jsx';
 import SubscriptionHeroVisual from '../components/SubscriptionHeroVisual.jsx';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 
+function AuthHeroVisual({ compact = false }) {
+  return (
+    <SubscriptionHeroVisual
+      className={
+        compact
+          ? 'mx-auto max-h-[min(34vh,14rem)] max-w-[min(100%,18rem)]'
+          : 'mx-auto max-h-[min(42vh,22rem)] max-w-[min(100%,24rem)]'
+      }
+    />
+  );
+}
+
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
 
@@ -23,66 +35,6 @@ function buildMaskedEmail(email) {
   if (!name || !domain) return email;
   const visible = name.length <= 2 ? name[0] || '' : `${name[0]}${name[name.length - 1]}`;
   return `${visible}${'•'.repeat(Math.max(name.length - 2, 2))}@${domain}`;
-}
-
-function AuthMarketingCard({ compact = false, showGif = true }) {
-  const { t } = useTranslation();
-  return (
-    <div
-      className={`relative overflow-hidden rounded-2xl border border-white/25 bg-white/12 shadow-[0_24px_56px_-12px_rgba(6,13,26,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] ring-1 ring-white/10 backdrop-blur-xl ${
-        compact ? 'p-5' : 'px-7 py-8 xl:px-8 xl:py-9'
-      }`}
-    >
-      <div
-        className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-gradient-to-br from-sky-400/20 to-[#1e4a9e]/10 blur-3xl"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -bottom-20 -left-10 h-40 w-40 rounded-full bg-gradient-to-tr from-[#0d2d7f]/15 to-slate-200/10 blur-3xl"
-        aria-hidden
-      />
-      <div
-        className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#c9a43a] via-[#0d2d7f] to-sky-400"
-        aria-hidden
-      />
-
-      <div className="relative z-[1]">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex max-w-full items-center gap-2.5 rounded-2xl border border-white/30 bg-white/15 px-3.5 py-2.5 text-left text-sm font-semibold leading-snug text-slate-900 shadow-sm backdrop-blur-md sm:px-4 sm:py-2.5 sm:text-[0.95rem]">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/35 text-primary shadow-inner ring-1 ring-white/40 sm:h-8 sm:w-8">
-              <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
-            </span>
-            <span>{t('auth.heroBadge')}</span>
-          </div>
-        </div>
-        <h1
-          className={`mt-5 font-black tracking-[-0.04em] ${
-            compact ? 'text-2xl leading-tight sm:text-3xl' : 'text-3xl leading-[1.12] sm:text-4xl xl:text-[2.55rem] xl:leading-[1.08]'
-          }`}
-        >
-          <span className="bg-gradient-to-r from-[#041a33] via-[#0d2d7f] to-[#1e4a9e] bg-clip-text text-transparent">
-            {t('auth.heroTitle')}
-          </span>
-        </h1>
-        <div className="mt-5 flex gap-3 rounded-xl border border-white/25 bg-white/10 p-3.5 shadow-inner backdrop-blur-md sm:mt-6 sm:p-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/25 text-primary shadow-sm ring-1 ring-white/35">
-            <MapPin className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={2.25} aria-hidden />
-          </div>
-          <p className="min-w-0 text-sm font-medium leading-relaxed text-slate-800 sm:text-base sm:leading-7">
-            {t('auth.heroAddress')}{' '}
-            <span className="whitespace-nowrap font-semibold tabular-nums text-slate-900">{t('auth.heroPin')}</span>
-          </p>
-        </div>
-        {showGif ? (
-          <div className="mt-5 flex justify-center sm:mt-6">
-            <SubscriptionHeroVisual
-              className={compact ? 'max-h-[min(38vh,16rem)] max-w-[min(100%,20rem)]' : ''}
-            />
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
 }
 
 export default function AuthPage() {
@@ -507,26 +459,26 @@ export default function AuthPage() {
   return (
     <main className="auth-page min-h-screen overflow-x-hidden px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 lg:px-8">
       {isLoggingIn ? <LoadingBlock label={t('loaders.signingIn')} /> : null}
-      <PublicSeoIntro />
-      <div className="auth-grid mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-7xl items-stretch overflow-x-hidden rounded-2xl border border-white/20 bg-white/10 shadow-[0_32px_120px_rgba(6,13,26,0.45)] backdrop-blur-2xl sm:min-h-[calc(100vh-2.5rem)] sm:rounded-[2rem]">
-        <section className="auth-hero relative hidden flex-1 flex-col overflow-hidden px-6 py-8 text-[#0d2d7f] md:flex md:justify-between lg:px-8 lg:py-10 xl:px-12">
+      <div className="auth-grid mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-7xl flex-col items-stretch overflow-x-hidden rounded-2xl border border-white/20 bg-white/10 shadow-[0_32px_120px_rgba(6,13,26,0.45)] backdrop-blur-2xl sm:min-h-[calc(100vh-2.5rem)] sm:rounded-[2rem] md:min-h-[calc(100dvh-2.5rem)] md:flex-row">
+        <section className="auth-hero relative hidden flex-1 flex-col justify-between overflow-hidden px-6 py-8 text-[#0d2d7f] md:flex lg:px-8 lg:py-10 xl:px-12">
           <div className="auth-hero-glow" aria-hidden />
           <div className="relative z-[1] max-w-xl">
-            <AuthMarketingCard showGif={false} />
+            <PublicSeoIntro variant="hero" />
           </div>
 
           <div className="relative z-[1] my-6 flex flex-1 flex-col items-center justify-center lg:my-4">
-            <SubscriptionHeroVisual />
+            <AuthHeroVisual />
           </div>
         </section>
 
-        <section className="relative flex w-full items-center justify-center px-4 py-6 sm:px-8 sm:py-10 md:max-w-[34rem] md:shrink-0 md:px-10 xl:px-12">
+        <section className="relative flex w-full items-center justify-center px-4 py-6 sm:px-8 sm:py-10 md:w-[min(100%,28rem)] md:max-w-[28rem] md:shrink-0 md:px-8 lg:w-[min(100%,30rem)] lg:max-w-[30rem] lg:px-10 xl:px-12">
           <div className="auth-card-shape auth-card-shape-one" aria-hidden />
           <div className="auth-card-shape auth-card-shape-two" aria-hidden />
 
           <div className="relative z-[1] w-full max-w-xl">
-            <div className="mb-7 md:hidden">
-              <AuthMarketingCard compact showGif />
+            <div className="mb-6 space-y-5 md:hidden">
+              <PublicSeoIntro variant="heroCompact" />
+              <AuthHeroVisual compact />
             </div>
 
             <div className="rounded-[2rem] border border-white/25 bg-white/15 p-5 shadow-[0_18px_50px_rgba(6,13,26,0.28)] ring-1 ring-white/15 backdrop-blur-xl sm:p-7">
@@ -988,14 +940,6 @@ export default function AuthPage() {
         </section>
       </div>
 
-      <footer className="auth-footer relative z-[1] mx-auto mt-6 max-w-6xl px-1 text-center text-sm">
-        <Link
-          to="/about"
-          className="font-semibold text-white/90 underline decoration-white/40 underline-offset-4 transition hover:text-white hover:decoration-white"
-        >
-          {t('about.footerLink')}
-        </Link>
-      </footer>
     </main>
   );
 }
