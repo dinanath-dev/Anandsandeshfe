@@ -34,11 +34,41 @@ function planConfigForType(subscriptionType) {
 
 function userDisplayName(user) {
   if (!user) return '';
-  const n = String(user.name || '').trim();
+  const n = String(user.name || user.fullName || '').trim();
   if (n) return n;
   const first = String(user.firstName || '').trim();
   const last = String(user.lastName || '').trim();
   return [first, last].filter(Boolean).join(' ');
+}
+
+function razorpayContact(...sources) {
+  for (const src of sources) {
+    const digits = String(src || '').replace(/\D/g, '');
+    if (digits.length >= 10) return digits.slice(-10);
+  }
+  return '';
+}
+
+function formatRazorpayContact(digits10) {
+  const d = String(digits10 || '').replace(/\D/g, '').slice(-10);
+  return d.length === 10 ? `+91${d}` : '';
+}
+
+function submissionDisplayName(submission) {
+  return String(submission?.name || '').trim();
+}
+
+function checkoutPrefill(submission, user, serverCustomer) {
+  const contactDigits =
+    razorpayContact(serverCustomer?.contact, submission?.mobile, submission?.phone) ||
+    razorpayContact(user?.mobile, user?.phone);
+  return {
+    name: String(serverCustomer?.name || submissionDisplayName(submission) || userDisplayName(user)).trim(),
+    email: String(serverCustomer?.email || submission?.email || user?.email || '')
+      .trim()
+      .toLowerCase(),
+    contact: formatRazorpayContact(contactDigits)
+  };
 }
 
 function normalizePaymentStatus(status) {
@@ -89,6 +119,7 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
   const [resolvedSubscriptionType, setResolvedSubscriptionType] = useState(
     normalizeSubscriptionType(subscriptionTypeFromRoute)
   );
+  const [submissionSnapshot, setSubmissionSnapshot] = useState(null);
   const checkoutOpenRef = useRef(false);
 
   const planLabel = SUBSCRIPTION_LABELS[resolvedSubscriptionType] || resolvedSubscriptionType;
@@ -106,6 +137,8 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
         if (normalizePaymentStatus(sub.payment_status) === 'verified') {
           setAlreadyPaid(true);
         }
+
+        setSubmissionSnapshot(sub);
 
         const dbType = normalizeSubscriptionType(sub.subscription_type);
         if (dbType) {
@@ -153,6 +186,14 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
     setBusy(true);
     try {
       await getCurrentUser();
+
+      let submission = submissionSnapshot;
+      if (!submission) {
+        const data = await getMyFormSubmission();
+        submission = data?.submission || null;
+        if (submission) setSubmissionSnapshot(submission);
+      }
+
       const createData = await createSubscription({
         submission_id: String(submissionId)
       });
@@ -162,6 +203,14 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
       }
 
       const user = auth.user || {};
+      const prefill = checkoutPrefill(submission, user, createData?.customer);
+      if (!prefill.contact) {
+        throw new Error(t('payment.errors.mobileRequiredForUpi'));
+      }
+      if (!prefill.email) {
+        throw new Error(t('payment.errors.emailRequiredForCheckout'));
+      }
+
       checkoutOpenRef.current = true;
 
       const rzp = new window.Razorpay({
@@ -169,10 +218,11 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
         subscription_id: subscriptionRzId,
         name: 'Anand Sandesh',
         description: t('payment.recurringDescription', { plan: planLabel }),
-        prefill: {
-          name: userDisplayName(user),
-          email: String(user.email || '').trim(),
-          contact: String(user.mobile || '').trim()
+        prefill,
+        readonly: {
+          name: Boolean(prefill.name),
+          email: Boolean(prefill.email),
+          contact: Boolean(prefill.contact)
         },
         theme: { color: '#2563eb' },
         handler: async function handler(response) {
@@ -233,6 +283,7 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
     planLabel,
     releaseCheckout,
     submissionId,
+    submissionSnapshot,
     t
   ]);
 

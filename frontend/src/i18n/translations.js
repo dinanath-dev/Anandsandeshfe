@@ -346,6 +346,10 @@ export const translations = {
         paymentFailed: 'Payment failed.',
         paymentCancelled: 'Payment cancelled.',
         couldNotStartShort: 'Could not start payment.',
+        mobileRequiredForUpi:
+          'A valid 10-digit mobile number is required for UPI Autopay. Edit your form and add your mobile number, then try again.',
+        emailRequiredForCheckout:
+          'An email address is required for payment. Sign in with email or add it on your form, then try again.',
         alreadyPaid: 'This subscription is already paid.',
         verificationPending:
           'Payment was received, but verification is still pending.'
@@ -802,6 +806,10 @@ export const translations = {
         paymentFailed: 'भुगतान विफल हुआ।',
         paymentCancelled: 'भुगतान रद्द किया गया।',
         couldNotStartShort: 'भुगतान शुरू नहीं हो सका।',
+        mobileRequiredForUpi:
+          'UPI Autopay के लिए मान्य 10 अंकीय मोबाइल नंबर आवश्यक है। फॉर्म में मोबाइल जोड़कर पुनः प्रयास करें।',
+        emailRequiredForCheckout:
+          'भुगतान के लिए ईमेल आवश्यक है। साइन इन करें या फॉर्म में ईमेल जोड़ें, फिर पुनः प्रयास करें।',
         alreadyPaid: 'यह सदस्यता पहले ही भुगतान की जा चुकी है।',
         verificationPending:
           'भुगतान प्राप्त हो गया है, लेकिन सत्यापन अभी लंबित है।'
