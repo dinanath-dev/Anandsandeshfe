@@ -489,6 +489,10 @@ textarea.donation-input.donation-input--address {
   accent-color: var(--brand-royal);
 }
 
+.donation-choice-input--controlled {
+  pointer-events: none;
+}
+
 .donation-choice-copy {
   display: flex;
   flex-direction: column;

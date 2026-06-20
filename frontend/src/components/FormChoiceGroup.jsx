@@ -26,19 +26,23 @@ export function FormChoiceOption({
   children
 }) {
   const id = `${name}-${value || 'opt'}`;
+  const toggleRadio = type === 'radio' && allowDeselect;
 
-  function handleDeselect(event) {
-    if (type !== 'radio' || !allowDeselect || !checked) return;
+  function handleLabelClick(event) {
+    if (!toggleRadio) return;
     event.preventDefault();
-    event.stopPropagation();
-    onChange?.({ target: { name, value: '', type: 'radio', checked: false } });
+    if (checked) {
+      onChange?.({ target: { name, value: '', type: 'radio', checked: false } });
+    } else {
+      onChange?.({ target: { name, value, type: 'radio', checked: true } });
+    }
   }
 
   return (
     <label
       htmlFor={id}
       className="donation-choice-option"
-      onMouseDown={handleDeselect}
+      onClick={toggleRadio ? handleLabelClick : undefined}
     >
       <input
         id={id}
@@ -46,9 +50,10 @@ export function FormChoiceOption({
         name={name}
         value={value}
         checked={checked}
-        onMouseDown={handleDeselect}
-        onChange={onChange}
-        className="donation-choice-input"
+        readOnly={toggleRadio}
+        tabIndex={toggleRadio ? -1 : undefined}
+        onChange={toggleRadio ? undefined : onChange}
+        className={`donation-choice-input${toggleRadio ? ' donation-choice-input--controlled' : ''}`}
       />
       <span className="donation-choice-copy">
         <span className="donation-choice-title">{title ?? children}</span>
