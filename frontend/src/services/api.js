@@ -1,7 +1,31 @@
 import { getUserAuth } from '../utils/auth.js';
 import { adminAuthHeaders, getAdminPortalId } from '../utils/adminAuth.js';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const PRODUCTION_API_BASE = 'https://api.anandsandeshkaryalay.online/api';
+
+function isProductionFrontendHost(hostname) {
+  const host = String(hostname || '').toLowerCase();
+  return (
+    host.endsWith('.vercel.app') ||
+    host === 'anandsandeshkaryalay.online' ||
+    host === 'www.anandsandeshkaryalay.online'
+  );
+}
+
+/** Vite bakes env at build time — fall back on live domains if localhost was baked in by mistake. */
+function resolveApiBaseUrl() {
+  const fromEnv = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
+  const looksLocal = /localhost|127\.0\.0\.1/i.test(fromEnv);
+
+  if (typeof window !== 'undefined' && isProductionFrontendHost(window.location.hostname)) {
+    if (!fromEnv || looksLocal) return PRODUCTION_API_BASE;
+  }
+
+  if (fromEnv) return fromEnv.endsWith('/api') ? fromEnv : `${fromEnv}/api`;
+  return 'http://localhost:5000/api';
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 /** Merge caller headers with Bearer token; uses Headers so casing / merging matches fetch rules. */
 function withAuthHeaders(headersInit) {
