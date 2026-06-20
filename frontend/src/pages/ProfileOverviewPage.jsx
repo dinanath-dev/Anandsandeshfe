@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, CheckCircle2, CircleHelp, Info, Mail, MapPin, Pencil, Phone, Search, User } from 'lucide-react';
 import OtpInboxHint from '../components/OtpInboxHint.jsx';
+import Alert from '../components/Alert.jsx';
 import { useToast } from '../components/ToastProvider.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
@@ -606,7 +607,6 @@ export default function ProfileOverviewPage() {
               {hasSavedProfile && !awaitingClaim ? (
                 <div className="mt-6 space-y-4 border-t border-[#0d2d7f]/10 pt-5">
                   {addressMessage ? <Alert type="success">{addressMessage}</Alert> : null}
-                  {emailMessage ? <Alert type="success">{emailMessage}</Alert> : null}
 
                   <div className="rounded-xl border border-[#0d2d7f]/12 bg-[#f8faff]/60 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -721,71 +721,81 @@ export default function ProfileOverviewPage() {
                       </form>
                     ) : null}
                   </div>
-
-                  <div className="rounded-xl border border-[#0d2d7f]/12 bg-white p-4">
-                    <p className="text-sm font-bold text-ink">{t('profile.changeEmailTitle')}</p>
-                    <p className="mt-1 text-xs text-muted">{t('profile.changeEmailHelp')}</p>
-                    <p className="mt-2 text-sm text-muted">
-                      {t('profile.currentEmail')}: <span className="font-semibold text-ink">{accountEmail || '—'}</span>
-                    </p>
-
-                    {emailError ? (
-                      <div className="mt-3">
-                        <Alert>{emailError}</Alert>
-                      </div>
-                    ) : null}
-
-                    {emailStep === 'idle' ? (
-                      <form onSubmit={handleRequestEmailChange} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
-                        <label className="block flex-1">
-                          <span className="label">{t('profile.newEmailLabel')}</span>
-                          <input
-                            className="donation-input !rounded-lg"
-                            type="email"
-                            value={newEmail}
-                            onChange={(e) => setNewEmail(e.target.value)}
-                            autoComplete="email"
-                          />
-                        </label>
-                        <button className="btn-secondary min-h-11 px-5 py-2 text-sm font-semibold" type="submit" disabled={emailLoading}>
-                          {emailLoading ? <InlineLoader size={18} /> : null}
-                          {emailLoading ? t('profile.sendingOtp') : t('profile.sendEmailOtp')}
-                        </button>
-                      </form>
-                    ) : (
-                      <form onSubmit={handleVerifyEmailChange} className="mt-3 space-y-3">
-                        <OtpInboxHint emailMasked={maskEmail(newEmail.trim().toLowerCase())} />
-                        <label className="block">
-                          <span className="label">{t('profile.otpLabel')}</span>
-                          <input
-                            className="donation-input !rounded-lg"
-                            inputMode="numeric"
-                            maxLength={6}
-                            value={emailOtp}
-                            onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                          />
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          <button className="btn-primary px-5 py-2 text-sm" type="submit" disabled={emailLoading}>
-                            {emailLoading ? t('profile.verifyingOtp') : t('profile.confirmEmailChange')}
-                          </button>
-                          <button
-                            className="btn-secondary px-5 py-2 text-sm"
-                            type="button"
-                            onClick={() => {
-                              setEmailStep('idle');
-                              setEmailOtp('');
-                              setEmailError('');
-                            }}
-                          >
-                            {t('common.cancel')}
-                          </button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
                 </div>
               ) : null}
+            </div>
+          ) : null}
+
+          {!loading ? (
+            <div className="border-t border-[#0d2d7f]/10 px-4 py-5 sm:px-6">
+              <div className="rounded-xl border border-[#0d2d7f]/12 bg-white p-4">
+                <p className="text-sm font-bold text-ink">{t('profile.changeEmailTitle')}</p>
+                <p className="mt-1 text-xs text-muted">{t('profile.changeEmailHelp')}</p>
+                <p className="mt-2 text-sm text-muted">
+                  {t('profile.currentEmail')}:{' '}
+                  <span className="font-semibold text-ink">{accountEmail || '—'}</span>
+                </p>
+
+                {emailError ? (
+                  <div className="mt-3">
+                    <Alert>{emailError}</Alert>
+                  </div>
+                ) : null}
+                {emailMessage ? (
+                  <div className="mt-3">
+                    <Alert type="success">{emailMessage}</Alert>
+                  </div>
+                ) : null}
+
+                {emailStep === 'idle' ? (
+                  <form onSubmit={handleRequestEmailChange} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <label className="block flex-1">
+                      <span className="label">{t('profile.newEmailLabel')}</span>
+                      <input
+                        className="donation-input !rounded-lg"
+                        type="email"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        autoComplete="email"
+                      />
+                    </label>
+                    <button className="btn-secondary min-h-11 px-5 py-2 text-sm font-semibold" type="submit" disabled={emailLoading}>
+                      {emailLoading ? <InlineLoader size={18} /> : null}
+                      {emailLoading ? t('profile.sendingOtp') : t('profile.sendEmailOtp')}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyEmailChange} className="mt-3 space-y-3">
+                    <OtpInboxHint emailMasked={maskEmail(newEmail.trim().toLowerCase())} />
+                    <label className="block">
+                      <span className="label">{t('profile.otpLabel')}</span>
+                      <input
+                        className="donation-input !rounded-lg"
+                        inputMode="numeric"
+                        maxLength={6}
+                        value={emailOtp}
+                        onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      />
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      <button className="btn-primary px-5 py-2 text-sm" type="submit" disabled={emailLoading}>
+                        {emailLoading ? t('profile.verifyingOtp') : t('profile.confirmEmailChange')}
+                      </button>
+                      <button
+                        className="btn-secondary px-5 py-2 text-sm"
+                        type="button"
+                        onClick={() => {
+                          setEmailStep('idle');
+                          setEmailOtp('');
+                          setEmailError('');
+                        }}
+                      >
+                        {t('common.cancel')}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             </div>
           ) : null}
 
