@@ -6,7 +6,10 @@ import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import DonationFormRow from '../components/DonationFormRow.jsx';
 import DonationFormPair from '../components/DonationFormPair.jsx';
-import { INDIAN_STATES } from '../data/indianStates.js';
+import AddressFieldsBlock from '../components/AddressFieldsBlock.jsx';
+import MobileNumberField from '../components/MobileNumberField.jsx';
+import { DEFAULT_COUNTRY } from '../data/countries.js';
+import { validateNationalMobile, applyCountryToForm } from '../utils/mobileNumber.js';
 import { createBookOrder, getBooks, getCurrentUser } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
@@ -21,6 +24,7 @@ const initialForm = {
   name: '',
   mobile: '',
   email: '',
+  country: DEFAULT_COUNTRY,
   address: '',
   state: '',
   town: '',
@@ -163,6 +167,11 @@ export default function BookFormPage() {
     setErrors((prev) => ({ ...prev, [field]: '' }));
   }
 
+  function handleCountryChange(country) {
+    setForm((current) => applyCountryToForm(current, country));
+    setErrors((current) => ({ ...current, country: '', mobile: '', pin: '' }));
+  }
+
   function toggleBook(bookId) {
     setCart((prev) => {
       const next = { ...prev };
@@ -183,11 +192,12 @@ export default function BookFormPage() {
     if (selectedLines.length === 0) next.books = t('books.errors.bookRequired');
     if (!form.name.trim()) next.name = t('form.errors.nameRequired');
     if (!form.gender) next.gender = t('form.errors.genderRequired');
-    if (!/^\d{10}$/.test(form.mobile)) next.mobile = t('form.errors.mobileInvalid');
+    if (!validateNationalMobile(form.mobile, form.country).valid) next.mobile = t('form.errors.mobileInvalid');
     if (!form.email.trim()) next.email = t('form.errors.emailRequired');
     if (!form.address.trim()) next.address = t('form.errors.addressRequired');
+    if (!form.country.trim()) next.country = t('form.errors.countryRequired');
     if (!form.state) next.state = t('form.errors.stateRequired');
-    if (!form.town.trim()) next.town = t('form.errors.townRequired');
+    if (!form.town.trim()) next.town = t('form.errors.required');
     if (!form.district.trim()) next.district = t('form.errors.districtRequired');
     if (!/^\d{4,10}$/.test(form.pin)) next.pin = t('form.errors.pinInvalid');
     setErrors(next);
@@ -210,6 +220,7 @@ export default function BookFormPage() {
         email: form.email.trim(),
         gender: form.gender,
         address: form.address.trim(),
+        country: form.country.trim() || DEFAULT_COUNTRY,
         town: form.town.trim(),
         district: form.district.trim(),
         state: form.state,
@@ -377,13 +388,13 @@ export default function BookFormPage() {
 
               <DonationFormPair>
                 <DonationFormRow label={t('form.labels.mobile')} required error={errors.mobile} labelFor="bf-mobile">
-                  <input
+                  <MobileNumberField
                     id="bf-mobile"
-                    className={inputClass('mobile', errors)}
-                    inputMode="numeric"
-                    maxLength={10}
+                    country={form.country}
+                    onCountryChange={handleCountryChange}
                     value={form.mobile}
-                    onChange={(e) => updateField('mobile', e.target.value.replace(/\D/g, ''))}
+                    onChange={(value) => updateField('mobile', value)}
+                    errors={errors}
                   />
                 </DonationFormRow>
                 <DonationFormRow label={t('form.labels.email')} required error={errors.email} labelFor="bf-email">
@@ -391,64 +402,15 @@ export default function BookFormPage() {
                 </DonationFormRow>
               </DonationFormPair>
 
-              <DonationFormPair className="donation-form-pair--single">
-                <DonationFormRow label={t('form.labels.address')} required error={errors.address} labelFor="bf-address">
-                  <textarea
-                    id="bf-address"
-                    className={`${inputClass('address', errors)} donation-input--address`}
-                    value={form.address}
-                    onChange={(e) => updateField('address', e.target.value)}
-                    rows={3}
-                  />
-                </DonationFormRow>
-              </DonationFormPair>
-
-              <DonationFormPair>
-                <DonationFormRow label={t('form.labels.state')} required error={errors.state} labelFor="bf-state">
-                  <select
-                    id="bf-state"
-                    className={inputClass('state', errors)}
-                    value={form.state}
-                    onChange={(e) => updateField('state', e.target.value)}
-                  >
-                    <option value="">{t('form.placeholders.selectState')}</option>
-                    {INDIAN_STATES.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </DonationFormRow>
-                <DonationFormRow label={t('form.labels.town')} required error={errors.town} labelFor="bf-town">
-                  <input
-                    id="bf-town"
-                    className={inputClass('town', errors)}
-                    value={form.town}
-                    onChange={(e) => updateField('town', e.target.value)}
-                  />
-                </DonationFormRow>
-              </DonationFormPair>
-
-              <DonationFormPair>
-                <DonationFormRow label={t('form.labels.district')} required error={errors.district} labelFor="bf-district">
-                  <input
-                    id="bf-district"
-                    className={inputClass('district', errors)}
-                    value={form.district}
-                    onChange={(e) => updateField('district', e.target.value)}
-                  />
-                </DonationFormRow>
-                <DonationFormRow label={t('form.labels.pin')} required error={errors.pin} labelFor="bf-pin">
-                  <input
-                    id="bf-pin"
-                    className={inputClass('pin', errors)}
-                    inputMode="numeric"
-                    maxLength={10}
-                    value={form.pin}
-                    onChange={(e) => updateField('pin', e.target.value.replace(/\D/g, ''))}
-                  />
-                </DonationFormRow>
-              </DonationFormPair>
+              <AddressFieldsBlock
+                form={form}
+                errors={errors}
+                updateField={updateField}
+                setForm={setForm}
+                onCountryChange={handleCountryChange}
+                idPrefix="bf"
+                showSectionTitle={false}
+              />
             </section>
 
             {errors.submit ? (

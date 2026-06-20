@@ -1,4 +1,5 @@
 import { getUserAuth } from '../utils/auth.js';
+import { adminAuthHeaders, getAdminPortalId } from '../utils/adminAuth.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
@@ -61,6 +62,30 @@ async function request(path, options = {}) {
 
 export function getMyFormSubmission() {
   return request('/form/me');
+}
+
+export function updateMyAddress(body) {
+  return request('/form/address', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+export function requestEmailChange(newEmail) {
+  return request('/auth/change-email/request', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ new_email: newEmail })
+  });
+}
+
+export function verifyEmailChange({ new_email, otp }) {
+  return request('/auth/change-email/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ new_email, otp })
+  });
 }
 
 /**
@@ -139,24 +164,107 @@ export function getCurrentUser() {
 }
 
 export function adminLogin({ email, password }) {
+  const body = { email, password };
+  const portalId = getAdminPortalId();
+  if (portalId) body.portal_id = portalId;
   return request('/admin/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify(body)
+  });
+}
+
+export function getAdminMe(token) {
+  return request('/admin/me', {
+    headers: adminAuthHeaders(token)
   });
 }
 
 export function getSubmissions(token, status) {
   const query = status && status !== 'all' ? `?status=${status}` : '';
   return request(`/admin/submissions${query}`, {
-    headers: { Authorization: `Bearer ${token}` }
+    headers: adminAuthHeaders(token)
   });
 }
 
 export function verifySubmission(token, id) {
   return request(`/admin/verify/${id}`, {
     method: 'PUT',
-    headers: { Authorization: `Bearer ${token}` }
+    headers: adminAuthHeaders(token)
+  });
+}
+
+function buildFilterQuery(filters = {}) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) {
+    if (value != null && String(value).trim() !== '') params.set(key, String(value).trim());
+  }
+  const qs = params.toString();
+  return qs ? `?${qs}` : '';
+}
+
+export function getMagazineSubscriptions(token, filters) {
+  return request(`/admin/subscriptions/magazine${buildFilterQuery(filters)}`, {
+    headers: adminAuthHeaders(token)
+  });
+}
+
+export function getBookSubscriptions(token, filters) {
+  return request(`/admin/subscriptions/books${buildFilterQuery(filters)}`, {
+    headers: adminAuthHeaders(token)
+  });
+}
+
+export function getSubscriptionFilterMeta(token) {
+  return request('/admin/subscriptions/meta', {
+    headers: adminAuthHeaders(token)
+  });
+}
+
+export async function downloadSubscriptionsPdf(token, filters = {}) {
+  const url = `${API_BASE_URL}/admin/subscriptions/export/pdf${buildFilterQuery(filters)}`;
+  const response = await fetch(url, { headers: adminAuthHeaders(token) });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.message || 'PDF download failed.');
+  }
+  const blob = await response.blob();
+  const stamp = new Date().toISOString().slice(0, 10);
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `subscriptions-${stamp}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(link.href);
+}
+
+export function listAdminUsers(token, search) {
+  const query = search ? `?search=${encodeURIComponent(search)}` : '';
+  return request(`/admin/users${query}`, {
+    headers: adminAuthHeaders(token)
+  });
+}
+
+export function getAdminUser(token, userId) {
+  return request(`/admin/users/${userId}`, {
+    headers: adminAuthHeaders(token)
+  });
+}
+
+export function updateAdminUser(token, userId, body) {
+  return request(`/admin/users/${userId}`, {
+    method: 'PUT',
+    headers: { ...adminAuthHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+export function updateAdminSubmission(token, submissionId, body) {
+  return request(`/admin/submissions/${submissionId}`, {
+    method: 'PUT',
+    headers: { ...adminAuthHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
   });
 }
 

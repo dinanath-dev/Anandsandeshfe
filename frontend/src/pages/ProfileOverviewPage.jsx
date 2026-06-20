@@ -1,15 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, CheckCircle2, Info, Mail, MapPin, Phone, Search, User } from 'lucide-react';
-import Alert from '../components/Alert.jsx';
+import { ArrowRight, BookOpen, CheckCircle2, CircleHelp, Info, Mail, MapPin, Pencil, Phone, Search, User } from 'lucide-react';
+import OtpInboxHint from '../components/OtpInboxHint.jsx';
+import { useToast } from '../components/ToastProvider.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
+import { INDIAN_STATES } from '../data/indianStates.js';
 import {
   claimLegacyForm,
   getCurrentUser,
   getMyFormSubmission,
-  lookupLegacyForm
+  lookupLegacyForm,
+  requestEmailChange,
+  updateMyAddress,
+  verifyEmailChange
 } from '../services/api.js';
+import { saveUserAuth } from '../utils/auth.js';
 import { formatSubmissionAddress } from '../utils/formatSubmissionAddress.js';
 import { maskEmail, maskPhone } from '../utils/maskContact.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
@@ -101,6 +107,7 @@ export default function ProfileOverviewPage() {
   });
 
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const LEGACY_LOOKUP_TOOLTIP = t('profile.lookupTooltip');
   const [loading, setLoading] = useState(true);
   const [linkedSubmission, setLinkedSubmission] = useState(null);
@@ -115,8 +122,42 @@ export default function ProfileOverviewPage() {
   const [claimLoading, setClaimLoading] = useState(false);
   const [claimInfo, setClaimInfo] = useState('');
 
+  const [editAddressOpen, setEditAddressOpen] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    name: '',
+    mobile: '',
+    address: '',
+    state: '',
+    town: '',
+    district: '',
+    pin: ''
+  });
+  const [addressSaving, setAddressSaving] = useState(false);
+  const [addressMessage, setAddressMessage] = useState('');
+  const [addressError, setAddressError] = useState('');
+
+  const [emailStep, setEmailStep] = useState('idle');
+  const [newEmail, setNewEmail] = useState('');
+  const [emailOtp, setEmailOtp] = useState('');
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailMessage, setEmailMessage] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [accountEmail, setAccountEmail] = useState('');
+
   const applyServerProfile = useCallback((_user, submission) => {
     setLinkedSubmission(submission || null);
+    if (_user?.email) setAccountEmail(String(_user.email));
+    if (submission) {
+      setAddressForm({
+        name: String(submission.name || '').trim(),
+        mobile: String(submission.mobile || submission.phone || '').replace(/\D/g, '').slice(-10),
+        address: String(submission.address_1 || submission.house_no || submission.address || '').trim(),
+        state: String(submission.state || '').trim(),
+        town: String(submission.town || submission.city || '').trim(),
+        district: String(submission.district || submission.tehsil || '').trim(),
+        pin: String(submission.pin || submission.pincode || '').trim()
+      });
+    }
   }, []);
 
   const refreshProfile = useCallback(async () => {
@@ -284,6 +325,71 @@ export default function ProfileOverviewPage() {
       setLegacyError(err.message || t('profile.errors.claimFailed'));
     } finally {
       setClaimLoading(false);
+    }
+  }
+
+  async function handleAddressSave(event) {
+    event.preventDefault();
+    setAddressError('');
+    setAddressMessage('');
+    setAddressSaving(true);
+    try {
+      const data = await updateMyAddress({
+        name: addressForm.name.trim(),
+        mobile: addressForm.mobile.trim(),
+        address: addressForm.address.trim(),
+        address_1: addressForm.address.trim(),
+        town: addressForm.town.trim(),
+        district: addressForm.district.trim(),
+        state: addressForm.state.trim(),
+        pin: addressForm.pin.trim()
+      });
+      applyServerProfile({ email: accountEmail }, data.submission);
+      setEditAddressOpen(false);
+      setAddressMessage(t('profile.addressUpdated'));
+    } catch (err) {
+      setAddressError(err.message || t('profile.errors.addressUpdateFailed'));
+    } finally {
+      setAddressSaving(false);
+    }
+  }
+
+  async function handleRequestEmailChange(event) {
+    event.preventDefault();
+    setEmailError('');
+    setEmailMessage('');
+    setEmailLoading(true);
+    try {
+      const data = await requestEmailChange(newEmail.trim());
+      setEmailStep('otp');
+      setEmailMessage(data.message);
+      showToast(t('auth.otpSentToast'), { type: 'info' });
+    } catch (err) {
+      setEmailError(err.message || t('profile.errors.emailChangeFailed'));
+    } finally {
+      setEmailLoading(false);
+    }
+  }
+
+  async function handleVerifyEmailChange(event) {
+    event.preventDefault();
+    setEmailError('');
+    setEmailMessage('');
+    setEmailLoading(true);
+    try {
+      const data = await verifyEmailChange({ new_email: newEmail.trim(), otp: emailOtp.trim() });
+      saveUserAuth({ token: data.token, user: data.user, verifiedAt: Date.now() });
+      setAccountEmail(data.user.email);
+      setEmailStep('idle');
+      setNewEmail('');
+      setEmailOtp('');
+      setEmailMessage(t('profile.emailUpdated'));
+      showToast(t('profile.emailUpdated'), { type: 'success' });
+      await refreshProfile();
+    } catch (err) {
+      setEmailError(err.message || t('profile.errors.emailVerifyFailed'));
+    } finally {
+      setEmailLoading(false);
     }
   }
 
@@ -496,6 +602,190 @@ export default function ProfileOverviewPage() {
                   </button>
                 </div>
               ) : null}
+
+              {hasSavedProfile && !awaitingClaim ? (
+                <div className="mt-6 space-y-4 border-t border-[#0d2d7f]/10 pt-5">
+                  {addressMessage ? <Alert type="success">{addressMessage}</Alert> : null}
+                  {emailMessage ? <Alert type="success">{emailMessage}</Alert> : null}
+
+                  <div className="rounded-xl border border-[#0d2d7f]/12 bg-[#f8faff]/60 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-bold text-ink">{t('profile.editAddressTitle')}</p>
+                        <p className="mt-1 text-xs text-muted">{t('profile.editAddressHelp')}</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-secondary inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold"
+                        onClick={() => {
+                          setEditAddressOpen((v) => !v);
+                          setAddressError('');
+                        }}
+                      >
+                        <Pencil size={14} />
+                        {editAddressOpen ? t('common.cancel') : t('profile.editAddress')}
+                      </button>
+                    </div>
+
+                    {editAddressOpen ? (
+                      <form onSubmit={handleAddressSave} className="mt-4 grid gap-3 sm:grid-cols-2">
+                        {addressError ? (
+                          <div className="sm:col-span-2">
+                            <Alert>{addressError}</Alert>
+                          </div>
+                        ) : null}
+                        <label className="block sm:col-span-2">
+                          <span className="label">{t('profile.nameLabel')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.name}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, name: e.target.value }))}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="label">{t('profile.mobileLabel')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            inputMode="numeric"
+                            maxLength={10}
+                            value={addressForm.mobile}
+                            onChange={(e) =>
+                              setAddressForm((f) => ({
+                                ...f,
+                                mobile: e.target.value.replace(/\D/g, '').slice(0, 10)
+                              }))
+                            }
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="label">{t('profile.pinLabel')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            inputMode="numeric"
+                            maxLength={10}
+                            value={addressForm.pin}
+                            onChange={(e) =>
+                              setAddressForm((f) => ({
+                                ...f,
+                                pin: e.target.value.replace(/\D/g, '').slice(0, 10)
+                              }))
+                            }
+                          />
+                        </label>
+                        <label className="block sm:col-span-2">
+                          <span className="label">{t('profile.addressLabel')}</span>
+                          <textarea
+                            className="donation-input !rounded-lg"
+                            rows={2}
+                            value={addressForm.address}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, address: e.target.value }))}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="label">{t('profile.stateLabel')}</span>
+                          <select
+                            className="donation-input !rounded-lg"
+                            value={addressForm.state}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, state: e.target.value }))}
+                          >
+                            <option value="">{t('form.placeholders.selectState')}</option>
+                            {INDIAN_STATES.map((s) => (
+                              <option key={s} value={s}>
+                                {s}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="block">
+                          <span className="label">{t('profile.townLabel')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.town}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, town: e.target.value }))}
+                          />
+                        </label>
+                        <label className="block sm:col-span-2">
+                          <span className="label">{t('profile.districtLabel')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.district}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, district: e.target.value }))}
+                          />
+                        </label>
+                        <div className="sm:col-span-2">
+                          <button className="btn-primary inline-flex items-center gap-2 px-5 py-2 text-sm" type="submit" disabled={addressSaving}>
+                            {addressSaving ? <InlineLoader size={18} /> : null}
+                            {addressSaving ? t('profile.savingAddress') : t('profile.saveAddress')}
+                          </button>
+                        </div>
+                      </form>
+                    ) : null}
+                  </div>
+
+                  <div className="rounded-xl border border-[#0d2d7f]/12 bg-white p-4">
+                    <p className="text-sm font-bold text-ink">{t('profile.changeEmailTitle')}</p>
+                    <p className="mt-1 text-xs text-muted">{t('profile.changeEmailHelp')}</p>
+                    <p className="mt-2 text-sm text-muted">
+                      {t('profile.currentEmail')}: <span className="font-semibold text-ink">{accountEmail || '—'}</span>
+                    </p>
+
+                    {emailError ? (
+                      <div className="mt-3">
+                        <Alert>{emailError}</Alert>
+                      </div>
+                    ) : null}
+
+                    {emailStep === 'idle' ? (
+                      <form onSubmit={handleRequestEmailChange} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+                        <label className="block flex-1">
+                          <span className="label">{t('profile.newEmailLabel')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            type="email"
+                            value={newEmail}
+                            onChange={(e) => setNewEmail(e.target.value)}
+                            autoComplete="email"
+                          />
+                        </label>
+                        <button className="btn-secondary min-h-11 px-5 py-2 text-sm font-semibold" type="submit" disabled={emailLoading}>
+                          {emailLoading ? <InlineLoader size={18} /> : null}
+                          {emailLoading ? t('profile.sendingOtp') : t('profile.sendEmailOtp')}
+                        </button>
+                      </form>
+                    ) : (
+                      <form onSubmit={handleVerifyEmailChange} className="mt-3 space-y-3">
+                        <OtpInboxHint emailMasked={maskEmail(newEmail.trim().toLowerCase())} />
+                        <label className="block">
+                          <span className="label">{t('profile.otpLabel')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            inputMode="numeric"
+                            maxLength={6}
+                            value={emailOtp}
+                            onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          />
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          <button className="btn-primary px-5 py-2 text-sm" type="submit" disabled={emailLoading}>
+                            {emailLoading ? t('profile.verifyingOtp') : t('profile.confirmEmailChange')}
+                          </button>
+                          <button
+                            className="btn-secondary px-5 py-2 text-sm"
+                            type="button"
+                            onClick={() => {
+                              setEmailStep('idle');
+                              setEmailOtp('');
+                              setEmailError('');
+                            }}
+                          >
+                            {t('common.cancel')}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -513,12 +803,33 @@ export default function ProfileOverviewPage() {
                     {t('profile.continueToForm')} <ArrowRight size={18} aria-hidden />
                   </Link>
                 ) : null}
-                <Link
-                  to="/books"
-                  className="btn-secondary inline-flex min-h-11 items-center justify-center gap-2 px-8 py-2.5 text-sm font-semibold"
+                <span
+                  className="group/buybooks relative inline-flex max-w-full cursor-not-allowed"
+                  tabIndex={0}
+                  aria-label={`${t('profile.buyBooks')}. ${t('profile.buyBooksComingSoon')}`}
                 >
-                  <BookOpen size={18} aria-hidden /> {t('profile.buyBooks')}
-                </Link>
+                  <button
+                    type="button"
+                    disabled
+                    aria-hidden="true"
+                    tabIndex={-1}
+                    className="btn-secondary inline-flex min-h-11 w-full items-center justify-center gap-2 border-ink/10 bg-slate-100 px-8 py-2.5 text-sm font-semibold text-slate-500 opacity-60 grayscale sm:w-auto"
+                  >
+                    <BookOpen size={18} aria-hidden />
+                    {t('profile.buyBooks')}
+                    <CircleHelp
+                      size={16}
+                      className="shrink-0 text-slate-500 opacity-0 transition-opacity duration-200 group-hover/buybooks:opacity-100 group-focus-within/buybooks:opacity-100"
+                      aria-hidden
+                    />
+                  </button>
+                  <span
+                    role="tooltip"
+                    className="pointer-events-none invisible absolute bottom-full left-1/2 z-30 mb-2 w-[min(16rem,calc(100vw-2.5rem))] -translate-x-1/2 rounded-lg border border-[#0d2d7f]/20 bg-white px-3 py-2 text-center text-xs font-medium leading-relaxed text-ink shadow-lg opacity-0 transition [@media(hover:hover)]:group-hover/buybooks:visible [@media(hover:hover)]:group-hover/buybooks:opacity-100 group-focus-within/buybooks:visible group-focus-within/buybooks:opacity-100"
+                  >
+                    {t('profile.buyBooksComingSoon')}
+                  </span>
+                </span>
               </div>
             </div>
           ) : null}

@@ -11,6 +11,8 @@ import {
 import { clearPendingOtp, getPendingOtp, isUserAuthenticated, savePendingOtp, saveUserAuth } from '../utils/auth.js';
 import { useSeo } from '../utils/seo.js';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
+import OtpInboxHint from '../components/OtpInboxHint.jsx';
+import { useToast } from '../components/ToastProvider.jsx';
 import PublicSeoIntro from '../components/PublicSeoIntro.jsx';
 import SubscriptionHeroVisual from '../components/SubscriptionHeroVisual.jsx';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
@@ -46,6 +48,7 @@ export default function AuthPage() {
   });
 
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const otpRefs = useRef([]);
   const [mode, setMode] = useState('signup');
@@ -195,6 +198,7 @@ export default function AuthPage() {
       data.message ||
         t('auth.otpSentMessage', { email: buildMaskedEmail(email) })
     );
+    showToast(t('auth.otpSentToast'), { type: 'info' });
   }
 
   async function handleSendOtp(event) {
@@ -734,28 +738,12 @@ export default function AuthPage() {
                 )
               ) : flow === 'forgot' ? (
                 <form className="mt-6" onSubmit={handleResetPassword}>
-                  <div className="rounded-3xl border border-[#dfeadd] bg-[#f6faf2] p-4">
-                    <p className="text-sm font-semibold text-[#1b4f35]">
-                      {t('auth.otpSentTo', { email: buildMaskedEmail(form.email.trim().toLowerCase()) })}
-                    </p>
-                    {devOtp ? (
-                      <p className="mt-2 text-sm leading-6 text-[#5d7364]">
-                        {t('auth.smtpDevHelper').split('{otp}')[0]}
-                        <span className="font-black text-[#17311f]">{devOtp}</span>
-                        {t('auth.smtpDevHelper').split('{otp}')[1] || ''}
-                      </p>
-                    ) : (
-                      <>
-                        <p className="mt-2 text-sm leading-6 text-[#5d7364]">
-                          {t('auth.checkInbox')}
-                        </p>
-                        <p className="mt-1 text-sm leading-6 text-[#5d7364]">{t('auth.checkSpamHint')}</p>
-                        <p className="mt-2 text-sm leading-6 text-[#5d7364]">
-                          {t('auth.chooseNewPassword')}
-                        </p>
-                      </>
-                    )}
-                  </div>
+                  <OtpInboxHint
+                    emailMasked={buildMaskedEmail(form.email.trim().toLowerCase())}
+                    devOtp={devOtp}
+                  >
+                    <p>{t('auth.chooseNewPassword')}</p>
+                  </OtpInboxHint>
 
                   <div className="mt-5 grid grid-cols-6 gap-1.5 sm:gap-3">
                     {otpValues.map((digit, index) => (
@@ -862,25 +850,10 @@ export default function AuthPage() {
                 </form>
               ) : (
                 <form className="mt-6" onSubmit={handleVerifyOtp}>
-                  <div className="rounded-3xl border border-[#dfeadd] bg-[#f6faf2] p-4">
-                    <p className="text-sm font-semibold text-[#1b4f35]">
-                      {t('auth.otpSentTo', { email: buildMaskedEmail(form.email.trim().toLowerCase()) })}
-                    </p>
-                    {devOtp ? (
-                      <p className="mt-2 text-sm leading-6 text-[#5d7364]">
-                        {t('auth.smtpDevHelper').split('{otp}')[0]}
-                        <span className="font-black text-[#17311f]">{devOtp}</span>
-                        {t('auth.smtpDevHelper').split('{otp}')[1] || ''}
-                      </p>
-                    ) : (
-                      <>
-                        <p className="mt-2 text-sm leading-6 text-[#5d7364]">
-                          {t('auth.checkInbox')}
-                        </p>
-                        <p className="mt-1 text-sm leading-6 text-[#5d7364]">{t('auth.checkSpamHint')}</p>
-                      </>
-                    )}
-                  </div>
+                  <OtpInboxHint
+                    emailMasked={buildMaskedEmail(form.email.trim().toLowerCase())}
+                    devOtp={devOtp}
+                  />
 
                   <div className="mt-5 grid grid-cols-6 gap-1.5 sm:gap-3">
                     {otpValues.map((digit, index) => (

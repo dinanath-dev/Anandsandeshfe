@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, CreditCard } from 'lucide-react';
 import DonationLayout from '../components/DonationLayout.jsx';
@@ -13,6 +13,11 @@ import {
 import { getUserAuth } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
+import {
+  calculateSubscriptionTotals,
+  countPublications,
+  formatInr
+} from '../utils/subscriptionPricing.js';
 
 function planConfigForType(subscriptionType) {
   const keyId = String(import.meta.env.VITE_RAZORPAY_KEY_ID || '').trim();
@@ -125,6 +130,15 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
   const planLabel = SUBSCRIPTION_LABELS[resolvedSubscriptionType] || resolvedSubscriptionType;
   const { keyId } = planConfigForType(resolvedSubscriptionType);
   const plansConfigured = Boolean(keyId);
+  const paymentAmount = useMemo(() => {
+    if (!submissionSnapshot) return null;
+    const totals = calculateSubscriptionTotals(
+      submissionSnapshot.country,
+      countPublications(submissionSnapshot)
+    );
+    if (totals.publicationCount < 1) return null;
+    return resolvedSubscriptionType === 'five_year' ? totals.fiveYearTotal : totals.yearlyTotal;
+  }, [submissionSnapshot, resolvedSubscriptionType]);
 
   useEffect(() => {
     let cancelled = false;
@@ -317,6 +331,12 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
               <p className="mt-4 text-base font-bold text-ink">
                 {t('payment.planLabel')} <span className="text-primary font-black">{planLabel}</span>
               </p>
+              {paymentAmount != null ? (
+                <p className="mt-2 text-base font-bold text-ink">
+                  {t('payment.amountLabel')}{' '}
+                  <span className="text-primary font-black">{formatInr(paymentAmount)}</span>
+                </p>
+              ) : null}
               <p className="mt-2 font-mono text-xs text-muted">{t('payment.referenceLabel')} {submissionId}</p>
 
               {!plansConfigured ? (

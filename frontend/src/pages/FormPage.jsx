@@ -6,11 +6,24 @@ import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import DonationFormRow from '../components/DonationFormRow.jsx';
 import DonationFormPair from '../components/DonationFormPair.jsx';
-import { INDIAN_STATES } from '../data/indianStates.js';
+import AddressFieldsBlock from '../components/AddressFieldsBlock.jsx';
+import FormChoiceGroup, { FormChoiceOption } from '../components/FormChoiceGroup.jsx';
+import MobileNumberField from '../components/MobileNumberField.jsx';
+import { DEFAULT_COUNTRY } from '../data/countries.js';
+import {
+  parseMobileFromStorage,
+  validateNationalMobile,
+  applyCountryToForm
+} from '../utils/mobileNumber.js';
 import { getCurrentUser, getMyFormSubmission, submitUserForm } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
+import {
+  calculateSubscriptionTotals,
+  countPublications,
+  formatInr
+} from '../utils/subscriptionPricing.js';
 
 /** Normalize API payment_status so verified subscriptions never show as “pending” in the UI. */
 function normalizePaymentStatus(raw) {
@@ -50,6 +63,7 @@ const initialForm = {
   subscriberNo: '',
   mobile: '',
   email: '',
+  country: DEFAULT_COUNTRY,
   address: '',
   state: '',
   town: '',
@@ -86,12 +100,15 @@ function submissionToFormState(sub) {
   }
 
   const sn = sub.subscriber_no != null ? String(sub.subscriber_no) : '';
+  const country = String(sub.country || DEFAULT_COUNTRY).trim() || DEFAULT_COUNTRY;
+  const { national: mobileNational } = parseMobileFromStorage(sub.mobile || sub.phone, country);
 
   return {
     name,
     subscriberNo: sn,
-    mobile: String(sub.mobile || '').trim(),
+    mobile: mobileNational,
     email: String(sub.email || '').trim(),
+    country: String(sub.country || DEFAULT_COUNTRY).trim() || DEFAULT_COUNTRY,
     address: addressLine,
     state: String(sub.state || '').trim(),
     town: String(sub.town || '').trim(),
@@ -135,6 +152,23 @@ export default function FormPage() {
   /** After first GET /form/me resolves — avoids flashing the full form before we know status. */
   const [submissionLoaded, setSubmissionLoaded] = useState(false);
   const [saveInfo, setSaveInfo] = useState('');
+
+  const publicationCount = useMemo(
+    () => countPublications(form),
+    [form.anandSandesh, form.spiritualBliss]
+  );
+  const pricing = useMemo(
+    () => calculateSubscriptionTotals(form.country, publicationCount),
+    [form.country, publicationCount]
+  );
+  const oneYearPriceHint =
+    publicationCount > 0
+      ? t('form.oneYearPrice', { amount: formatInr(pricing.yearlyTotal) })
+      : t('form.priceNeedsPublication');
+  const fiveYearPriceHint =
+    publicationCount > 0
+      ? t('form.fiveYearPrice', { amount: formatInr(pricing.fiveYearTotal) })
+      : t('form.priceNeedsPublication');
 
   useEffect(() => {
     const auth = getUserAuth();
@@ -232,14 +266,22 @@ export default function FormPage() {
     setErrors((current) => ({ ...current, [field]: '' }));
   }
 
+  function handleCountryChange(country) {
+    setForm((current) => applyCountryToForm(current, country));
+    setErrors((current) => ({ ...current, country: '', mobile: '', pin: '' }));
+  }
+
   function validate() {
     const nextErrors = {};
     if (!form.name.trim()) nextErrors.name = t('form.errors.nameRequired');
     if (!form.mobile.trim()) nextErrors.mobile = t('form.errors.mobileRequired');
-    else if (!/^\d{10}$/.test(form.mobile)) nextErrors.mobile = t('form.errors.mobileInvalid');
+    else if (!validateNationalMobile(form.mobile, form.country).valid) {
+      nextErrors.mobile = t('form.errors.mobileInvalid');
+    }
     if (!form.email.trim()) nextErrors.email = t('form.errors.emailRequired');
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) nextErrors.email = t('form.errors.emailInvalid');
 
+    if (!form.country.trim()) nextErrors.country = t('form.errors.countryRequired');
     if (!form.address.trim()) nextErrors.address = t('form.errors.addressRequired');
     if (!form.state.trim()) nextErrors.state = t('form.errors.stateRequired');
     if (!form.town.trim()) nextErrors.town = t('form.errors.required');
@@ -248,7 +290,6 @@ export default function FormPage() {
     else if (!/^\d{4,10}$/.test(form.pin)) nextErrors.pin = t('form.errors.pinInvalid');
     if (!form.gender) nextErrors.gender = t('form.errors.genderRequired');
     if (!form.rehbar.trim()) nextErrors.rehbar = t('form.errors.rehbarRequired');
-    if (!form.anandSandesh) nextErrors.anandSandesh = t('form.errors.anandSandeshRequired');
     if (!form.subscription) nextErrors.subscription = t('form.errors.subscriptionRequired');
     if (!form.subscriberNo.trim()) {
       nextErrors.subscriberNo = t('form.errors.subscriberMissing');
@@ -264,6 +305,7 @@ export default function FormPage() {
       mobile: form.mobile.trim(),
       email: form.email.trim(),
       gender: form.gender,
+      country: form.country.trim() || DEFAULT_COUNTRY,
       address: form.address.trim(),
       address_1: form.address.trim(),
       town: form.town.trim(),
@@ -330,7 +372,7 @@ export default function FormPage() {
   return (
     <DonationLayout subtitle={t('form.subtitle')}>
       {isSubmitting ? <LoadingBlock label={t('loaders.savingForm')} /> : null}
-      <div className="donation-form-shell w-full px-1 py-2 sm:px-3 sm:py-3">
+      <div className="donation-form-shell mx-auto w-full max-w-3xl">
         {!submissionLoaded ? (
           <LoadingBlock label={t('loaders.loadingSubmission')} />
         ) : submissionSnapshot?.payment_status === 'verified' ? (
@@ -356,6 +398,12 @@ export default function FormPage() {
             <div className="flex flex-wrap justify-center gap-3 pt-2">
               <Link
                 to="/profile"
+                className="btn-primary inline-flex min-h-11 items-center justify-center px-5 py-2.5 text-sm font-semibold"
+              >
+                {t('profile.editAddress')}
+              </Link>
+              <Link
+                to="/profile"
                 className="btn-secondary inline-flex min-h-11 items-center justify-center px-5 py-2.5 text-sm font-semibold"
               >
                 {t('common.backToProfile')}
@@ -363,7 +411,7 @@ export default function FormPage() {
             </div>
           </div>
         ) : (
-        <form onSubmit={handleSubmit} className="donation-form">
+        <form onSubmit={handleSubmit} className="donation-form form-color-theme">
           {submissionSnapshot ? (
             <div className="donation-form-banner mb-2">
               <Alert type="warning">
@@ -381,6 +429,11 @@ export default function FormPage() {
               <Alert>{apiError}</Alert>
             </div>
           ) : null}
+
+          <section className="donation-form-section donation-form-section--teal" aria-labelledby="df-personal-heading">
+            <h2 id="df-personal-heading" className="donation-form-section-title">
+              {t('form.personalSectionTitle')}
+            </h2>
 
           <DonationFormPair>
             <DonationFormRow label={t('form.labels.name')} required error={errors.name} labelFor="df-name">
@@ -425,14 +478,13 @@ export default function FormPage() {
           </DonationFormRow>
 
           <DonationFormRow label={t('form.labels.mobile')} required error={errors.mobile} labelFor="df-mobile">
-            <input
+            <MobileNumberField
               id="df-mobile"
-              className={inputClass('mobile', errors)}
-              inputMode="numeric"
-              maxLength={10}
+              country={form.country}
+              onCountryChange={handleCountryChange}
               value={form.mobile}
-              onChange={(e) => updateField('mobile', e.target.value.replace(/\D/g, ''))}
-              autoComplete="tel"
+              onChange={(value) => updateField('mobile', value)}
+              errors={errors}
             />
           </DonationFormRow>
           </DonationFormPair>
@@ -445,7 +497,7 @@ export default function FormPage() {
             <input
               id="df-email"
               type="email"
-              className={inputClass('email', errors)}
+              className={`${inputClass('email', errors)} donation-input--readonly`}
               value={form.email}
               onChange={(e) => updateField('email', e.target.value)}
               autoComplete="email"
@@ -459,156 +511,93 @@ export default function FormPage() {
             <input id="df-rehbar" className={inputClass('rehbar', errors)} value={form.rehbar} onChange={(e) => updateField('rehbar', e.target.value)} />
           </DonationFormRow>
           </DonationFormPair>
+          </section>
 
-          <DonationFormPair className="donation-form-pair--single">
-          <DonationFormRow label={t('form.labels.address')} required error={errors.address} labelFor="df-address">
-            <textarea
-              id="df-address"
-              className={`${inputClass('address', errors)} donation-input--address`}
-              value={form.address}
-              onChange={(e) => updateField('address', e.target.value)}
-              rows={2}
-            />
-          </DonationFormRow>
-          </DonationFormPair>
+          <AddressFieldsBlock
+            form={form}
+            errors={errors}
+            updateField={updateField}
+            setForm={setForm}
+            onCountryChange={handleCountryChange}
+            idPrefix="df"
+          />
 
-          <DonationFormPair>
-          <DonationFormRow label={t('form.labels.state')} required error={errors.state} labelFor="df-state">
-            <select
-              id="df-state"
-              className={inputClass('state', errors)}
-              value={form.state}
-              onChange={(e) => updateField('state', e.target.value)}
-            >
-              <option value="">{t('form.placeholders.selectState')}</option>
-              {INDIAN_STATES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </DonationFormRow>
+          <section className="donation-form-section donation-form-section--purple" aria-labelledby="df-preferences-heading">
+            <h2 id="df-preferences-heading" className="donation-form-section-title">
+              {t('form.preferencesSectionTitle')}
+            </h2>
+            <p className="donation-form-section-note">{t('form.publicationsOptional')}</p>
+            <p className="donation-form-section-note">{t('form.publicationsPriceNote')}</p>
 
-          <DonationFormRow label={t('form.labels.town')} required error={errors.town} labelFor="df-town">
-            <input
-              id="df-town"
-              className={inputClass('town', errors)}
-              value={form.town}
-              onChange={(e) => updateField('town', e.target.value)}
-            />
-          </DonationFormRow>
-          </DonationFormPair>
-
-          <DonationFormPair>
-          <DonationFormRow label={t('form.labels.district')} required error={errors.district} labelFor="df-district">
-            <input
-              id="df-district"
-              className={inputClass('district', errors)}
-              value={form.district}
-              onChange={(e) => updateField('district', e.target.value)}
-            />
-          </DonationFormRow>
-
-          <DonationFormRow label={t('form.labels.pin')} required error={errors.pin} labelFor="df-pin">
-            <input
-              id="df-pin"
-              className={inputClass('pin', errors)}
-              inputMode="numeric"
-              maxLength={10}
-              value={form.pin}
-              onChange={(e) => updateField('pin', e.target.value.replace(/\D/g, ''))}
-            />
-          </DonationFormRow>
-          </DonationFormPair>
-
-          <DonationFormPair>
-          <DonationFormRow label={t('form.labels.anandSandesh')} required error={errors.anandSandesh}>
-            <div className={`space-y-2 rounded border px-3 py-3 sm:px-4 ${errors.anandSandesh ? 'donation-input--invalid border-red-800/50 bg-[#fffafa]' : 'border-[#0d2d7f]/28 bg-white/80'}`}>
-              <p className="text-left text-xs font-semibold text-muted">{t('form.languageOptionLabel')}</p>
-              <label className="flex cursor-pointer items-start gap-3 text-left text-sm text-ink">
-                <input
-                  type="radio"
+            <DonationFormPair className="donation-form-pair--choices">
+              <FormChoiceGroup legend={t('form.labels.anandSandesh')}>
+                <FormChoiceOption
                   name="anandSandesh"
                   value="hindi"
                   checked={form.anandSandesh === 'hindi'}
-                  onChange={() => updateField('anandSandesh', 'hindi')}
-                  className="mt-1"
+                  allowDeselect
+                  onChange={(e) => updateField('anandSandesh', e.target.value)}
+                  title={t('common.hindi')}
                 />
-                <span className="font-bold">{t('common.hindi')}</span>
-              </label>
-              <label className="flex cursor-pointer items-start gap-3 border-t border-ink/10 pt-2 text-left text-sm text-ink">
-                <input
-                  type="radio"
+                <FormChoiceOption
                   name="anandSandesh"
                   value="english"
                   checked={form.anandSandesh === 'english'}
-                  onChange={() => updateField('anandSandesh', 'english')}
-                  className="mt-1"
+                  allowDeselect
+                  onChange={(e) => updateField('anandSandesh', e.target.value)}
+                  title={t('common.english')}
                 />
-                <span className="font-bold">{t('common.english')}</span>
-              </label>
-            </div>
-          </DonationFormRow>
+              </FormChoiceGroup>
 
-          <DonationFormRow label={t('form.labels.spiritualBliss')} error={errors.spiritualBliss}>
-            <div
-              className={`space-y-2 rounded border px-3 py-3 sm:px-4 ${errors.spiritualBliss ? 'donation-input--invalid border-red-800/50 bg-[#fffafa]' : 'border-[#0d2d7f]/28 bg-white/80'}`}
-            >
-              <p className="text-left text-xs font-semibold text-muted">{t('form.optionalEnglishOnly')}</p>
-              <label className="flex cursor-pointer items-start gap-3 text-left text-sm text-ink">
-                <input
+              <FormChoiceGroup legend={t('form.labels.spiritualBliss')}>
+                <FormChoiceOption
                   type="checkbox"
                   name="spiritualBliss"
+                  value="english"
                   checked={form.spiritualBliss === 'english'}
                   onChange={(e) => updateField('spiritualBliss', e.target.checked ? 'english' : '')}
-                  className="mt-1"
+                  title={t('common.english')}
+                  hint={t('form.optionalEnglishOnly')}
                 />
-                <span className="font-bold">{t('common.english')}</span>
-              </label>
-            </div>
-          </DonationFormRow>
-          </DonationFormPair>
+              </FormChoiceGroup>
+            </DonationFormPair>
+          </section>
 
-          <DonationFormPair className="donation-form-pair--single">
-          <DonationFormRow label={t('form.labels.subscription')} required error={errors.subscription}>
-            <div className={`space-y-2 rounded border px-3 py-3 sm:px-4 ${errors.subscription ? 'donation-input--invalid border-red-800/50 bg-[#fffafa]' : 'border-[#0d2d7f]/28 bg-white/80'}`}>
-              <label className="flex cursor-pointer items-start gap-3 text-left text-sm text-ink">
-                <input
-                  type="radio"
-                  name="subscription"
-                  value="yearly"
-                  checked={form.subscription === 'yearly'}
-                  onChange={() => updateField('subscription', 'yearly')}
-                  className="mt-1"
-                />
-                <span>
-                  <span className="font-bold">{t('form.oneYear')}</span>
-                  <span className="mt-0.5 block text-xs font-normal text-muted">{t('form.oneYearHint')}</span>
-                </span>
-              </label>
-              <label className="flex cursor-pointer items-start gap-3 border-t border-ink/10 pt-2 text-left text-sm text-ink">
-                <input
-                  type="radio"
-                  name="subscription"
-                  value="five_year"
-                  checked={form.subscription === 'five_year'}
-                  onChange={() => updateField('subscription', 'five_year')}
-                  className="mt-1"
-                />
-                <span>
-                  <span className="font-bold">{t('form.fiveYear')}</span>
-                  <span className="mt-0.5 block text-xs font-normal text-muted">{t('form.fiveYearHint')}</span>
-                </span>
-              </label>
-            </div>
-          </DonationFormRow>
-          </DonationFormPair>
+          <section className="donation-form-section donation-form-section--amber" aria-labelledby="df-subscription-heading">
+            <h2 id="df-subscription-heading" className="donation-form-section-title">
+              {t('form.labels.subscription')}
+            </h2>
+
+            <FormChoiceGroup
+              legend={t('form.subscriptionLegend')}
+              required
+              error={errors.subscription}
+              invalid={Boolean(errors.subscription)}
+            >
+              <FormChoiceOption
+                name="subscription"
+                value="yearly"
+                checked={form.subscription === 'yearly'}
+                onChange={() => updateField('subscription', 'yearly')}
+                title={t('form.oneYear')}
+                hint={oneYearPriceHint}
+              />
+              <FormChoiceOption
+                name="subscription"
+                value="five_year"
+                checked={form.subscription === 'five_year'}
+                onChange={() => updateField('subscription', 'five_year')}
+                title={t('form.fiveYear')}
+                hint={fiveYearPriceHint}
+              />
+            </FormChoiceGroup>
+          </section>
 
           <div className="donation-form-actions">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="btn-primary donation-form-submit-btn !min-h-10 inline-flex items-center gap-2 !px-8 !py-2 !text-sm font-semibold sm:!text-[0.9375rem]"
+              className="form-submit-teal donation-form-submit-btn inline-flex items-center justify-center gap-2"
             >
               {isSubmitting ? <InlineLoader size={22} /> : <CreditCard size={18} aria-hidden />}
               {isSubmitting ? t('form.saving') : t('form.proceedToPayment')}

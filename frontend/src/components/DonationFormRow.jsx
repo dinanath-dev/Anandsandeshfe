@@ -1,15 +1,15 @@
 /**
- * Two-column row: label (right-aligned on sm+) + field — wrapper uses `contents` so rows join parent grid.
+ * Stacked field: label above control (modern form layout).
  */
-export default function DonationFormRow({ label, required, error, children, labelFor }) {
+export default function DonationFormRow({ label, required, error, children, labelFor, className = '' }) {
   const LabelTag = labelFor ? 'label' : 'div';
   const labelProps = labelFor ? { htmlFor: labelFor } : {};
 
   return (
-    <div className="contents">
+    <div className={`donation-form-row ${className}`.trim()}>
       <LabelTag {...labelProps} className={`donation-form-label ${labelFor ? 'cursor-pointer' : ''}`}>
         {label}
-        {required ? <span className="text-ink"> *</span> : null}
+        {required ? <span className="donation-form-required" aria-hidden> *</span> : null}
       </LabelTag>
       <div className="donation-form-field min-w-0">
         {children}
