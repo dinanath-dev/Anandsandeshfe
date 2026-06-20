@@ -27,21 +27,26 @@ export function FormChoiceOption({
 }) {
   const id = `${name}-${value || 'opt'}`;
 
-  function handleRadioClick(event) {
+  function handleDeselect(event) {
     if (type !== 'radio' || !allowDeselect || !checked) return;
     event.preventDefault();
+    event.stopPropagation();
     onChange?.({ target: { name, value: '', type: 'radio', checked: false } });
   }
 
   return (
-    <label htmlFor={id} className="donation-choice-option">
+    <label
+      htmlFor={id}
+      className="donation-choice-option"
+      onMouseDown={handleDeselect}
+    >
       <input
         id={id}
         type={type}
         name={name}
         value={value}
         checked={checked}
-        onClick={handleRadioClick}
+        onMouseDown={handleDeselect}
         onChange={onChange}
         className="donation-choice-input"
       />

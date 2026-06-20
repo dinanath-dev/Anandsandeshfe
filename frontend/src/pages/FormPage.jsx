@@ -536,7 +536,7 @@ export default function FormPage() {
                   value="hindi"
                   checked={form.anandSandesh === 'hindi'}
                   allowDeselect
-                  onChange={(e) => updateField('anandSandesh', e.target.value)}
+                  onChange={(e) => updateField('anandSandesh', e.target.value || '')}
                   title={t('common.hindi')}
                 />
                 <FormChoiceOption
@@ -544,7 +544,7 @@ export default function FormPage() {
                   value="english"
                   checked={form.anandSandesh === 'english'}
                   allowDeselect
-                  onChange={(e) => updateField('anandSandesh', e.target.value)}
+                  onChange={(e) => updateField('anandSandesh', e.target.value || '')}
                   title={t('common.english')}
                 />
               </FormChoiceGroup>
