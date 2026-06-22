@@ -54,8 +54,9 @@ async function request(path, options = {}) {
   } catch (err) {
     const isTypeError = err instanceof TypeError;
     const failedFetch = isTypeError && String(err.message || '').toLowerCase().includes('fetch');
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const message = failedFetch
-      ? 'Cannot reach the API. If this is the live site, the backend must allow your frontend origin in CORS (e.g. https://anandsandesh-fe.vercel.app) and VITE_API_BASE_URL must match the deployed API URL.'
+      ? `Cannot reach the API (${url}). Browser often labels this as a CORS error when the backend blocks origin ${origin || '(unknown)'} — add it to FRONTEND_URL on the API server. Local dev: use http://localhost:5173 (not 127.0.0.1) or add both to FRONTEND_URL.`
       : err?.message || 'Network error.';
     const wrapped = new Error(message);
     wrapped.cause = err;

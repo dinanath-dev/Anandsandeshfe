@@ -25,7 +25,9 @@ const initialForm = {
   mobile: '',
   email: '',
   country: DEFAULT_COUNTRY,
-  address: '',
+  houseNo: '',
+  street: '',
+  landmark: '',
   state: '',
   town: '',
   district: '',
@@ -138,7 +140,11 @@ export default function BookFormPage() {
         const storedDraft = routeDraft || loadBookOrderDraft();
 
         if (storedDraft?.form) {
-          setForm({ ...initialForm, ...storedDraft.form });
+          const draftForm = { ...initialForm, ...storedDraft.form };
+          if (!draftForm.houseNo && draftForm.address) {
+            draftForm.houseNo = String(draftForm.address).trim();
+          }
+          setForm(draftForm);
           setCart(storedDraft.cart && typeof storedDraft.cart === 'object' ? storedDraft.cart : {});
           return;
         }
@@ -194,7 +200,8 @@ export default function BookFormPage() {
     if (!form.gender) next.gender = t('form.errors.genderRequired');
     if (!validateNationalMobile(form.mobile, form.country).valid) next.mobile = t('form.errors.mobileInvalid');
     if (!form.email.trim()) next.email = t('form.errors.emailRequired');
-    if (!form.address.trim()) next.address = t('form.errors.addressRequired');
+    if (!form.houseNo.trim()) next.houseNo = t('form.errors.houseNoRequired');
+    if (!form.street.trim()) next.street = t('form.errors.streetRequired');
     if (!form.country.trim()) next.country = t('form.errors.countryRequired');
     if (!form.state) next.state = t('form.errors.stateRequired');
     if (!form.town.trim()) next.town = t('form.errors.required');
@@ -219,7 +226,12 @@ export default function BookFormPage() {
         mobile: form.mobile.trim(),
         email: form.email.trim(),
         gender: form.gender,
-        address: form.address.trim(),
+        house_no: form.houseNo.trim(),
+        street: form.street.trim(),
+        mark: form.landmark.trim(),
+        address: form.houseNo.trim(),
+        address_1: form.houseNo.trim(),
+        address_2: form.street.trim(),
         country: form.country.trim() || DEFAULT_COUNTRY,
         town: form.town.trim(),
         district: form.district.trim(),

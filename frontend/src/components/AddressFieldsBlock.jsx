@@ -143,19 +143,58 @@ export default function AddressFieldsBlock({
         </DonationFormRow>
       </DonationFormPair>
 
-      <DonationFormPair className="donation-form-pair--single">
-        <DonationFormRow label={t('form.labels.address')} required error={errors.address} labelFor={`${idPrefix}-address`}>
-          <textarea
-            id={`${idPrefix}-address`}
-            className={`${inputClass('address', errors)} donation-input--address`}
-            value={form.address}
-            onChange={(e) => updateField('address', e.target.value)}
-            rows={3}
-            placeholder={t('form.placeholders.address')}
-            autoComplete="street-address"
-          />
-        </DonationFormRow>
-      </DonationFormPair>
+      <div className="donation-form-address-group">
+        <DonationFormPair>
+          <DonationFormRow
+            label={t('form.labels.houseNo')}
+            required
+            error={errors.houseNo}
+            labelFor={`${idPrefix}-house-no`}
+          >
+            <input
+              id={`${idPrefix}-house-no`}
+              className={inputClass('houseNo', errors)}
+              value={form.houseNo}
+              onChange={(e) => updateField('houseNo', e.target.value)}
+              placeholder={t('form.placeholders.houseNo')}
+              autoComplete="address-line1"
+            />
+          </DonationFormRow>
+
+          <DonationFormRow
+            label={t('form.labels.street')}
+            required
+            error={errors.street}
+            labelFor={`${idPrefix}-street`}
+          >
+            <input
+              id={`${idPrefix}-street`}
+              className={inputClass('street', errors)}
+              value={form.street}
+              onChange={(e) => updateField('street', e.target.value)}
+              placeholder={t('form.placeholders.street')}
+              autoComplete="address-line2"
+            />
+          </DonationFormRow>
+        </DonationFormPair>
+
+        <DonationFormPair className="donation-form-pair--single">
+          <DonationFormRow
+            label={t('form.labels.landmark')}
+            optional={t('common.optional')}
+            error={errors.landmark}
+            labelFor={`${idPrefix}-landmark`}
+          >
+            <input
+              id={`${idPrefix}-landmark`}
+              className={inputClass('landmark', errors)}
+              value={form.landmark}
+              onChange={(e) => updateField('landmark', e.target.value)}
+              placeholder={t('form.placeholders.landmark')}
+            />
+          </DonationFormRow>
+        </DonationFormPair>
+      </div>
 
       <DonationFormPair className="donation-form-pair--single donation-form-pair--narrow">
         <DonationFormRow

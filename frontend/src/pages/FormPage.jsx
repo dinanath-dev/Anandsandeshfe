@@ -10,6 +10,7 @@ import AddressFieldsBlock from '../components/AddressFieldsBlock.jsx';
 import FormChoiceGroup, { FormChoiceOption } from '../components/FormChoiceGroup.jsx';
 import MobileNumberField from '../components/MobileNumberField.jsx';
 import { DEFAULT_COUNTRY } from '../data/countries.js';
+import { splitFullName } from '../utils/personName.js';
 import {
   parseMobileFromStorage,
   validateNationalMobile,
@@ -59,12 +60,15 @@ function formatPeriodEnd(value) {
 }
 
 const initialForm = {
-  name: '',
+  firstName: '',
+  lastName: '',
   subscriberNo: '',
   mobile: '',
   email: '',
   country: DEFAULT_COUNTRY,
-  address: '',
+  houseNo: '',
+  street: '',
+  landmark: '',
   state: '',
   town: '',
   district: '',
@@ -83,20 +87,36 @@ function inputClass(field, errors) {
 /** Map API/DB row to local form state (inverse of buildPayload). */
 function submissionToFormState(sub) {
   if (!sub) return null;
-  const name = String(sub.name || '').trim();
+  let firstName = String(sub.first_name || '').trim();
+  let lastName = String(sub.last_name || '').trim();
+  if (!firstName && !lastName) {
+    const split = splitFullName(sub.name);
+    firstName = split.firstName;
+    lastName = split.lastName;
+  }
 
-  let addressLine = String(sub.address_1 || sub.house_no || '').trim();
-  if (!addressLine) {
-    const parts = [];
+  let houseNo = String(sub.address_1 || sub.house_no || sub.address || '').trim();
+  let street = String(sub.street || '').trim();
+  let landmark = String(sub.mark || sub.landmark || '').trim();
+
+  if (!street) {
     const a2 = String(sub.address_2 || '').trim();
-    if (a2) parts.push(a2);
-    else {
-      const street = String(sub.street || '').trim();
+    if (a2) {
+      const [firstLine, ...rest] = a2.split('\n').map((l) => l.trim()).filter(Boolean);
+      street = firstLine || '';
+      if (!landmark && rest.length) landmark = rest.join('\n');
+    } else {
       const area = String(sub.area || '').trim();
-      if (street && area && street !== area) parts.push(street, area);
-      else if (street || area) parts.push(street || area);
+      if (area && area !== street) {
+        if (!landmark) landmark = area;
+        else if (!street) street = area;
+      }
     }
-    addressLine = parts.filter(Boolean).join('\n');
+  }
+
+  if (!houseNo && street) {
+    houseNo = street;
+    street = '';
   }
 
   const sn = sub.subscriber_no != null ? String(sub.subscriber_no) : '';
@@ -104,12 +124,15 @@ function submissionToFormState(sub) {
   const { national: mobileNational } = parseMobileFromStorage(sub.mobile || sub.phone, country);
 
   return {
-    name,
+    firstName,
+    lastName,
     subscriberNo: sn,
     mobile: mobileNational,
     email: String(sub.email || '').trim(),
     country: String(sub.country || DEFAULT_COUNTRY).trim() || DEFAULT_COUNTRY,
-    address: addressLine,
+    houseNo,
+    street,
+    landmark,
     state: String(sub.state || '').trim(),
     town: String(sub.town || '').trim(),
     district: String(sub.district || '').trim(),
@@ -179,12 +202,15 @@ export default function FormPage() {
         ? String(auth.user.subscriberNo)
         : '';
 
+    const { firstName, lastName } = splitFullName(fullName);
+
     if (!email && !fullName) return;
 
     setForm((current) => ({
       ...current,
       email: current.email || email,
-      name: current.name || fullName,
+      firstName: current.firstName || firstName,
+      lastName: current.lastName || lastName,
       subscriberNo: current.subscriberNo || sub
     }));
   }, []);
@@ -273,7 +299,8 @@ export default function FormPage() {
 
   function validate() {
     const nextErrors = {};
-    if (!form.name.trim()) nextErrors.name = t('form.errors.nameRequired');
+    if (!form.firstName.trim()) nextErrors.firstName = t('form.errors.firstNameRequired');
+    if (!form.lastName.trim()) nextErrors.lastName = t('form.errors.lastNameRequired');
     if (!form.mobile.trim()) nextErrors.mobile = t('form.errors.mobileRequired');
     else if (!validateNationalMobile(form.mobile, form.country).valid) {
       nextErrors.mobile = t('form.errors.mobileInvalid');
@@ -282,7 +309,8 @@ export default function FormPage() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) nextErrors.email = t('form.errors.emailInvalid');
 
     if (!form.country.trim()) nextErrors.country = t('form.errors.countryRequired');
-    if (!form.address.trim()) nextErrors.address = t('form.errors.addressRequired');
+    if (!form.houseNo.trim()) nextErrors.houseNo = t('form.errors.houseNoRequired');
+    if (!form.street.trim()) nextErrors.street = t('form.errors.streetRequired');
     if (!form.state.trim()) nextErrors.state = t('form.errors.stateRequired');
     if (!form.town.trim()) nextErrors.town = t('form.errors.required');
     if (!form.district.trim()) nextErrors.district = t('form.errors.districtRequired');
@@ -301,13 +329,17 @@ export default function FormPage() {
 
   function buildPayload() {
     return {
-      name: form.name.trim(),
+      first_name: form.firstName.trim(),
+      last_name: form.lastName.trim(),
       mobile: form.mobile.trim(),
       email: form.email.trim(),
       gender: form.gender,
       country: form.country.trim() || DEFAULT_COUNTRY,
-      address: form.address.trim(),
-      address_1: form.address.trim(),
+      house_no: form.houseNo.trim(),
+      street: form.street.trim(),
+      mark: form.landmark.trim(),
+      address: form.houseNo.trim(),
+      address_1: form.houseNo.trim(),
       town: form.town.trim(),
       district: form.district.trim(),
       state: form.state.trim(),
@@ -436,16 +468,38 @@ export default function FormPage() {
             </h2>
 
           <DonationFormPair>
-            <DonationFormRow label={t('form.labels.name')} required error={errors.name} labelFor="df-name">
+            <DonationFormRow
+              label={t('form.labels.firstName')}
+              required
+              error={errors.firstName}
+              labelFor="df-firstName"
+            >
               <input
-                id="df-name"
-                className={inputClass('name', errors)}
-                value={form.name}
-                onChange={(e) => updateField('name', e.target.value)}
-                autoComplete="name"
+                id="df-firstName"
+                className={inputClass('firstName', errors)}
+                value={form.firstName}
+                onChange={(e) => updateField('firstName', e.target.value)}
+                autoComplete="given-name"
               />
             </DonationFormRow>
 
+            <DonationFormRow
+              label={t('form.labels.lastName')}
+              required
+              error={errors.lastName}
+              labelFor="df-lastName"
+            >
+              <input
+                id="df-lastName"
+                className={inputClass('lastName', errors)}
+                value={form.lastName}
+                onChange={(e) => updateField('lastName', e.target.value)}
+                autoComplete="family-name"
+              />
+            </DonationFormRow>
+          </DonationFormPair>
+
+          <DonationFormPair>
             <DonationFormRow
               label={t('form.labels.subscriberNo')}
               error={errors.subscriberNo}
@@ -461,32 +515,32 @@ export default function FormPage() {
                 title={t('form.subscriberNoTitle')}
               />
             </DonationFormRow>
+
+            <DonationFormRow label={t('form.labels.gender')} required error={errors.gender} labelFor="df-gender">
+              <select
+                id="df-gender"
+                className={inputClass('gender', errors)}
+                value={form.gender}
+                onChange={(e) => updateField('gender', e.target.value)}
+              >
+                <option value="">{t('form.placeholders.selectGender')}</option>
+                <option value="male">{t('form.placeholders.male')}</option>
+                <option value="female">{t('form.placeholders.female')}</option>
+              </select>
+            </DonationFormRow>
           </DonationFormPair>
 
-          <DonationFormPair>
-          <DonationFormRow label={t('form.labels.gender')} required error={errors.gender} labelFor="df-gender">
-            <select
-              id="df-gender"
-              className={inputClass('gender', errors)}
-              value={form.gender}
-              onChange={(e) => updateField('gender', e.target.value)}
-            >
-              <option value="">{t('form.placeholders.selectGender')}</option>
-              <option value="male">{t('form.placeholders.male')}</option>
-              <option value="female">{t('form.placeholders.female')}</option>
-            </select>
-          </DonationFormRow>
-
-          <DonationFormRow label={t('form.labels.mobile')} required error={errors.mobile} labelFor="df-mobile">
-            <MobileNumberField
-              id="df-mobile"
-              country={form.country}
-              onCountryChange={handleCountryChange}
-              value={form.mobile}
-              onChange={(value) => updateField('mobile', value)}
-              errors={errors}
-            />
-          </DonationFormRow>
+          <DonationFormPair className="donation-form-pair--single">
+            <DonationFormRow label={t('form.labels.mobile')} required error={errors.mobile} labelFor="df-mobile">
+              <MobileNumberField
+                id="df-mobile"
+                country={form.country}
+                onCountryChange={handleCountryChange}
+                value={form.mobile}
+                onChange={(value) => updateField('mobile', value)}
+                errors={errors}
+              />
+            </DonationFormRow>
           </DonationFormPair>
 
           <DonationFormPair>
@@ -526,8 +580,6 @@ export default function FormPage() {
             <h2 id="df-preferences-heading" className="donation-form-section-title">
               {t('form.preferencesSectionTitle')}
             </h2>
-            <p className="donation-form-section-note">{t('form.publicationsOptional')}</p>
-            <p className="donation-form-section-note">{t('form.publicationsPriceNote')}</p>
 
             <DonationFormPair className="donation-form-pair--choices">
               <FormChoiceGroup legend={t('form.labels.anandSandesh')}>

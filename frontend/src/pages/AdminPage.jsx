@@ -38,6 +38,7 @@ function formatSubmissionAddress(item) {
   const line = [
     item.house_no || item.address_1,
     item.street || item.address_2,
+    item.mark || item.landmark,
     item.area,
     item.town || item.city,
     item.district || item.tehsil,

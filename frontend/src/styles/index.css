@@ -208,8 +208,8 @@ body {
 
 .donation-form-label {
   font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 700;
+  color: var(--text-on-surface);
   align-self: stretch;
   text-align: left;
   padding-top: 0;
@@ -219,6 +219,29 @@ body {
 .donation-form-required {
   color: rgb(185 28 28);
   font-weight: 700;
+}
+
+.donation-form-optional {
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.donation-form-address-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.donation-form-address-group .donation-form-pair + .donation-form-pair {
+  margin-top: 0;
+}
+
+.donation-form-section > .donation-form-pair--single + .donation-form-address-group,
+.donation-form-section > .donation-form-address-group + .donation-form-pair {
+  margin-top: 1rem;
 }
 
 .donation-form-banner {
@@ -263,8 +286,9 @@ body {
 
 .donation-input--readonly,
 .donation-input.donation-input--readonly-subscriber {
-  background-color: rgb(241 245 249);
-  border-color: rgb(203 213 225);
+  background-color: #fff;
+  border-color: rgba(13, 45, 127, 0.18);
+  border-style: dashed;
   color: rgb(71 85 105);
   cursor: not-allowed;
 }
@@ -294,7 +318,8 @@ select.donation-input.donation-input--invalid {
 .donation-input.donation-input--readonly-subscriber.donation-input--invalid,
 .donation-input--readonly.donation-input--invalid {
   border-color: rgba(185, 28, 28, 0.45);
-  background-color: rgb(254 242 242);
+  border-style: solid;
+  background-color: #fffafa;
   color: rgb(71 85 105);
 }
 
@@ -557,11 +582,15 @@ textarea.donation-input.donation-input--address {
 
 .form-color-theme .donation-form-section {
   margin-top: 0;
-  padding: 1rem 0.95rem 0.85rem;
+  padding: 1rem 1rem 0.9rem;
   border: 1px solid #e8ecef;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.form-color-theme .donation-form-section .donation-form-pair + .donation-form-pair {
+  margin-top: 0.85rem;
 }
 
 .form-color-theme .donation-form-section + .donation-form-section {

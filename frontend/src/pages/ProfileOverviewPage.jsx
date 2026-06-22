@@ -21,7 +21,7 @@ import { formatSubmissionAddress } from '../utils/formatSubmissionAddress.js';
 import { maskEmail, maskPhone } from '../utils/maskContact.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
-import { getSubscriptionPeriodSummary } from '../utils/subscriptionPeriod.js';
+import { namesFromSubmission } from '../utils/personName.js';
 
 function normalizeMobile10(value) {
   const d = String(value ?? '').replace(/\D/g, '');
@@ -125,9 +125,12 @@ export default function ProfileOverviewPage() {
 
   const [editAddressOpen, setEditAddressOpen] = useState(false);
   const [addressForm, setAddressForm] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     mobile: '',
-    address: '',
+    houseNo: '',
+    street: '',
+    landmark: '',
     state: '',
     town: '',
     district: '',
@@ -149,10 +152,14 @@ export default function ProfileOverviewPage() {
     setLinkedSubmission(submission || null);
     if (_user?.email) setAccountEmail(String(_user.email));
     if (submission) {
+      const { firstName, lastName } = namesFromSubmission(submission);
       setAddressForm({
-        name: String(submission.name || '').trim(),
+        firstName,
+        lastName,
         mobile: String(submission.mobile || submission.phone || '').replace(/\D/g, '').slice(-10),
-        address: String(submission.address_1 || submission.house_no || submission.address || '').trim(),
+        houseNo: String(submission.address_1 || submission.house_no || submission.address || '').trim(),
+        street: String(submission.street || submission.address_2 || '').trim().split('\n')[0] || '',
+        landmark: String(submission.mark || submission.landmark || '').trim(),
         state: String(submission.state || '').trim(),
         town: String(submission.town || submission.city || '').trim(),
         district: String(submission.district || submission.tehsil || '').trim(),
@@ -219,7 +226,7 @@ export default function ProfileOverviewPage() {
       const rawMobile = String(linkedSubmission.mobile || linkedSubmission.phone || '').trim();
       const rawEmail = String(linkedSubmission.email || '').trim();
       return {
-        name: String(linkedSubmission.name || '').trim(),
+        name: namesFromSubmission(linkedSubmission).fullName,
         phone: rawMobile ? maskPhone(rawMobile) : '',
         email: rawEmail ? maskEmail(rawEmail) : '',
         address: formatSubmissionAddress(linkedSubmission)
@@ -336,10 +343,14 @@ export default function ProfileOverviewPage() {
     setAddressSaving(true);
     try {
       const data = await updateMyAddress({
-        name: addressForm.name.trim(),
+        first_name: addressForm.firstName.trim(),
+        last_name: addressForm.lastName.trim(),
         mobile: addressForm.mobile.trim(),
-        address: addressForm.address.trim(),
-        address_1: addressForm.address.trim(),
+        house_no: addressForm.houseNo.trim(),
+        street: addressForm.street.trim(),
+        mark: addressForm.landmark.trim(),
+        address: addressForm.houseNo.trim(),
+        address_1: addressForm.houseNo.trim(),
         town: addressForm.town.trim(),
         district: addressForm.district.trim(),
         state: addressForm.state.trim(),
@@ -634,12 +645,22 @@ export default function ProfileOverviewPage() {
                             <Alert>{addressError}</Alert>
                           </div>
                         ) : null}
-                        <label className="block sm:col-span-2">
-                          <span className="label">{t('profile.nameLabel')}</span>
+                        <label className="block">
+                          <span className="label">{t('form.labels.firstName')}</span>
                           <input
                             className="donation-input !rounded-lg"
-                            value={addressForm.name}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, name: e.target.value }))}
+                            value={addressForm.firstName}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, firstName: e.target.value }))}
+                            autoComplete="given-name"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="label">{t('form.labels.lastName')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.lastName}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, lastName: e.target.value }))}
+                            autoComplete="family-name"
                           />
                         </label>
                         <label className="block">
@@ -673,12 +694,30 @@ export default function ProfileOverviewPage() {
                           />
                         </label>
                         <label className="block sm:col-span-2">
-                          <span className="label">{t('profile.addressLabel')}</span>
-                          <textarea
+                          <span className="label">{t('form.labels.houseNo')}</span>
+                          <input
                             className="donation-input !rounded-lg"
-                            rows={2}
-                            value={addressForm.address}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, address: e.target.value }))}
+                            value={addressForm.houseNo}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, houseNo: e.target.value }))}
+                            placeholder={t('form.placeholders.houseNo')}
+                          />
+                        </label>
+                        <label className="block sm:col-span-2">
+                          <span className="label">{t('form.labels.street')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.street}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, street: e.target.value }))}
+                            placeholder={t('form.placeholders.street')}
+                          />
+                        </label>
+                        <label className="block sm:col-span-2">
+                          <span className="label">{t('form.labels.landmark')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.landmark}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, landmark: e.target.value }))}
+                            placeholder={t('form.placeholders.landmark')}
                           />
                         </label>
                         <label className="block">
