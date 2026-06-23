@@ -205,9 +205,14 @@ export function getAdminMe(token) {
   });
 }
 
-export function getSubmissions(token, status) {
-  const query = status && status !== 'all' ? `?status=${status}` : '';
-  return request(`/admin/submissions${query}`, {
+export function getSubmissions(token, { status, audience, page, limit } = {}) {
+  const params = new URLSearchParams();
+  if (status) params.set('status', status);
+  if (audience) params.set('audience', audience);
+  if (page != null) params.set('page', String(page));
+  if (limit != null) params.set('limit', String(limit));
+  const query = params.toString();
+  return request(`/admin/submissions${query ? `?${query}` : ''}`, {
     headers: adminAuthHeaders(token)
   });
 }
@@ -247,26 +252,49 @@ export function getSubscriptionFilterMeta(token) {
 }
 
 export async function downloadSubscriptionsPdf(token, filters = {}) {
-  const url = `${API_BASE_URL}/admin/subscriptions/export/pdf${buildFilterQuery(filters)}`;
+  const stamp = new Date().toISOString().slice(0, 10);
+  await downloadAdminFile(token, '/admin/subscriptions/export/pdf', filters, `subscriptions-${stamp}.pdf`);
+}
+
+async function downloadAdminFile(token, path, filters, filename) {
+  const url = `${API_BASE_URL}${path}${buildFilterQuery(filters)}`;
   const response = await fetch(url, { headers: adminAuthHeaders(token) });
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
-    throw new Error(payload.message || 'PDF download failed.');
+    throw new Error(payload.message || 'Download failed.');
   }
   const blob = await response.blob();
-  const stamp = new Date().toISOString().slice(0, 10);
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `subscriptions-${stamp}.pdf`;
+  link.download = filename;
   document.body.appendChild(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(link.href);
 }
 
-export function listAdminUsers(token, search) {
-  const query = search ? `?search=${encodeURIComponent(search)}` : '';
-  return request(`/admin/users${query}`, {
+export async function downloadSubmissionsPdf(token, filters = {}) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  await downloadAdminFile(token, '/admin/submissions/export/pdf', filters, `subscribers-${stamp}.pdf`);
+}
+
+export async function downloadSubmissionsExcel(token, filters = {}) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  await downloadAdminFile(token, '/admin/submissions/export/excel', filters, `subscribers-${stamp}.csv`);
+}
+
+export function listAdminUsers(token, filters = {}) {
+  const params = new URLSearchParams();
+  const search = typeof filters === 'string' ? filters : filters.search;
+  if (search) params.set('search', search);
+  if (filters && typeof filters === 'object') {
+    if (filters.is_verified) params.set('is_verified', filters.is_verified);
+    if (filters.audience) params.set('audience', filters.audience);
+    if (filters.min_subscriber) params.set('min_subscriber', String(filters.min_subscriber));
+    if (filters.max_subscriber) params.set('max_subscriber', String(filters.max_subscriber));
+  }
+  const query = params.toString();
+  return request(`/admin/users${query ? `?${query}` : ''}`, {
     headers: adminAuthHeaders(token)
   });
 }

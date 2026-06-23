@@ -25,13 +25,7 @@ import {
   countPublications,
   formatInr
 } from '../utils/subscriptionPricing.js';
-
-/** Normalize API payment_status so verified subscriptions never show as “pending” in the UI. */
-function normalizePaymentStatus(raw) {
-  const s = String(raw || '').toLowerCase();
-  if (s === 'verified' || s === 'paid' || s === 'active') return 'verified';
-  return 'pending';
-}
+import { normalizePaymentStatus } from '../utils/subscriptionPeriod.js';
 
 function pickSubscriptionEnd(sub) {
   if (!sub || typeof sub !== 'object') return null;
@@ -66,9 +60,12 @@ const initialForm = {
   mobile: '',
   email: '',
   country: DEFAULT_COUNTRY,
+  careOf: '',
   houseNo: '',
   street: '',
   landmark: '',
+  area: '',
+  postOffice: '',
   state: '',
   town: '',
   district: '',
@@ -97,21 +94,23 @@ function submissionToFormState(sub) {
 
   let houseNo = String(sub.address_1 || sub.house_no || sub.address || '').trim();
   let street = String(sub.street || '').trim();
+  let area = String(sub.area || '').trim();
+  let postOffice = String(sub.post_office || sub.postOffice || '').trim();
   let landmark = String(sub.mark || sub.landmark || '').trim();
 
-  if (!street) {
+  if (!street || !area || !postOffice) {
     const a2 = String(sub.address_2 || '').trim();
     if (a2) {
-      const [firstLine, ...rest] = a2.split('\n').map((l) => l.trim()).filter(Boolean);
-      street = firstLine || '';
-      if (!landmark && rest.length) landmark = rest.join('\n');
-    } else {
-      const area = String(sub.area || '').trim();
-      if (area && area !== street) {
-        if (!landmark) landmark = area;
-        else if (!street) street = area;
-      }
+      const lines = a2.split('\n').map((l) => l.trim()).filter(Boolean);
+      if (!street) street = lines[0] || '';
+      if (!area) area = lines[1] || '';
+      if (!postOffice) postOffice = lines[2] || '';
     }
+  }
+
+  if (!street && !area && !postOffice) {
+    const legacyArea = String(sub.area || '').trim();
+    if (legacyArea && legacyArea !== street) area = legacyArea;
   }
 
   if (!houseNo && street) {
@@ -130,9 +129,12 @@ function submissionToFormState(sub) {
     mobile: mobileNational,
     email: String(sub.email || '').trim(),
     country: String(sub.country || DEFAULT_COUNTRY).trim() || DEFAULT_COUNTRY,
+    careOf: String(sub.care_of || sub.careOf || '').trim(),
     houseNo,
     street,
     landmark,
+    area,
+    postOffice,
     state: String(sub.state || '').trim(),
     town: String(sub.town || '').trim(),
     district: String(sub.district || '').trim(),
@@ -242,7 +244,7 @@ export default function FormPage() {
           if (submission.id != null) setSavedSubmissionId(submission.id);
           setSubmissionSnapshot({
             id: submission.id,
-            payment_status: normalizePaymentStatus(submission.payment_status),
+            payment_status: normalizePaymentStatus(submission.payment_status, submission),
             subscription_type: submission.subscription_type,
             period_end: formatPeriodEnd(pickSubscriptionEnd(submission))
           });
@@ -276,7 +278,7 @@ export default function FormPage() {
           if (submission.id != null) setSavedSubmissionId(submission.id);
           setSubmissionSnapshot({
             id: submission.id,
-            payment_status: normalizePaymentStatus(submission.payment_status),
+            payment_status: normalizePaymentStatus(submission.payment_status, submission),
             subscription_type: submission.subscription_type,
             period_end: formatPeriodEnd(pickSubscriptionEnd(submission))
           });
@@ -311,6 +313,8 @@ export default function FormPage() {
     if (!form.country.trim()) nextErrors.country = t('form.errors.countryRequired');
     if (!form.houseNo.trim()) nextErrors.houseNo = t('form.errors.houseNoRequired');
     if (!form.street.trim()) nextErrors.street = t('form.errors.streetRequired');
+    if (!form.area.trim()) nextErrors.area = t('form.errors.areaRequired');
+    if (!form.postOffice.trim()) nextErrors.postOffice = t('form.errors.postOfficeRequired');
     if (!form.state.trim()) nextErrors.state = t('form.errors.stateRequired');
     if (!form.town.trim()) nextErrors.town = t('form.errors.required');
     if (!form.district.trim()) nextErrors.district = t('form.errors.districtRequired');
@@ -335,8 +339,11 @@ export default function FormPage() {
       email: form.email.trim(),
       gender: form.gender,
       country: form.country.trim() || DEFAULT_COUNTRY,
+      care_of: form.careOf.trim(),
       house_no: form.houseNo.trim(),
       street: form.street.trim(),
+      area: form.area.trim(),
+      post_office: form.postOffice.trim(),
       mark: form.landmark.trim(),
       address: form.houseNo.trim(),
       address_1: form.houseNo.trim(),
@@ -384,7 +391,7 @@ export default function FormPage() {
         setSubmissionSnapshot((prev) => ({
           ...(prev || {}),
           id: submissionId,
-          payment_status: normalizePaymentStatus(data.submission.payment_status),
+          payment_status: normalizePaymentStatus(data.submission.payment_status, data.submission),
           subscription_type: data.submission.subscription_type ?? prev?.subscription_type,
           period_end: formatPeriodEnd(pickSubscriptionEnd(data.submission)) ?? prev?.period_end
         }));
@@ -462,109 +469,134 @@ export default function FormPage() {
             </div>
           ) : null}
 
-          <section className="donation-form-section donation-form-section--teal" aria-labelledby="df-personal-heading">
+          <section
+            className="donation-form-section donation-form-section--teal donation-form-section--personal"
+            aria-labelledby="df-personal-heading"
+          >
             <h2 id="df-personal-heading" className="donation-form-section-title">
               {t('form.personalSectionTitle')}
             </h2>
 
-          <DonationFormPair>
-            <DonationFormRow
-              label={t('form.labels.firstName')}
-              required
-              error={errors.firstName}
-              labelFor="df-firstName"
-            >
-              <input
-                id="df-firstName"
-                className={inputClass('firstName', errors)}
-                value={form.firstName}
-                onChange={(e) => updateField('firstName', e.target.value)}
-                autoComplete="given-name"
-              />
-            </DonationFormRow>
-
-            <DonationFormRow
-              label={t('form.labels.lastName')}
-              required
-              error={errors.lastName}
-              labelFor="df-lastName"
-            >
-              <input
-                id="df-lastName"
-                className={inputClass('lastName', errors)}
-                value={form.lastName}
-                onChange={(e) => updateField('lastName', e.target.value)}
-                autoComplete="family-name"
-              />
-            </DonationFormRow>
-          </DonationFormPair>
-
-          <DonationFormPair>
-            <DonationFormRow
-              label={t('form.labels.subscriberNo')}
-              error={errors.subscriberNo}
-              labelFor="df-subscriberNo"
-            >
-              <input
-                id="df-subscriberNo"
-                className={`donation-input donation-input--readonly-subscriber ${errors.subscriberNo ? 'donation-input--invalid' : ''}`}
-                value={form.subscriberNo}
-                readOnly
-                aria-readonly="true"
-                autoComplete="off"
-                title={t('form.subscriberNoTitle')}
-              />
-            </DonationFormRow>
-
-            <DonationFormRow label={t('form.labels.gender')} required error={errors.gender} labelFor="df-gender">
-              <select
-                id="df-gender"
-                className={inputClass('gender', errors)}
-                value={form.gender}
-                onChange={(e) => updateField('gender', e.target.value)}
+            <DonationFormPair>
+              <DonationFormRow
+                label={t('form.labels.firstName')}
+                required
+                error={errors.firstName}
+                labelFor="df-firstName"
               >
-                <option value="">{t('form.placeholders.selectGender')}</option>
-                <option value="male">{t('form.placeholders.male')}</option>
-                <option value="female">{t('form.placeholders.female')}</option>
-              </select>
-            </DonationFormRow>
-          </DonationFormPair>
+                <input
+                  id="df-firstName"
+                  className={inputClass('firstName', errors)}
+                  value={form.firstName}
+                  onChange={(e) => updateField('firstName', e.target.value)}
+                  autoComplete="given-name"
+                />
+              </DonationFormRow>
 
-          <DonationFormPair className="donation-form-pair--single">
-            <DonationFormRow label={t('form.labels.mobile')} required error={errors.mobile} labelFor="df-mobile">
-              <MobileNumberField
-                id="df-mobile"
-                country={form.country}
-                onCountryChange={handleCountryChange}
-                value={form.mobile}
-                onChange={(value) => updateField('mobile', value)}
-                errors={errors}
-              />
-            </DonationFormRow>
-          </DonationFormPair>
+              <DonationFormRow
+                label={t('form.labels.lastName')}
+                required
+                error={errors.lastName}
+                labelFor="df-lastName"
+              >
+                <input
+                  id="df-lastName"
+                  className={inputClass('lastName', errors)}
+                  value={form.lastName}
+                  onChange={(e) => updateField('lastName', e.target.value)}
+                  autoComplete="family-name"
+                />
+              </DonationFormRow>
+            </DonationFormPair>
 
-          <DonationFormPair>
-          <DonationFormRow label={t('form.labels.email')} required error={errors.email} labelFor="df-email">
-            <p id="df-email-hint" className="sr-only">
-              {t('form.emailHint')}
-            </p>
-            <input
-              id="df-email"
-              type="email"
-              className={`${inputClass('email', errors)} donation-input--readonly`}
-              value={form.email}
-              onChange={(e) => updateField('email', e.target.value)}
-              autoComplete="email"
-              title={t('form.emailTitle')}
-              aria-describedby="df-email-hint"
-              readOnly
-            />
-          </DonationFormRow>
+            <DonationFormPair>
+              <DonationFormRow
+                label={t('form.labels.careOf')}
+                optional={t('common.optional')}
+                error={errors.careOf}
+                labelFor="df-careOf"
+              >
+                <input
+                  id="df-careOf"
+                  className={inputClass('careOf', errors)}
+                  value={form.careOf}
+                  onChange={(e) => updateField('careOf', e.target.value)}
+                  placeholder={t('form.placeholders.careOf')}
+                  autoComplete="off"
+                />
+              </DonationFormRow>
 
-          <DonationFormRow label={t('form.labels.rehbar')} required error={errors.rehbar} labelFor="df-rehbar">
-            <input id="df-rehbar" className={inputClass('rehbar', errors)} value={form.rehbar} onChange={(e) => updateField('rehbar', e.target.value)} />
-          </DonationFormRow>
-          </DonationFormPair>
+              <DonationFormRow label={t('form.labels.gender')} required error={errors.gender} labelFor="df-gender">
+                <select
+                  id="df-gender"
+                  className={inputClass('gender', errors)}
+                  value={form.gender}
+                  onChange={(e) => updateField('gender', e.target.value)}
+                >
+                  <option value="">{t('form.placeholders.selectGender')}</option>
+                  <option value="male">{t('form.placeholders.male')}</option>
+                  <option value="female">{t('form.placeholders.female')}</option>
+                </select>
+              </DonationFormRow>
+            </DonationFormPair>
+
+            <DonationFormPair>
+              <DonationFormRow
+                label={t('form.labels.subscriberNo')}
+                error={errors.subscriberNo}
+                labelFor="df-subscriberNo"
+              >
+                <input
+                  id="df-subscriberNo"
+                  className={`donation-input donation-input--readonly-subscriber ${errors.subscriberNo ? 'donation-input--invalid' : ''}`}
+                  value={form.subscriberNo}
+                  readOnly
+                  aria-readonly="true"
+                  autoComplete="off"
+                  title={t('form.subscriberNoTitle')}
+                />
+              </DonationFormRow>
+
+              <DonationFormRow label={t('form.labels.email')} required error={errors.email} labelFor="df-email">
+                <p id="df-email-hint" className="sr-only">
+                  {t('form.emailHint')}
+                </p>
+                <input
+                  id="df-email"
+                  type="email"
+                  className={`${inputClass('email', errors)} donation-input--readonly`}
+                  value={form.email}
+                  onChange={(e) => updateField('email', e.target.value)}
+                  autoComplete="email"
+                  title={t('form.emailTitle')}
+                  aria-describedby="df-email-hint"
+                  readOnly
+                />
+              </DonationFormRow>
+            </DonationFormPair>
+
+            <DonationFormPair>
+              <DonationFormRow label={t('form.labels.mobile')} required error={errors.mobile} labelFor="df-mobile">
+                <MobileNumberField
+                  id="df-mobile"
+                  country={form.country}
+                  onCountryChange={handleCountryChange}
+                  value={form.mobile}
+                  onChange={(value) => updateField('mobile', value)}
+                  errors={errors}
+                  hint={false}
+                />
+              </DonationFormRow>
+
+              <DonationFormRow label={t('form.labels.rehbar')} required error={errors.rehbar} labelFor="df-rehbar">
+                <input
+                  id="df-rehbar"
+                  className={inputClass('rehbar', errors)}
+                  value={form.rehbar}
+                  onChange={(e) => updateField('rehbar', e.target.value)}
+                />
+              </DonationFormRow>
+            </DonationFormPair>
           </section>
 
           <AddressFieldsBlock

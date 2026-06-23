@@ -1,18 +1,19 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, Download, Eye, Lock, LogOut, Pencil, RefreshCcw, Users } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, Download, Lock, LogOut, Pencil, RefreshCcw, Users } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import {
   adminLogin,
   downloadSubscriptionsPdf,
+  downloadSubmissionsExcel,
+  downloadSubmissionsPdf,
   getBookSubscriptions,
   getMagazineSubscriptions,
   getSubmissions,
   getSubscriptionFilterMeta,
   listAdminUsers,
-  updateAdminUser,
-  verifySubmission
+  updateAdminUser
 } from '../services/api.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import {
@@ -24,6 +25,18 @@ import {
   saveAdminSession
 } from '../utils/adminAuth.js';
 import { useSeo } from '../utils/seo.js';
+import { normalizePaymentStatus } from '../utils/subscriptionPeriod.js';
+
+function displayPaymentStatus(item) {
+  return normalizePaymentStatus(item?.payment_status, item);
+}
+
+function formatUptoPeriod(item) {
+  const month = item?.upto_month;
+  const year = item?.upto_year;
+  if (month == null || month === '' || year == null || year === '') return '—';
+  return `${month} / ${year}`;
+}
 
 const EMPTY_FILTERS = {
   status: '',
@@ -34,12 +47,32 @@ const EMPTY_FILTERS = {
   type: 'all'
 };
 
+const DEFAULT_PAYMENT_FILTERS = {
+  audience: 'online',
+  status: 'verified'
+};
+
+const EMPTY_USER_FILTERS = {
+  is_verified: '',
+  audience: '',
+  min_subscriber: '',
+  max_subscriber: ''
+};
+
+function formatSubscriberNo(item) {
+  const raw = item?.subscriber_no;
+  if (raw != null && String(raw).trim() !== '') return String(raw).trim();
+  return '—';
+}
+
 function formatSubmissionAddress(item) {
   const line = [
+    item.care_of || item.careOf,
     item.house_no || item.address_1,
     item.street || item.address_2,
     item.mark || item.landmark,
     item.area,
+    item.post_office || item.postOffice,
     item.town || item.city,
     item.district || item.tehsil,
     item.state,
@@ -52,6 +85,120 @@ function formatSubmissionAddress(item) {
   if (line) return line;
   if (item.address) return item.address;
   return [item.state, item.pin].filter(Boolean).join(' - ') || '-';
+}
+
+function PaymentFilters({ filters, counts, onChange, onApply, onDownloadPdf, onDownloadExcel, isLoading, isExporting, t }) {
+  return (
+    <div className="mb-5 space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <label className="block">
+          <span className="label">{t('admin.filters.audience')}</span>
+          <select className="input" value={filters.audience} onChange={(e) => onChange('audience', e.target.value)}>
+            <option value="online">{t('admin.filters.audienceOnline')}</option>
+            <option value="legacy">{t('admin.filters.audienceLegacy')}</option>
+            <option value="all">{t('admin.filterAll')}</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="label">{t('admin.filters.status')}</span>
+          <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
+            <option value="verified">
+              {t('admin.filterVerified')} ({counts.verified ?? 0})
+            </option>
+            <option value="pending">
+              {t('admin.filterPending')} ({counts.pending ?? 0})
+            </option>
+            <option value="all">
+              {t('admin.filterAll')} ({counts.all ?? 0})
+            </option>
+            <option value="failed">{t('admin.filterFailed')}</option>
+          </select>
+        </label>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          className="btn-secondary inline-flex h-[42px] items-center justify-center gap-2"
+          type="button"
+          onClick={onApply}
+          disabled={isLoading}
+        >
+          {isLoading ? <InlineLoader size={20} /> : <RefreshCcw size={18} aria-hidden />}
+          {isLoading ? t('admin.refreshing') : t('admin.refresh')}
+        </button>
+        <button
+          className="btn-secondary inline-flex h-[42px] items-center gap-2"
+          type="button"
+          onClick={onDownloadPdf}
+          disabled={isLoading || isExporting}
+        >
+          <Download size={16} />
+          {t('admin.filters.downloadPdf')}
+        </button>
+        <button
+          className="btn-secondary inline-flex h-[42px] items-center gap-2"
+          type="button"
+          onClick={onDownloadExcel}
+          disabled={isLoading || isExporting}
+        >
+          <Download size={16} />
+          {t('admin.filters.downloadExcel')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function UserFilters({ filters, onChange, onApply, isLoading, t }) {
+  return (
+    <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <label className="block">
+        <span className="label">{t('admin.filters.audience')}</span>
+        <select className="input" value={filters.audience} onChange={(e) => onChange('audience', e.target.value)}>
+          <option value="">{t('admin.filterAll')}</option>
+          <option value="online">{t('admin.filters.audienceOnline')}</option>
+          <option value="legacy">{t('admin.filters.audienceLegacy')}</option>
+        </select>
+      </label>
+      <label className="block">
+        <span className="label">{t('admin.users.verified')}</span>
+        <select className="input" value={filters.is_verified} onChange={(e) => onChange('is_verified', e.target.value)}>
+          <option value="">{t('admin.filterAll')}</option>
+          <option value="true">{t('common.yes')}</option>
+          <option value="false">{t('common.no')}</option>
+        </select>
+      </label>
+      <label className="block">
+        <span className="label">{t('admin.filters.minSubscriber')}</span>
+        <input
+          className="input"
+          type="number"
+          min="1"
+          value={filters.min_subscriber}
+          onChange={(e) => onChange('min_subscriber', e.target.value)}
+          placeholder="71000"
+        />
+      </label>
+      <label className="block">
+        <span className="label">{t('admin.filters.maxSubscriber')}</span>
+        <input
+          className="input"
+          type="number"
+          min="1"
+          value={filters.max_subscriber}
+          onChange={(e) => onChange('max_subscriber', e.target.value)}
+        />
+      </label>
+      <button
+        className="btn-secondary inline-flex h-[42px] items-center justify-center gap-2 self-end"
+        type="button"
+        onClick={onApply}
+        disabled={isLoading}
+      >
+        {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={16} />}
+        {t('admin.filters.apply')}
+      </button>
+    </div>
+  );
 }
 
 function SubscriptionFilters({ filters, meta, onChange, onApply, onDownload, isLoading, t }) {
@@ -217,45 +364,49 @@ export default function AdminPage() {
   });
 
   const { t } = useTranslation();
-  const FILTER_LABELS = {
-    all: t('admin.filterAll'),
-    pending: t('admin.filterPending'),
-    verified: t('admin.filterVerified')
-  };
 
   const [token, setToken] = useState(() => getAdminToken());
   const [role, setRole] = useState(() => getAdminRole());
   const [activeTab, setActiveTab] = useState('payments');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [filter, setFilter] = useState('all');
+  const PAYMENTS_PAGE_SIZE = 50;
+
+  const [paymentFilters, setPaymentFilters] = useState(DEFAULT_PAYMENT_FILTERS);
+  const [paymentPage, setPaymentPage] = useState(1);
+  const [paymentPagination, setPaymentPagination] = useState({
+    page: 1,
+    pageSize: PAYMENTS_PAGE_SIZE,
+    total: 0,
+    totalPages: 1
+  });
+  const [paymentCounts, setPaymentCounts] = useState({ all: 0, pending: 0, verified: 0 });
   const [submissions, setSubmissions] = useState([]);
   const [magazineRows, setMagazineRows] = useState([]);
   const [bookRows, setBookRows] = useState([]);
   const [users, setUsers] = useState([]);
   const [userSearch, setUserSearch] = useState('');
+  const [userFilters, setUserFilters] = useState(EMPTY_USER_FILTERS);
   const [editingUser, setEditingUser] = useState(null);
   const [subFilters, setSubFilters] = useState(EMPTY_FILTERS);
   const [filterMeta, setFilterMeta] = useState({ states: [], cities: [] });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [isSavingUser, setIsSavingUser] = useState(false);
 
   const superAdmin = role === 'super_admin';
 
-  const counts = useMemo(
-    () => ({
-      all: submissions.length,
-      pending: submissions.filter((item) => item.payment_status === 'pending').length,
-      verified: submissions.filter((item) => item.payment_status === 'verified').length
-    }),
-    [submissions]
-  );
+  const tabHasCachedData =
+    (activeTab === 'payments' && submissions.length > 0) ||
+    (activeTab === 'subscriptions' && (magazineRows.length > 0 || bookRows.length > 0)) ||
+    (activeTab === 'users' && users.length > 0);
 
-  const visibleSubmissions = useMemo(() => {
-    if (filter === 'all') return submissions;
-    return submissions.filter((item) => item.payment_status === filter);
-  }, [filter, submissions]);
+  const loadingOverlayLabel = isExporting
+    ? t('admin.exporting')
+    : tabHasCachedData
+      ? t('admin.refreshing')
+      : t('loaders.loadingSubmissions');
 
   function handleAuthError(err) {
     setError(err.message);
@@ -266,19 +417,52 @@ export default function AdminPage() {
     }
   }
 
-  async function loadSubmissions(activeToken = token) {
-    if (!activeToken) return;
-    setIsLoading(true);
-    setError('');
-    try {
-      const data = await getSubmissions(activeToken);
-      setSubmissions(data.submissions);
-    } catch (err) {
-      handleAuthError(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const loadSubmissions = useCallback(
+    async (activeToken = token) => {
+      if (!activeToken) return;
+      setIsLoading(true);
+      setError('');
+      try {
+        const data = await getSubmissions(activeToken, {
+          page: paymentPage,
+          limit: PAYMENTS_PAGE_SIZE,
+          status: paymentFilters.status,
+          audience: paymentFilters.audience
+        });
+        setSubmissions(data.submissions || []);
+        if (data.pagination) setPaymentPagination(data.pagination);
+        if (data.counts) setPaymentCounts(data.counts);
+      } catch (err) {
+        handleAuthError(err);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [token, paymentPage, paymentFilters]
+  );
+
+  const loadUsers = useCallback(
+    async (activeToken = token, search = userSearch, filters = userFilters) => {
+      if (!activeToken || !superAdmin) return;
+      setIsLoading(true);
+      setError('');
+      try {
+        const data = await listAdminUsers(activeToken, {
+          search: search || undefined,
+          is_verified: filters.is_verified || undefined,
+          audience: filters.audience || undefined,
+          min_subscriber: filters.min_subscriber || undefined,
+          max_subscriber: filters.max_subscriber || undefined
+        });
+        setUsers(data.users || []);
+      } catch (err) {
+        handleAuthError(err);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [token, superAdmin, userSearch, userFilters]
+  );
 
   const loadSubscriptionData = useCallback(
     async (activeToken = token, filters = subFilters) => {
@@ -316,18 +500,8 @@ export default function AdminPage() {
     [token, superAdmin, subFilters]
   );
 
-  async function loadUsers(activeToken = token, search = userSearch) {
-    if (!activeToken || !superAdmin) return;
-    setIsLoading(true);
-    setError('');
-    try {
-      const data = await listAdminUsers(activeToken, search);
-      setUsers(data.users || []);
-    } catch (err) {
-      handleAuthError(err);
-    } finally {
-      setIsLoading(false);
-    }
+  async function loadUsersNow() {
+    await loadUsers();
   }
 
   async function loadFilterMeta(activeToken = token) {
@@ -373,16 +547,6 @@ export default function AdminPage() {
     setUsers([]);
   }
 
-  async function handleVerify(id) {
-    setError('');
-    try {
-      await verifySubmission(token, id);
-      await loadSubmissions();
-    } catch (err) {
-      handleAuthError(err);
-    }
-  }
-
   async function handleSaveUser(patch) {
     if (!editingUser) return;
     setIsSavingUser(true);
@@ -402,6 +566,15 @@ export default function AdminPage() {
     setSubFilters((prev) => ({ ...prev, [key]: value }));
   }
 
+  function updatePaymentFilter(key, value) {
+    setPaymentPage(1);
+    setPaymentFilters((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
+  }
+
+  function updateUserFilter(key, value) {
+    setUserFilters((prev) => ({ ...prev, [key]: value }));
+  }
+
   useEffect(() => {
     if (!isAdminAuthenticated()) return;
     if (activeTab === 'payments') loadSubmissions();
@@ -410,7 +583,36 @@ export default function AdminPage() {
       loadSubscriptionData();
     }
     if (activeTab === 'users' && superAdmin) loadUsers();
-  }, [token, activeTab, superAdmin]);
+  }, [token, activeTab, superAdmin, loadSubmissions, loadUsers]);
+
+  function applyPaymentFilters() {
+    setPaymentPage(1);
+    loadSubmissions();
+  }
+
+  async function handleDownloadPaymentsPdf() {
+    setError('');
+    setIsExporting(true);
+    try {
+      await downloadSubmissionsPdf(token, paymentFilters);
+    } catch (err) {
+      handleAuthError(err);
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  async function handleDownloadPaymentsExcel() {
+    setError('');
+    setIsExporting(true);
+    try {
+      await downloadSubmissionsExcel(token, paymentFilters);
+    } catch (err) {
+      handleAuthError(err);
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   if (!token) {
     return (
@@ -455,9 +657,7 @@ export default function AdminPage() {
 
   return (
     <main className="page-shell">
-      {isLoading && submissions.length === 0 && activeTab === 'payments' ? (
-        <LoadingBlock label={t('loaders.loadingSubmissions')} />
-      ) : null}
+      {isLoading || isExporting ? <LoadingBlock label={loadingOverlayLabel} /> : null}
       <section className="content-wrap py-8">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <PageHeader
@@ -513,46 +713,38 @@ export default function AdminPage() {
 
         {activeTab === 'payments' ? (
           <>
-            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex rounded-lg border border-ink/10 bg-white p-1 shadow-sm">
-                {['all', 'pending', 'verified'].map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => setFilter(item)}
-                    className={`rounded-md px-4 py-2 text-sm font-bold transition ${filter === item ? 'bg-primary text-white' : 'text-muted hover:bg-primary/10'}`}
-                  >
-                    {FILTER_LABELS[item]} ({counts[item]})
-                  </button>
-                ))}
-              </div>
-              <button
-                className="btn-secondary inline-flex items-center gap-2"
-                onClick={() => loadSubmissions()}
-                disabled={isLoading}
-              >
-                {isLoading ? <InlineLoader size={20} /> : <RefreshCcw size={18} aria-hidden />}
-                {isLoading ? t('admin.refreshing') : t('admin.refresh')}
-              </button>
-            </div>
+            <PaymentFilters
+              filters={paymentFilters}
+              counts={paymentCounts}
+              onChange={updatePaymentFilter}
+              onApply={applyPaymentFilters}
+              onDownloadPdf={handleDownloadPaymentsPdf}
+              onDownloadExcel={handleDownloadPaymentsExcel}
+              isLoading={isLoading}
+              isExporting={isExporting}
+              t={t}
+            />
 
             <div className="card overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[720px] border-collapse text-left text-sm md:min-w-[820px] lg:min-w-[900px]">
+                <table className="w-full min-w-[640px] border-collapse text-left text-sm md:min-w-[720px] lg:min-w-[840px]">
                   <thead className="bg-brand-surface text-ink">
                     <tr>
+                      <th className="px-4 py-4 font-black">{t('admin.users.subscriberNo')}</th>
                       <th className="px-4 py-4 font-black">{t('admin.table.name')}</th>
                       <th className="px-4 py-4 font-black">{t('admin.table.contact')}</th>
                       <th className="px-4 py-4 font-black">{t('admin.table.address')}</th>
                       <th className="px-4 py-4 font-black">{t('admin.table.subscription')}</th>
-                      <th className="px-4 py-4 font-black">{t('admin.table.transaction')}</th>
                       <th className="px-4 py-4 font-black">{t('admin.table.status')}</th>
-                      <th className="px-4 py-4 font-black">{t('admin.table.screenshot')}</th>
-                      <th className="px-4 py-4 font-black">{t('admin.table.action')}</th>
+                      <th className="px-4 py-4 font-black">{t('admin.table.validUpto')}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {visibleSubmissions.map((item) => (
-                      <tr key={item.id} className="border-t border-ink/10 align-top">
+                    {submissions.map((item) => {
+                      const status = displayPaymentStatus(item);
+                      return (
+                      <tr key={item.row_uuid || `${item.subscriber_no}-${item.created_at}`} className="border-t border-ink/10 align-top">
+                        <td className="px-4 py-4 font-semibold tabular-nums text-ink">{formatSubscriberNo(item)}</td>
                         <td className="px-4 py-4">
                           <p className="font-bold text-ink">{item.name || t('admin.notSubmitted')}</p>
                           {item.gender ? (
@@ -583,50 +775,30 @@ export default function AdminPage() {
                             </p>
                           ) : null}
                         </td>
-                        <td className="px-4 py-4 font-medium text-ink">{item.transaction_id || '-'}</td>
                         <td className="px-4 py-4">
                           <span
                             className={`rounded-full px-3 py-1 text-xs font-black uppercase ${
-                              item.payment_status === 'verified'
+                              status === 'verified'
                                 ? 'bg-primary/20 text-[#0d2d7f]'
                                 : 'bg-amber-100 text-amber-800'
                             }`}
                           >
-                            {item.payment_status === 'verified'
+                            {status === 'verified'
                               ? t('admin.filterVerified')
-                              : item.payment_status === 'pending'
+                              : status === 'pending'
                                 ? t('admin.filterPending')
-                                : item.payment_status}
+                                : status}
                           </span>
                         </td>
-                        <td className="px-4 py-4">
-                          {item.screenshot_url ? (
-                            <a
-                              className="btn-secondary min-h-10 px-3 py-2 text-xs"
-                              href={item.screenshot_url}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              <Eye size={15} /> {t('admin.view')}
-                            </a>
-                          ) : (
-                            '-'
-                          )}
-                        </td>
-                        <td className="px-4 py-4">
-                          {item.payment_status !== 'verified' ? (
-                            <button className="btn-primary min-h-10 px-3 py-2 text-xs" onClick={() => handleVerify(item.id)}>
-                              <Check size={15} /> {t('admin.markVerified')}
-                            </button>
-                          ) : (
-                            <span className="font-semibold text-muted">{t('admin.done')}</span>
-                          )}
+                        <td className="px-4 py-4 text-sm font-medium tabular-nums text-ink">
+                          {formatUptoPeriod(item)}
                         </td>
                       </tr>
-                    ))}
-                    {!visibleSubmissions.length ? (
+                      );
+                    })}
+                    {!submissions.length ? (
                       <tr>
-                        <td colSpan="8" className="px-4 py-10">
+                        <td colSpan="7" className="px-4 py-10">
                           <p className="text-center font-semibold text-muted">{t('admin.noSubmissions')}</p>
                         </td>
                       </tr>
@@ -634,6 +806,48 @@ export default function AdminPage() {
                   </tbody>
                 </table>
               </div>
+              {paymentPagination.total > 0 ? (
+                <div className="flex flex-col gap-3 border-t border-ink/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-muted">
+                    {t('admin.pagination.showing', {
+                      from: (paymentPagination.page - 1) * paymentPagination.pageSize + 1,
+                      to: Math.min(
+                        paymentPagination.page * paymentPagination.pageSize,
+                        paymentPagination.total
+                      ),
+                      total: paymentPagination.total
+                    })}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      className="btn-secondary inline-flex items-center gap-1 px-3 py-2 text-sm disabled:opacity-50"
+                      onClick={() => setPaymentPage((p) => Math.max(1, p - 1))}
+                      disabled={paymentPagination.page <= 1 || isLoading}
+                    >
+                      <ChevronLeft size={16} aria-hidden />
+                      {t('admin.pagination.previous')}
+                    </button>
+                    <span className="px-2 text-sm font-semibold text-ink">
+                      {t('admin.pagination.pageOf', {
+                        page: paymentPagination.page,
+                        total: paymentPagination.totalPages
+                      })}
+                    </span>
+                    <button
+                      type="button"
+                      className="btn-secondary inline-flex items-center gap-1 px-3 py-2 text-sm disabled:opacity-50"
+                      onClick={() =>
+                        setPaymentPage((p) => Math.min(paymentPagination.totalPages, p + 1))
+                      }
+                      disabled={paymentPagination.page >= paymentPagination.totalPages || isLoading}
+                    >
+                      {t('admin.pagination.next')}
+                      <ChevronRight size={16} aria-hidden />
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </>
         ) : null}
@@ -761,11 +975,14 @@ export default function AdminPage() {
                 onChange={(e) => setUserSearch(e.target.value)}
                 placeholder={t('admin.users.searchPlaceholder')}
               />
-              <button className="btn-secondary inline-flex items-center gap-2" type="button" onClick={() => loadUsers()} disabled={isLoading}>
-                {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={16} />}
-                {t('admin.refresh')}
-              </button>
             </div>
+            <UserFilters
+              filters={userFilters}
+              onChange={updateUserFilter}
+              onApply={loadUsersNow}
+              isLoading={isLoading}
+              t={t}
+            />
             <div className="card overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[700px] border-collapse text-left text-sm">

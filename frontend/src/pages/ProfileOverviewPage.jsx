@@ -22,6 +22,7 @@ import { maskEmail, maskPhone } from '../utils/maskContact.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
 import { namesFromSubmission } from '../utils/personName.js';
+import { getSubscriptionPeriodSummary, normalizePaymentStatus } from '../utils/subscriptionPeriod.js';
 
 function normalizeMobile10(value) {
   const d = String(value ?? '').replace(/\D/g, '');
@@ -42,13 +43,6 @@ function submissionLooksEmpty(sub) {
   const addr = formatSubmissionAddress(sub);
   const name = String(sub.name || '').trim();
   return !mob && !addr && !name;
-}
-
-/** Normalize API payment_status so verified subscriptions are treated as paid. */
-function normalizePaymentStatus(raw) {
-  const s = String(raw || '').toLowerCase();
-  if (s === 'verified' || s === 'paid' || s === 'active') return 'verified';
-  return 'pending';
 }
 
 /** Backend may return privacy-safe hints instead of a full `submission`. */
@@ -131,10 +125,13 @@ export default function ProfileOverviewPage() {
     houseNo: '',
     street: '',
     landmark: '',
-    state: '',
+    area: '',
+    postOffice: '',
+    careOf: '',
+    pin: '',
     town: '',
     district: '',
-    pin: ''
+    state: ''
   });
   const [addressSaving, setAddressSaving] = useState(false);
   const [addressMessage, setAddressMessage] = useState('');
@@ -153,17 +150,24 @@ export default function ProfileOverviewPage() {
     if (_user?.email) setAccountEmail(String(_user.email));
     if (submission) {
       const { firstName, lastName } = namesFromSubmission(submission);
+      const a2Lines = String(submission.address_2 || '')
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean);
       setAddressForm({
         firstName,
         lastName,
         mobile: String(submission.mobile || submission.phone || '').replace(/\D/g, '').slice(-10),
         houseNo: String(submission.address_1 || submission.house_no || submission.address || '').trim(),
-        street: String(submission.street || submission.address_2 || '').trim().split('\n')[0] || '',
+        careOf: String(submission.care_of || submission.careOf || '').trim(),
+        street: String(submission.street || a2Lines[0] || '').trim(),
         landmark: String(submission.mark || submission.landmark || '').trim(),
-        state: String(submission.state || '').trim(),
+        area: String(submission.area || a2Lines[1] || '').trim(),
+        postOffice: String(submission.post_office || submission.postOffice || a2Lines[2] || '').trim(),
+        pin: String(submission.pin || submission.pincode || '').trim(),
         town: String(submission.town || submission.city || '').trim(),
         district: String(submission.district || submission.tehsil || '').trim(),
-        pin: String(submission.pin || submission.pincode || '').trim()
+        state: String(submission.state || '').trim()
       });
     }
   }, []);
@@ -201,7 +205,7 @@ export default function ProfileOverviewPage() {
   );
 
   const subscriptionPaid = useMemo(
-    () => normalizePaymentStatus(linkedSubmission?.payment_status) === 'verified',
+    () => normalizePaymentStatus(linkedSubmission?.payment_status, linkedSubmission) === 'verified',
     [linkedSubmission]
   );
 
@@ -347,7 +351,10 @@ export default function ProfileOverviewPage() {
         last_name: addressForm.lastName.trim(),
         mobile: addressForm.mobile.trim(),
         house_no: addressForm.houseNo.trim(),
+        care_of: addressForm.careOf.trim(),
         street: addressForm.street.trim(),
+        area: addressForm.area.trim(),
+        post_office: addressForm.postOffice.trim(),
         mark: addressForm.landmark.trim(),
         address: addressForm.houseNo.trim(),
         address_1: addressForm.houseNo.trim(),
@@ -663,6 +670,15 @@ export default function ProfileOverviewPage() {
                             autoComplete="family-name"
                           />
                         </label>
+                        <label className="block sm:col-span-2">
+                          <span className="label">{t('form.labels.careOf')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.careOf}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, careOf: e.target.value }))}
+                            placeholder={t('form.placeholders.careOf')}
+                          />
+                        </label>
                         <label className="block">
                           <span className="label">{t('profile.mobileLabel')}</span>
                           <input
@@ -676,6 +692,42 @@ export default function ProfileOverviewPage() {
                                 mobile: e.target.value.replace(/\D/g, '').slice(0, 10)
                               }))
                             }
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="label">{t('form.labels.houseNo')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.houseNo}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, houseNo: e.target.value }))}
+                            placeholder={t('form.placeholders.houseNo')}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="label">{t('form.labels.street')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.street}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, street: e.target.value }))}
+                            placeholder={t('form.placeholders.street')}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="label">{t('form.labels.area')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.area}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, area: e.target.value }))}
+                            placeholder={t('form.placeholders.area')}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="label">{t('form.labels.landmark')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.landmark}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, landmark: e.target.value }))}
+                            placeholder={t('form.placeholders.landmark')}
                           />
                         </label>
                         <label className="block">
@@ -693,34 +745,32 @@ export default function ProfileOverviewPage() {
                             }
                           />
                         </label>
-                        <label className="block sm:col-span-2">
-                          <span className="label">{t('form.labels.houseNo')}</span>
+                        <label className="block">
+                          <span className="label">{t('form.labels.postOffice')}</span>
                           <input
                             className="donation-input !rounded-lg"
-                            value={addressForm.houseNo}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, houseNo: e.target.value }))}
-                            placeholder={t('form.placeholders.houseNo')}
-                          />
-                        </label>
-                        <label className="block sm:col-span-2">
-                          <span className="label">{t('form.labels.street')}</span>
-                          <input
-                            className="donation-input !rounded-lg"
-                            value={addressForm.street}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, street: e.target.value }))}
-                            placeholder={t('form.placeholders.street')}
-                          />
-                        </label>
-                        <label className="block sm:col-span-2">
-                          <span className="label">{t('form.labels.landmark')}</span>
-                          <input
-                            className="donation-input !rounded-lg"
-                            value={addressForm.landmark}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, landmark: e.target.value }))}
-                            placeholder={t('form.placeholders.landmark')}
+                            value={addressForm.postOffice}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, postOffice: e.target.value }))}
+                            placeholder={t('form.placeholders.postOffice')}
                           />
                         </label>
                         <label className="block">
+                          <span className="label">{t('profile.townLabel')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.town}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, town: e.target.value }))}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="label">{t('profile.districtLabel')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            value={addressForm.district}
+                            onChange={(e) => setAddressForm((f) => ({ ...f, district: e.target.value }))}
+                          />
+                        </label>
+                        <label className="block sm:col-span-2">
                           <span className="label">{t('profile.stateLabel')}</span>
                           <select
                             className="donation-input !rounded-lg"
@@ -734,22 +784,6 @@ export default function ProfileOverviewPage() {
                               </option>
                             ))}
                           </select>
-                        </label>
-                        <label className="block">
-                          <span className="label">{t('profile.townLabel')}</span>
-                          <input
-                            className="donation-input !rounded-lg"
-                            value={addressForm.town}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, town: e.target.value }))}
-                          />
-                        </label>
-                        <label className="block sm:col-span-2">
-                          <span className="label">{t('profile.districtLabel')}</span>
-                          <input
-                            className="donation-input !rounded-lg"
-                            value={addressForm.district}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, district: e.target.value }))}
-                          />
                         </label>
                         <div className="sm:col-span-2">
                           <button className="btn-primary inline-flex items-center gap-2 px-5 py-2 text-sm" type="submit" disabled={addressSaving}>

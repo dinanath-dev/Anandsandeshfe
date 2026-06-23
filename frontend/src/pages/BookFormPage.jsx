@@ -25,9 +25,12 @@ const initialForm = {
   mobile: '',
   email: '',
   country: DEFAULT_COUNTRY,
+  careOf: '',
   houseNo: '',
   street: '',
   landmark: '',
+  area: '',
+  postOffice: '',
   state: '',
   town: '',
   district: '',
@@ -202,6 +205,8 @@ export default function BookFormPage() {
     if (!form.email.trim()) next.email = t('form.errors.emailRequired');
     if (!form.houseNo.trim()) next.houseNo = t('form.errors.houseNoRequired');
     if (!form.street.trim()) next.street = t('form.errors.streetRequired');
+    if (!form.area.trim()) next.area = t('form.errors.areaRequired');
+    if (!form.postOffice.trim()) next.postOffice = t('form.errors.postOfficeRequired');
     if (!form.country.trim()) next.country = t('form.errors.countryRequired');
     if (!form.state) next.state = t('form.errors.stateRequired');
     if (!form.town.trim()) next.town = t('form.errors.required');
@@ -228,10 +233,11 @@ export default function BookFormPage() {
         gender: form.gender,
         house_no: form.houseNo.trim(),
         street: form.street.trim(),
+        area: form.area.trim(),
+        post_office: form.postOffice.trim(),
         mark: form.landmark.trim(),
         address: form.houseNo.trim(),
         address_1: form.houseNo.trim(),
-        address_2: form.street.trim(),
         country: form.country.trim() || DEFAULT_COUNTRY,
         town: form.town.trim(),
         district: form.district.trim(),
@@ -395,6 +401,24 @@ export default function BookFormPage() {
                     <option value="male">{t('form.placeholders.male')}</option>
                     <option value="female">{t('form.placeholders.female')}</option>
                   </select>
+                </DonationFormRow>
+              </DonationFormPair>
+
+              <DonationFormPair className="donation-form-pair--single">
+                <DonationFormRow
+                  label={t('form.labels.careOf')}
+                  optional={t('common.optional')}
+                  error={errors.careOf}
+                  labelFor="bf-careOf"
+                >
+                  <input
+                    id="bf-careOf"
+                    className={inputClass('careOf', errors)}
+                    value={form.careOf}
+                    onChange={(e) => updateField('careOf', e.target.value)}
+                    placeholder={t('form.placeholders.careOf')}
+                    autoComplete="off"
+                  />
                 </DonationFormRow>
               </DonationFormPair>
 

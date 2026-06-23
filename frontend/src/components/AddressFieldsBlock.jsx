@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, MapPin } from 'lucide-react';
-import DonationFormPair from './DonationFormPair.jsx';
 import DonationFormRow from './DonationFormRow.jsx';
 import { COUNTRIES, DEFAULT_COUNTRY, isIndiaCountry } from '../data/countries.js';
 import { INDIAN_STATES } from '../data/indianStates.js';
@@ -13,7 +12,8 @@ function inputClass(field, errors) {
 }
 
 /**
- * Reusable postal address fields: country, address, pincode (with India lookup), state, town, district.
+ * Postal address: house → street → area → landmark → pin → post office →
+ * town → district → state → country
  */
 export default function AddressFieldsBlock({
   form,
@@ -125,79 +125,76 @@ export default function AddressFieldsBlock({
         </h2>
       ) : null}
 
-      <DonationFormPair className="donation-form-pair--single">
-        <DonationFormRow label={t('form.labels.country')} required error={errors.country} labelFor={`${idPrefix}-country`}>
-          <select
-            id={`${idPrefix}-country`}
-            className={inputClass('country', errors)}
-            value={form.country || DEFAULT_COUNTRY}
-            onChange={(e) => handleCountryChange(e.target.value)}
-          >
-            <option value="">{t('form.placeholders.selectCountry')}</option>
-            {COUNTRIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </DonationFormRow>
-      </DonationFormPair>
-
-      <div className="donation-form-address-group">
-        <DonationFormPair>
-          <DonationFormRow
-            label={t('form.labels.houseNo')}
-            required
-            error={errors.houseNo}
-            labelFor={`${idPrefix}-house-no`}
-          >
-            <input
-              id={`${idPrefix}-house-no`}
-              className={inputClass('houseNo', errors)}
-              value={form.houseNo}
-              onChange={(e) => updateField('houseNo', e.target.value)}
-              placeholder={t('form.placeholders.houseNo')}
-              autoComplete="address-line1"
-            />
-          </DonationFormRow>
-
-          <DonationFormRow
-            label={t('form.labels.street')}
-            required
-            error={errors.street}
-            labelFor={`${idPrefix}-street`}
-          >
-            <input
-              id={`${idPrefix}-street`}
-              className={inputClass('street', errors)}
-              value={form.street}
-              onChange={(e) => updateField('street', e.target.value)}
-              placeholder={t('form.placeholders.street')}
-              autoComplete="address-line2"
-            />
-          </DonationFormRow>
-        </DonationFormPair>
-
-        <DonationFormPair className="donation-form-pair--single">
-          <DonationFormRow
-            label={t('form.labels.landmark')}
-            optional={t('common.optional')}
-            error={errors.landmark}
-            labelFor={`${idPrefix}-landmark`}
-          >
-            <input
-              id={`${idPrefix}-landmark`}
-              className={inputClass('landmark', errors)}
-              value={form.landmark}
-              onChange={(e) => updateField('landmark', e.target.value)}
-              placeholder={t('form.placeholders.landmark')}
-            />
-          </DonationFormRow>
-        </DonationFormPair>
-      </div>
-
-      <DonationFormPair className="donation-form-pair--single donation-form-pair--narrow">
+      <div className="donation-form-address-grid">
         <DonationFormRow
+          className="donation-form-address-grid__span-6"
+          label={t('form.labels.houseNo')}
+          required
+          error={errors.houseNo}
+          labelFor={`${idPrefix}-house-no`}
+        >
+          <input
+            id={`${idPrefix}-house-no`}
+            className={inputClass('houseNo', errors)}
+            value={form.houseNo}
+            onChange={(e) => updateField('houseNo', e.target.value)}
+            placeholder={t('form.placeholders.houseNo')}
+            autoComplete="address-line1"
+          />
+        </DonationFormRow>
+
+        <DonationFormRow
+          className="donation-form-address-grid__span-6"
+          label={t('form.labels.street')}
+          required
+          error={errors.street}
+          labelFor={`${idPrefix}-street`}
+        >
+          <input
+            id={`${idPrefix}-street`}
+            className={inputClass('street', errors)}
+            value={form.street}
+            onChange={(e) => updateField('street', e.target.value)}
+            placeholder={t('form.placeholders.street')}
+            autoComplete="address-line2"
+          />
+        </DonationFormRow>
+
+        <DonationFormRow
+          className="donation-form-address-grid__span-6"
+          label={t('form.labels.area')}
+          required
+          error={errors.area}
+          labelFor={`${idPrefix}-area`}
+        >
+          <input
+            id={`${idPrefix}-area`}
+            className={inputClass('area', errors)}
+            value={form.area}
+            onChange={(e) => updateField('area', e.target.value)}
+            placeholder={t('form.placeholders.area')}
+            autoComplete="address-line3"
+          />
+        </DonationFormRow>
+
+        <DonationFormRow
+          className="donation-form-address-grid__span-6"
+          label={t('form.labels.landmark')}
+          optional={t('common.optional')}
+          error={errors.landmark}
+          labelFor={`${idPrefix}-landmark`}
+        >
+          <input
+            id={`${idPrefix}-landmark`}
+            className={inputClass('landmark', errors)}
+            value={form.landmark}
+            onChange={(e) => updateField('landmark', e.target.value)}
+            placeholder={t('form.placeholders.landmark')}
+          />
+        </DonationFormRow>
+
+        <DonationFormRow
+          className="donation-form-address-grid__span-4"
           label={india ? t('form.labels.pin') : t('form.labels.pinPostal')}
           required
           error={errors.pin}
@@ -232,10 +229,61 @@ export default function AddressFieldsBlock({
             {pinHint}
           </p>
         </DonationFormRow>
-      </DonationFormPair>
 
-      <DonationFormPair className="donation-form-pair--triple">
         <DonationFormRow
+          className="donation-form-address-grid__span-8"
+          label={t('form.labels.postOffice')}
+          required
+          error={errors.postOffice}
+          labelFor={`${idPrefix}-post-office`}
+        >
+          <input
+            id={`${idPrefix}-post-office`}
+            className={inputClass('postOffice', errors)}
+            value={form.postOffice}
+            onChange={(e) => updateField('postOffice', e.target.value)}
+            placeholder={t('form.placeholders.postOffice')}
+          />
+        </DonationFormRow>
+
+        <hr className="donation-form-address-divider" aria-hidden />
+
+        <DonationFormRow
+          className="donation-form-address-grid__span-4"
+          label={t('form.labels.town')}
+          required
+          error={errors.town}
+          labelFor={`${idPrefix}-town`}
+        >
+          <input
+            id={`${idPrefix}-town`}
+            className={inputClass('town', errors)}
+            value={form.town}
+            onChange={(e) => updateField('town', e.target.value)}
+            placeholder={t('form.placeholders.town')}
+            autoComplete="address-level2"
+          />
+        </DonationFormRow>
+
+        <DonationFormRow
+          className="donation-form-address-grid__span-4"
+          label={t('form.labels.district')}
+          required
+          error={errors.district}
+          labelFor={`${idPrefix}-district`}
+        >
+          <input
+            id={`${idPrefix}-district`}
+            className={inputClass('district', errors)}
+            value={form.district}
+            onChange={(e) => updateField('district', e.target.value)}
+            placeholder={t('form.placeholders.district')}
+            autoComplete="address-level3"
+          />
+        </DonationFormRow>
+
+        <DonationFormRow
+          className="donation-form-address-grid__span-4"
           label={india ? t('form.labels.state') : t('form.labels.stateProvince')}
           required
           error={errors.state}
@@ -267,28 +315,28 @@ export default function AddressFieldsBlock({
           )}
         </DonationFormRow>
 
-        <DonationFormRow label={t('form.labels.town')} required error={errors.town} labelFor={`${idPrefix}-town`}>
-          <input
-            id={`${idPrefix}-town`}
-            className={inputClass('town', errors)}
-            value={form.town}
-            onChange={(e) => updateField('town', e.target.value)}
-            placeholder={t('form.placeholders.town')}
-            autoComplete="address-level2"
-          />
+        <DonationFormRow
+          className="donation-form-address-grid__span-6"
+          label={t('form.labels.country')}
+          required
+          error={errors.country}
+          labelFor={`${idPrefix}-country`}
+        >
+          <select
+            id={`${idPrefix}-country`}
+            className={inputClass('country', errors)}
+            value={form.country || DEFAULT_COUNTRY}
+            onChange={(e) => handleCountryChange(e.target.value)}
+          >
+            <option value="">{t('form.placeholders.selectCountry')}</option>
+            {COUNTRIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
         </DonationFormRow>
-
-        <DonationFormRow label={t('form.labels.district')} required error={errors.district} labelFor={`${idPrefix}-district`}>
-          <input
-            id={`${idPrefix}-district`}
-            className={inputClass('district', errors)}
-            value={form.district}
-            onChange={(e) => updateField('district', e.target.value)}
-            placeholder={t('form.placeholders.district')}
-            autoComplete="address-level3"
-          />
-        </DonationFormRow>
-      </DonationFormPair>
+      </div>
     </section>
   );
 }

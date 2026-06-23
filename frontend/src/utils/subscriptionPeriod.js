@@ -1,3 +1,43 @@
+/** Treat legacy subscription period / receipt data as verified for display. */
+export function normalizePaymentStatus(raw, sub = null) {
+  const s = String(raw || '').toLowerCase();
+  if (s === 'verified' || s === 'paid' || s === 'active') return 'verified';
+  if (s === 'failed' || s === 'cancelled') return s;
+  if (!sub || typeof sub !== 'object') return 'pending';
+
+  const uptoMonth = Number(sub.upto_month);
+  const uptoYear = Number(sub.upto_year);
+  if (
+    Number.isInteger(uptoMonth) &&
+    uptoMonth >= 1 &&
+    uptoMonth <= 12 &&
+    Number.isInteger(uptoYear) &&
+    uptoYear > 1900
+  ) {
+    return 'verified';
+  }
+
+  const whenceMonth = Number(sub.whence_issued_month);
+  const whenceYear = Number(sub.whence_issued_year);
+  if (
+    Number.isInteger(whenceMonth) &&
+    whenceMonth >= 1 &&
+    whenceMonth <= 12 &&
+    Number.isInteger(whenceYear) &&
+    whenceYear > 1900
+  ) {
+    return 'verified';
+  }
+
+  const receipt = String(sub.receipt_no || '').trim();
+  const amount = sub.subs_amount;
+  if (receipt || (amount != null && amount !== '' && Number(amount) > 0)) {
+    return 'verified';
+  }
+
+  return 'pending';
+}
+
 /** Resolve subscription validity end date from API / DB row fields. */
 export function getSubscriptionEndDate(sub) {
   if (!sub || typeof sub !== 'object') return null;

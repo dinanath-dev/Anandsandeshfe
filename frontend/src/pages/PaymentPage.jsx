@@ -18,6 +18,7 @@ import {
   countPublications,
   formatInr
 } from '../utils/subscriptionPricing.js';
+import { normalizePaymentStatus } from '../utils/subscriptionPeriod.js';
 
 function planConfigForType(subscriptionType) {
   const keyId = String(import.meta.env.VITE_RAZORPAY_KEY_ID || '').trim();
@@ -74,10 +75,6 @@ function checkoutPrefill(submission, user, serverCustomer) {
       .toLowerCase(),
     contact: formatRazorpayContact(contactDigits)
   };
-}
-
-function normalizePaymentStatus(status) {
-  return String(status || '').trim().toLowerCase();
 }
 
 export default function PaymentPage() {
@@ -148,7 +145,7 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
         const sub = data?.submission;
         if (cancelled || !sub) return;
 
-        if (normalizePaymentStatus(sub.payment_status) === 'verified') {
+        if (normalizePaymentStatus(sub.payment_status, sub) === 'verified') {
           setAlreadyPaid(true);
         }
 
