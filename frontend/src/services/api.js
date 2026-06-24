@@ -1,9 +1,7 @@
 import { getUserAuth } from '../utils/auth.js';
 import { adminAuthHeaders, getAdminPortalId } from '../utils/adminAuth.js';
 
-const PRODUCTION_API_BASE = 'https://api.anandsandeshkaryalay.online/api';
-
-function isProductionFrontendHost(hostname) {
+function isDeployedFrontendHost(hostname) {
   const host = String(hostname || '').toLowerCase();
   return (
     host.endsWith('.vercel.app') ||
@@ -12,15 +10,17 @@ function isProductionFrontendHost(hostname) {
   );
 }
 
-/** Vite bakes env at build time — fall back on live domains if localhost was baked in by mistake. */
+/**
+ * Deployed builds use same-origin `/api` (vercel.json proxies to the backend).
+ * That avoids CORS entirely — preview URLs, www/apex, and Vercel edge challenges included.
+ * Local dev keeps calling the backend directly.
+ */
 function resolveApiBaseUrl() {
-  const fromEnv = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
-  const looksLocal = /localhost|127\.0\.0\.1/i.test(fromEnv);
-
-  if (typeof window !== 'undefined' && isProductionFrontendHost(window.location.hostname)) {
-    if (!fromEnv || looksLocal) return PRODUCTION_API_BASE;
+  if (typeof window !== 'undefined' && isDeployedFrontendHost(window.location.hostname)) {
+    return '/api';
   }
 
+  const fromEnv = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
   if (fromEnv) return fromEnv.endsWith('/api') ? fromEnv : `${fromEnv}/api`;
   return 'http://localhost:5000/api';
 }
@@ -54,9 +54,8 @@ async function request(path, options = {}) {
   } catch (err) {
     const isTypeError = err instanceof TypeError;
     const failedFetch = isTypeError && String(err.message || '').toLowerCase().includes('fetch');
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const message = failedFetch
-      ? `Cannot reach the API (${url}). Browser often labels this as a CORS error when the backend blocks origin ${origin || '(unknown)'} — add it to FRONTEND_URL on the API server. Local dev: use http://localhost:5173 (not 127.0.0.1) or add both to FRONTEND_URL.`
+      ? `Cannot reach the API (${url}). Check your connection or try again in a moment. Local dev: ensure the backend is running on port 5000.`
       : err?.message || 'Network error.';
     const wrapped = new Error(message);
     wrapped.cause = err;

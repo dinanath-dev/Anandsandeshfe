@@ -3,6 +3,7 @@ import { Loader2, MapPin } from 'lucide-react';
 import DonationFormRow from './DonationFormRow.jsx';
 import { COUNTRIES, DEFAULT_COUNTRY, isIndiaCountry } from '../data/countries.js';
 import { INDIAN_STATES } from '../data/indianStates.js';
+import { getDistrictsForIndianState, matchIndianDistrict } from '../data/indianDistricts.js';
 import { lookupIndianPincode } from '../utils/lookupIndianPincode.js';
 import { sanitizeNationalMobile } from '../utils/mobileNumber.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
@@ -26,8 +27,10 @@ export default function AddressFieldsBlock({
 }) {
   const { t } = useTranslation();
   const [pinLookup, setPinLookup] = useState('idle');
+  const [postOfficeOptions, setPostOfficeOptions] = useState([]);
   const lookupSeq = useRef(0);
   const india = isIndiaCountry(form.country || DEFAULT_COUNTRY);
+  const districtOptions = india ? getDistrictsForIndianState(form.state) : [];
 
   async function runPinLookup(pin) {
     const digits = String(pin || '').replace(/\D/g, '');
@@ -39,30 +42,53 @@ export default function AddressFieldsBlock({
       const result = await lookupIndianPincode(digits);
       if (lookupSeq.current !== seq) return;
       if (!result) {
+        setPostOfficeOptions([]);
         setPinLookup('notFound');
         return;
       }
-      setForm((current) => ({
-        ...current,
-        town: result.town || current.town,
-        district: result.district || current.district,
-        state: result.state || current.state
-      }));
+      setPostOfficeOptions(result.postOffices || []);
+      setForm((current) => {
+        const nextState = result.state || current.state;
+        const next = {
+          ...current,
+          town: result.town || current.town,
+          state: nextState,
+          district: matchIndianDistrict(nextState, result.district || current.district)
+        };
+        const offices = result.postOffices || [];
+        const currentPostOffice = String(current.postOffice || '').trim();
+        if (currentPostOffice && offices.includes(currentPostOffice)) {
+          return next;
+        }
+        if (offices.length === 1) {
+          next.postOffice = offices[0];
+        } else if (!currentPostOffice && result.defaultPostOffice) {
+          next.postOffice = result.defaultPostOffice;
+        } else if (currentPostOffice && offices.length > 0 && !offices.includes(currentPostOffice)) {
+          next.postOffice = '';
+        }
+        return next;
+      });
       setPinLookup('success');
     } catch {
-      if (lookupSeq.current === seq) setPinLookup('error');
+      if (lookupSeq.current === seq) {
+        setPostOfficeOptions([]);
+        setPinLookup('error');
+      }
     }
   }
 
   useEffect(() => {
     if (!india) {
       setPinLookup('idle');
+      setPostOfficeOptions([]);
       return undefined;
     }
 
     const pin = String(form.pin || '').replace(/\D/g, '');
     if (pin.length !== 6) {
       setPinLookup('idle');
+      setPostOfficeOptions([]);
       return undefined;
     }
 
@@ -72,12 +98,14 @@ export default function AddressFieldsBlock({
 
   useEffect(() => {
     setPinLookup('idle');
+    setPostOfficeOptions([]);
   }, [form.country]);
 
   function handleCountryChange(value) {
     if (onCountryChange) {
       onCountryChange(value);
       setPinLookup('idle');
+      setPostOfficeOptions([]);
       return;
     }
     updateField('country', value);
@@ -91,6 +119,21 @@ export default function AddressFieldsBlock({
       mobile: sanitizeNationalMobile(current.mobile, value)
     }));
     setPinLookup('idle');
+  }
+
+  function handleStateChange(value) {
+    setForm((current) => {
+      const districts = getDistrictsForIndianState(value);
+      const currentDistrict = String(current.district || '').trim();
+      let district = currentDistrict;
+      if (districts.length > 0) {
+        district = districts.includes(currentDistrict)
+          ? currentDistrict
+          : matchIndianDistrict(value, currentDistrict);
+        if (!districts.includes(district)) district = '';
+      }
+      return { ...current, state: value, district };
+    });
   }
 
   function handlePinChange(raw) {
@@ -237,13 +280,29 @@ export default function AddressFieldsBlock({
           error={errors.postOffice}
           labelFor={`${idPrefix}-post-office`}
         >
-          <input
-            id={`${idPrefix}-post-office`}
-            className={inputClass('postOffice', errors)}
-            value={form.postOffice}
-            onChange={(e) => updateField('postOffice', e.target.value)}
-            placeholder={t('form.placeholders.postOffice')}
-          />
+          {india && postOfficeOptions.length > 0 ? (
+            <select
+              id={`${idPrefix}-post-office`}
+              className={inputClass('postOffice', errors)}
+              value={form.postOffice}
+              onChange={(e) => updateField('postOffice', e.target.value)}
+            >
+              <option value="">{t('form.placeholders.selectPostOffice')}</option>
+              {postOfficeOptions.map((office) => (
+                <option key={office} value={office}>
+                  {office}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              id={`${idPrefix}-post-office`}
+              className={inputClass('postOffice', errors)}
+              value={form.postOffice}
+              onChange={(e) => updateField('postOffice', e.target.value)}
+              placeholder={t('form.placeholders.postOffice')}
+            />
+          )}
         </DonationFormRow>
 
         <hr className="donation-form-address-divider" aria-hidden />
@@ -267,23 +326,6 @@ export default function AddressFieldsBlock({
 
         <DonationFormRow
           className="donation-form-address-grid__span-4"
-          label={t('form.labels.district')}
-          required
-          error={errors.district}
-          labelFor={`${idPrefix}-district`}
-        >
-          <input
-            id={`${idPrefix}-district`}
-            className={inputClass('district', errors)}
-            value={form.district}
-            onChange={(e) => updateField('district', e.target.value)}
-            placeholder={t('form.placeholders.district')}
-            autoComplete="address-level3"
-          />
-        </DonationFormRow>
-
-        <DonationFormRow
-          className="donation-form-address-grid__span-4"
           label={india ? t('form.labels.state') : t('form.labels.stateProvince')}
           required
           error={errors.state}
@@ -294,7 +336,7 @@ export default function AddressFieldsBlock({
               id={`${idPrefix}-state`}
               className={inputClass('state', errors)}
               value={form.state}
-              onChange={(e) => updateField('state', e.target.value)}
+              onChange={(e) => handleStateChange(e.target.value)}
             >
               <option value="">{t('form.placeholders.selectState')}</option>
               {INDIAN_STATES.map((s) => (
@@ -311,6 +353,43 @@ export default function AddressFieldsBlock({
               onChange={(e) => updateField('state', e.target.value)}
               placeholder={t('form.placeholders.stateProvince')}
               autoComplete="address-level1"
+            />
+          )}
+        </DonationFormRow>
+
+        <DonationFormRow
+          className="donation-form-address-grid__span-4"
+          label={t('form.labels.district')}
+          required
+          error={errors.district}
+          labelFor={`${idPrefix}-district`}
+        >
+          {india && form.state && districtOptions.length > 0 ? (
+            <select
+              id={`${idPrefix}-district`}
+              className={inputClass('district', errors)}
+              value={form.district}
+              onChange={(e) => updateField('district', e.target.value)}
+            >
+              <option value="">{t('form.placeholders.selectDistrict')}</option>
+              {districtOptions.map((district) => (
+                <option key={district} value={district}>
+                  {district}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              id={`${idPrefix}-district`}
+              className={inputClass('district', errors)}
+              value={form.district}
+              onChange={(e) => updateField('district', e.target.value)}
+              placeholder={
+                india && !form.state
+                  ? t('form.placeholders.selectStateFirst')
+                  : t('form.placeholders.district')
+              }
+              autoComplete="address-level3"
             />
           )}
         </DonationFormRow>
