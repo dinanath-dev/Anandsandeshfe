@@ -1,10 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, CheckCircle2, CircleHelp, Info, Mail, MapPin, Pencil, Phone, Search, User } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  ChevronDown,
+  Info,
+  Mail,
+  MapPin,
+  Pencil,
+  Phone,
+  Search,
+  User
+} from 'lucide-react';
 import OtpInboxHint from '../components/OtpInboxHint.jsx';
 import Alert from '../components/Alert.jsx';
 import { useToast } from '../components/ToastProvider.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
+import PersonTitleSelect from '../components/PersonTitleSelect.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import { INDIAN_STATES } from '../data/indianStates.js';
 import {
@@ -107,9 +120,9 @@ export default function ProfileOverviewPage() {
   const [loading, setLoading] = useState(true);
   const [linkedSubmission, setLinkedSubmission] = useState(null);
 
-  const [searchMode, setSearchMode] = useState('mobile');
+  const [searchMode, setSearchMode] = useState('subscriber');
+  const [offlineSearchOpen, setOfflineSearchOpen] = useState(false);
   const [legacyQuery, setLegacyQuery] = useState('');
-  /** Confirms claim with the same mobile or subscriber no used in search. */
   const [lastSearch, setLastSearch] = useState(null);
   const [legacyLoading, setLegacyLoading] = useState(false);
   const [legacyError, setLegacyError] = useState('');
@@ -117,8 +130,15 @@ export default function ProfileOverviewPage() {
   const [claimLoading, setClaimLoading] = useState(false);
   const [claimInfo, setClaimInfo] = useState('');
 
+  useEffect(() => {
+    if (legacyError || claimInfo || legacyPreview) {
+      setOfflineSearchOpen(true);
+    }
+  }, [legacyError, claimInfo, legacyPreview]);
+
   const [editAddressOpen, setEditAddressOpen] = useState(false);
   const [addressForm, setAddressForm] = useState({
+    title: '',
     firstName: '',
     lastName: '',
     mobile: '',
@@ -138,6 +158,7 @@ export default function ProfileOverviewPage() {
   const [addressError, setAddressError] = useState('');
 
   const [emailStep, setEmailStep] = useState('idle');
+  const [changeEmailOpen, setChangeEmailOpen] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [emailOtp, setEmailOtp] = useState('');
   const [emailLoading, setEmailLoading] = useState(false);
@@ -149,12 +170,13 @@ export default function ProfileOverviewPage() {
     setLinkedSubmission(submission || null);
     if (_user?.email) setAccountEmail(String(_user.email));
     if (submission) {
-      const { firstName, lastName } = namesFromSubmission(submission);
+      const { firstName, lastName, title } = namesFromSubmission(submission);
       const a2Lines = String(submission.address_2 || '')
         .split('\n')
         .map((l) => l.trim())
         .filter(Boolean);
       setAddressForm({
+        title,
         firstName,
         lastName,
         mobile: String(submission.mobile || submission.phone || '').replace(/\D/g, '').slice(-10),
@@ -198,6 +220,10 @@ export default function ProfileOverviewPage() {
       cancelled = true;
     };
   }, [applyServerProfile]);
+
+  useEffect(() => {
+    if (emailStep !== 'idle') setChangeEmailOpen(true);
+  }, [emailStep]);
 
   const hasSavedProfile = useMemo(
     () => !submissionLooksEmpty(linkedSubmission),
@@ -347,6 +373,7 @@ export default function ProfileOverviewPage() {
     setAddressSaving(true);
     try {
       const data = await updateMyAddress({
+        prefix: addressForm.title.trim(),
         first_name: addressForm.firstName.trim(),
         last_name: addressForm.lastName.trim(),
         mobile: addressForm.mobile.trim(),
@@ -450,43 +477,52 @@ export default function ProfileOverviewPage() {
           {showSearchSection ? (
             <div className="border-b border-[#0d2d7f]/8 px-4 py-5 sm:px-6">
               <div className="rounded-xl border border-[#0d2d7f]/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(244,248,255,0.92))] p-4 sm:p-5">
-                <p className="text-sm font-bold text-[#0d2d7f]">{t('profile.offlineToggle')}</p>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{t('profile.offlineHelp')}</p>
+                <button
+                  type="button"
+                  className="flex w-full items-start justify-between gap-3 text-left"
+                  onClick={() => setOfflineSearchOpen((open) => !open)}
+                  aria-expanded={offlineSearchOpen}
+                  aria-controls="po-offline-search-panel"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[#0d2d7f]">{t('profile.offlineToggle')}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-muted">{t('profile.offlineHelp')}</p>
+                  </div>
+                  <ChevronDown
+                    className={`mt-0.5 h-5 w-5 shrink-0 text-[#0d2d7f] transition-transform ${
+                      offlineSearchOpen ? 'rotate-180' : ''
+                    }`}
+                    aria-hidden
+                  />
+                </button>
 
+                {offlineSearchOpen ? (
+                <div id="po-offline-search-panel">
                 <form onSubmit={handleLegacySearch} className="mt-4 rounded-xl border border-[#0d2d7f]/10 bg-white p-3 sm:p-4">
-                  <div className="mb-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
-                        searchMode === 'mobile'
-                          ? 'border-[#0d2d7f] bg-[#0d2d7f] text-white'
-                          : 'border-[#0d2d7f]/25 bg-white text-[#0d2d7f]'
-                      }`}
-                      onClick={() => {
-                        setSearchMode('mobile');
-                        setLegacyQuery('');
-                        setLegacyPreview(null);
-                        setLegacyError('');
-                      }}
-                    >
-                      {t('profile.searchByMobile')}
-                    </button>
-                    <button
-                      type="button"
-                      className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
-                        searchMode === 'subscriber'
-                          ? 'border-[#0d2d7f] bg-[#0d2d7f] text-white'
-                          : 'border-[#0d2d7f]/25 bg-white text-[#0d2d7f]'
-                      }`}
-                      onClick={() => {
-                        setSearchMode('subscriber');
-                        setLegacyQuery('');
-                        setLegacyPreview(null);
-                        setLegacyError('');
-                      }}
-                    >
-                      {t('profile.searchBySubscriber')}
-                    </button>
+                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                    <div className="relative inline-flex min-w-[11rem]">
+                      <label htmlFor="po-search-mode" className="sr-only">
+                        {t('profile.searchByMobile')} / {t('profile.searchBySubscriber')}
+                      </label>
+                      <select
+                        id="po-search-mode"
+                        value={searchMode}
+                        onChange={(e) => {
+                          setSearchMode(e.target.value);
+                          setLegacyQuery('');
+                          setLegacyPreview(null);
+                          setLegacyError('');
+                        }}
+                        className="w-full appearance-none rounded-lg border border-[#0d2d7f]/25 bg-white py-1.5 pl-3 pr-8 text-xs font-bold text-[#0d2d7f] transition focus:border-[#0d2d7f] focus:outline-none"
+                      >
+                        <option value="subscriber">{t('profile.searchBySubscriber')}</option>
+                        <option value="mobile">{t('profile.searchByMobile')}</option>
+                      </select>
+                      <ChevronDown
+                        className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#0d2d7f]"
+                        aria-hidden
+                      />
+                    </div>
                     <span
                       tabIndex={0}
                       className="group/icon relative ml-auto inline-flex h-9 w-9 cursor-help items-center justify-center rounded-lg border border-[#0d2d7f]/20 bg-white text-primary"
@@ -576,6 +612,8 @@ export default function ProfileOverviewPage() {
                     </select>
                   </div>
                 ) : null}
+                </div>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -652,24 +690,33 @@ export default function ProfileOverviewPage() {
                             <Alert>{addressError}</Alert>
                           </div>
                         ) : null}
-                        <label className="block">
-                          <span className="label">{t('form.labels.firstName')}</span>
-                          <input
-                            className="donation-input !rounded-lg"
-                            value={addressForm.firstName}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, firstName: e.target.value }))}
-                            autoComplete="given-name"
-                          />
-                        </label>
-                        <label className="block">
-                          <span className="label">{t('form.labels.lastName')}</span>
-                          <input
-                            className="donation-input !rounded-lg"
-                            value={addressForm.lastName}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, lastName: e.target.value }))}
-                            autoComplete="family-name"
-                          />
-                        </label>
+                        <div className="sm:col-span-2 grid gap-3 sm:grid-cols-[minmax(5.5rem,7rem)_1fr_1fr]">
+                          <label className="block">
+                            <span className="label">{t('form.labels.title')}</span>
+                            <PersonTitleSelect
+                              value={addressForm.title}
+                              onChange={(e) => setAddressForm((f) => ({ ...f, title: e.target.value }))}
+                            />
+                          </label>
+                          <label className="block">
+                            <span className="label">{t('form.labels.firstName')}</span>
+                            <input
+                              className="donation-input !rounded-lg"
+                              value={addressForm.firstName}
+                              onChange={(e) => setAddressForm((f) => ({ ...f, firstName: e.target.value }))}
+                              autoComplete="given-name"
+                            />
+                          </label>
+                          <label className="block">
+                            <span className="label">{t('form.labels.lastName')}</span>
+                            <input
+                              className="donation-input !rounded-lg"
+                              value={addressForm.lastName}
+                              onChange={(e) => setAddressForm((f) => ({ ...f, lastName: e.target.value }))}
+                              autoComplete="family-name"
+                            />
+                          </label>
+                        </div>
                         <label className="block sm:col-span-2">
                           <span className="label">{t('form.labels.careOf')}</span>
                           <input
@@ -802,72 +849,99 @@ export default function ProfileOverviewPage() {
           {!loading ? (
             <div className="border-t border-[#0d2d7f]/10 px-4 py-5 sm:px-6">
               <div className="rounded-xl border border-[#0d2d7f]/12 bg-white p-4">
-                <p className="text-sm font-bold text-ink">{t('profile.changeEmailTitle')}</p>
-                <p className="mt-1 text-xs text-muted">{t('profile.changeEmailHelp')}</p>
-                <p className="mt-2 text-sm text-muted">
-                  {t('profile.currentEmail')}:{' '}
-                  <span className="font-semibold text-ink">{accountEmail || '—'}</span>
-                </p>
+                <button
+                  type="button"
+                  className="flex w-full items-start justify-between gap-3 text-left"
+                  onClick={() => setChangeEmailOpen((open) => !open)}
+                  aria-expanded={changeEmailOpen}
+                  aria-controls="po-change-email-panel"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-ink">{t('profile.changeEmailTitle')}</p>
+                    <p className="mt-1 text-xs text-muted">{t('profile.changeEmailHelp')}</p>
+                    {!changeEmailOpen ? (
+                      <p className="mt-2 text-sm text-muted">
+                        {t('profile.currentEmail')}:{' '}
+                        <span className="font-semibold text-ink">{accountEmail || '—'}</span>
+                      </p>
+                    ) : null}
+                  </div>
+                  <ChevronDown
+                    className={`mt-0.5 h-5 w-5 shrink-0 text-[#0d2d7f] transition-transform ${
+                      changeEmailOpen ? 'rotate-180' : ''
+                    }`}
+                    aria-hidden
+                  />
+                </button>
 
-                {emailError ? (
-                  <div className="mt-3">
-                    <Alert>{emailError}</Alert>
+                {changeEmailOpen ? (
+                  <div id="po-change-email-panel" className="mt-3 border-t border-[#0d2d7f]/8 pt-3">
+                    <p className="text-sm text-muted">
+                      {t('profile.currentEmail')}:{' '}
+                      <span className="font-semibold text-ink">{accountEmail || '—'}</span>
+                    </p>
+
+                    {emailError ? (
+                      <div className="mt-3">
+                        <Alert>{emailError}</Alert>
+                      </div>
+                    ) : null}
+                    {emailMessage ? (
+                      <div className="mt-3">
+                        <Alert type="success">{emailMessage}</Alert>
+                      </div>
+                    ) : null}
+
+                    {emailStep === 'idle' ? (
+                      <form onSubmit={handleRequestEmailChange} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+                        <label className="block flex-1">
+                          <span className="label">{t('profile.newEmailLabel')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            type="email"
+                            value={newEmail}
+                            onChange={(e) => setNewEmail(e.target.value)}
+                            autoComplete="email"
+                          />
+                        </label>
+                        <button className="btn-secondary min-h-11 px-5 py-2 text-sm font-semibold" type="submit" disabled={emailLoading}>
+                          {emailLoading ? <InlineLoader size={18} /> : null}
+                          {emailLoading ? t('profile.sendingOtp') : t('profile.sendEmailOtp')}
+                        </button>
+                      </form>
+                    ) : (
+                      <form onSubmit={handleVerifyEmailChange} className="mt-3 space-y-3">
+                        <OtpInboxHint emailMasked={maskEmail(newEmail.trim().toLowerCase())} />
+                        <label className="block">
+                          <span className="label">{t('profile.otpLabel')}</span>
+                          <input
+                            className="donation-input !rounded-lg"
+                            inputMode="numeric"
+                            maxLength={6}
+                            value={emailOtp}
+                            onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          />
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          <button className="btn-primary px-5 py-2 text-sm" type="submit" disabled={emailLoading}>
+                            {emailLoading ? t('profile.verifyingOtp') : t('profile.confirmEmailChange')}
+                          </button>
+                          <button
+                            className="btn-secondary px-5 py-2 text-sm"
+                            type="button"
+                            onClick={() => {
+                              setEmailStep('idle');
+                              setEmailOtp('');
+                              setEmailError('');
+                            }}
+                          >
+                            {t('common.cancel')}
+                          </button>
+                        </div>
+                      </form>
+                    )}
                   </div>
                 ) : null}
-                {emailMessage ? (
-                  <div className="mt-3">
-                    <Alert type="success">{emailMessage}</Alert>
-                  </div>
-                ) : null}
-
-                {emailStep === 'idle' ? (
-                  <form onSubmit={handleRequestEmailChange} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
-                    <label className="block flex-1">
-                      <span className="label">{t('profile.newEmailLabel')}</span>
-                      <input
-                        className="donation-input !rounded-lg"
-                        type="email"
-                        value={newEmail}
-                        onChange={(e) => setNewEmail(e.target.value)}
-                        autoComplete="email"
-                      />
-                    </label>
-                    <button className="btn-secondary min-h-11 px-5 py-2 text-sm font-semibold" type="submit" disabled={emailLoading}>
-                      {emailLoading ? <InlineLoader size={18} /> : null}
-                      {emailLoading ? t('profile.sendingOtp') : t('profile.sendEmailOtp')}
-                    </button>
-                  </form>
-                ) : (
-                  <form onSubmit={handleVerifyEmailChange} className="mt-3 space-y-3">
-                    <OtpInboxHint emailMasked={maskEmail(newEmail.trim().toLowerCase())} />
-                    <label className="block">
-                      <span className="label">{t('profile.otpLabel')}</span>
-                      <input
-                        className="donation-input !rounded-lg"
-                        inputMode="numeric"
-                        maxLength={6}
-                        value={emailOtp}
-                        onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      />
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      <button className="btn-primary px-5 py-2 text-sm" type="submit" disabled={emailLoading}>
-                        {emailLoading ? t('profile.verifyingOtp') : t('profile.confirmEmailChange')}
-                      </button>
-                      <button
-                        className="btn-secondary px-5 py-2 text-sm"
-                        type="button"
-                        onClick={() => {
-                          setEmailStep('idle');
-                          setEmailOtp('');
-                          setEmailError('');
-                        }}
-                      >
-                        {t('common.cancel')}
-                      </button>
-                    </div>
-                  </form>
-                )}
               </div>
             </div>
           ) : null}
@@ -886,33 +960,13 @@ export default function ProfileOverviewPage() {
                     {t('profile.continueToForm')} <ArrowRight size={18} aria-hidden />
                   </Link>
                 ) : null}
-                <span
-                  className="group/buybooks relative inline-flex max-w-full cursor-not-allowed"
-                  tabIndex={0}
-                  aria-label={`${t('profile.buyBooks')}. ${t('profile.buyBooksComingSoon')}`}
+                <Link
+                  to="/books"
+                  className="btn-secondary inline-flex min-h-11 items-center justify-center gap-2 px-8 py-2.5 text-sm font-semibold sm:w-auto"
                 >
-                  <button
-                    type="button"
-                    disabled
-                    aria-hidden="true"
-                    tabIndex={-1}
-                    className="btn-secondary inline-flex min-h-11 w-full items-center justify-center gap-2 border-ink/10 bg-slate-100 px-8 py-2.5 text-sm font-semibold text-slate-500 opacity-60 grayscale sm:w-auto"
-                  >
-                    <BookOpen size={18} aria-hidden />
-                    {t('profile.buyBooks')}
-                    <CircleHelp
-                      size={16}
-                      className="shrink-0 text-slate-500 opacity-0 transition-opacity duration-200 group-hover/buybooks:opacity-100 group-focus-within/buybooks:opacity-100"
-                      aria-hidden
-                    />
-                  </button>
-                  <span
-                    role="tooltip"
-                    className="pointer-events-none invisible absolute bottom-full left-1/2 z-30 mb-2 w-[min(16rem,calc(100vw-2.5rem))] -translate-x-1/2 rounded-lg border border-[#0d2d7f]/20 bg-white px-3 py-2 text-center text-xs font-medium leading-relaxed text-ink shadow-lg opacity-0 transition [@media(hover:hover)]:group-hover/buybooks:visible [@media(hover:hover)]:group-hover/buybooks:opacity-100 group-focus-within/buybooks:visible group-focus-within/buybooks:opacity-100"
-                  >
-                    {t('profile.buyBooksComingSoon')}
-                  </span>
-                </span>
+                  <BookOpen size={18} aria-hidden />
+                  {t('profile.buyBooks')}
+                </Link>
               </div>
             </div>
           ) : null}

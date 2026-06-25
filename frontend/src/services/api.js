@@ -1,6 +1,11 @@
 import { getUserAuth } from '../utils/auth.js';
 import { adminAuthHeaders, getAdminPortalId } from '../utils/adminAuth.js';
 
+const PRODUCTION_API_DIRECT = 'https://api.anandsandeshkaryalay.online/api';
+
+/** Staff portal API — not named `/admin` (many ad blockers block that path in fetch URLs). */
+const STAFF = '/staff';
+
 function isDeployedFrontendHost(hostname) {
   const host = String(hostname || '').toLowerCase();
   return (
@@ -10,22 +15,53 @@ function isDeployedFrontendHost(hostname) {
   );
 }
 
-/**
- * Deployed builds use same-origin `/api` (vercel.json proxies to the backend).
- * That avoids CORS entirely — preview URLs, www/apex, and Vercel edge challenges included.
- * Local dev keeps calling the backend directly.
- */
-function resolveApiBaseUrl() {
+/** Ordered list of API bases — direct backend only (no /api proxy; it breaks PDF exports). */
+function resolveApiBaseUrls() {
+  const fromEnv = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
+  const envBase = fromEnv
+    ? fromEnv.endsWith('/api')
+      ? fromEnv
+      : `${fromEnv}/api`
+    : 'http://localhost:5000/api';
+
   if (typeof window !== 'undefined' && isDeployedFrontendHost(window.location.hostname)) {
-    return '/api';
+    if (envBase && !/localhost|127\.0\.0\.1/i.test(envBase)) return [envBase];
+    return [PRODUCTION_API_DIRECT];
   }
 
-  const fromEnv = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
-  if (fromEnv) return fromEnv.endsWith('/api') ? fromEnv : `${fromEnv}/api`;
-  return 'http://localhost:5000/api';
+  return [envBase];
 }
 
-const API_BASE_URL = resolveApiBaseUrl();
+let preferredApiBase = resolveApiBaseUrls()[0];
+
+function orderApiBases() {
+  const bases = resolveApiBaseUrls();
+  if (preferredApiBase && bases.includes(preferredApiBase)) {
+    return [preferredApiBase, ...bases.filter((b) => b !== preferredApiBase)];
+  }
+  return bases;
+}
+
+function isHtmlResponse(response) {
+  const type = String(response.headers.get('content-type') || '').toLowerCase();
+  return type.includes('text/html');
+}
+
+function networkErrorMessage(url) {
+  const isLocal = /localhost|127\.0\.0\.1/i.test(url);
+  if (isLocal) {
+    return `Cannot reach the API (${url}). Start the backend with "npm run dev" on port 5000.`;
+  }
+  return `Cannot reach the API (${url}). The server may be busy — wait a moment and try again. If this keeps happening, refresh and sign in again.`;
+}
+
+/** `/staff` avoids ad-blockers; fall back to `/admin` until backend is redeployed with both mounts. */
+function staffPathVariants(path) {
+  if (path.startsWith(`${STAFF}/`)) {
+    return [path, path.replace(`${STAFF}/`, '/admin/')];
+  }
+  return [path];
+}
 
 /** Merge caller headers with Bearer token; uses Headers so casing / merging matches fetch rules. */
 function withAuthHeaders(headersInit) {
@@ -43,24 +79,59 @@ function withAuthHeaders(headersInit) {
   return headers;
 }
 
-async function request(path, options = {}) {
-  const url = `${API_BASE_URL}${path}`;
-  let response;
-  try {
-    response = await fetch(url, {
-      ...options,
-      headers: withAuthHeaders(options.headers)
-    });
-  } catch (err) {
-    const isTypeError = err instanceof TypeError;
-    const failedFetch = isTypeError && String(err.message || '').toLowerCase().includes('fetch');
-    const message = failedFetch
-      ? `Cannot reach the API (${url}). Check your connection or try again in a moment. Local dev: ensure the backend is running on port 5000.`
-      : err?.message || 'Network error.';
-    const wrapped = new Error(message);
-    wrapped.cause = err;
-    throw wrapped;
+async function apiFetch(path, options = {}) {
+  const bases = orderApiBases();
+  const paths = staffPathVariants(path);
+  let lastError;
+  let lastUrl = bases[0] ? `${bases[0]}${path}` : path;
+  let sawHtml = false;
+  let lastResponse;
+
+  for (const pathTry of paths) {
+    for (const base of bases) {
+      const url = `${base}${pathTry}`;
+      lastUrl = url;
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers: withAuthHeaders(options.headers)
+        });
+        if (isHtmlResponse(response)) {
+          sawHtml = true;
+          continue;
+        }
+        if (response.status === 404 && pathTry.startsWith(`${STAFF}/`) && paths.length > 1) {
+          lastResponse = response;
+          continue;
+        }
+        preferredApiBase = base;
+        return { response, url, base };
+      } catch (err) {
+        lastError = err;
+      }
+    }
   }
+
+  if (lastResponse) {
+    return { response: lastResponse, url: lastUrl, base: bases[0] };
+  }
+
+  if (sawHtml) {
+    throw new Error(
+      `Cannot reach the API (${lastUrl}). The server returned a web page instead of API data — check VITE_API_BASE_URL on the frontend project.`
+    );
+  }
+
+  const isTypeError = lastError instanceof TypeError;
+  const failedFetch = isTypeError && String(lastError?.message || '').toLowerCase().includes('fetch');
+  const message = failedFetch ? networkErrorMessage(lastUrl) : lastError?.message || 'Network error.';
+  const wrapped = new Error(message);
+  wrapped.cause = lastError;
+  throw wrapped;
+}
+
+async function request(path, options = {}) {
+  const { response, url } = await apiFetch(path, options);
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
@@ -191,7 +262,7 @@ export function adminLogin({ email, password }) {
   const body = { email, password };
   const portalId = getAdminPortalId();
   if (portalId) body.portal_id = portalId;
-  return request('/admin/login', {
+  return request(`${STAFF}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
@@ -199,7 +270,7 @@ export function adminLogin({ email, password }) {
 }
 
 export function getAdminMe(token) {
-  return request('/admin/me', {
+  return request(`${STAFF}/me`, {
     headers: adminAuthHeaders(token)
   });
 }
@@ -211,13 +282,13 @@ export function getSubmissions(token, { status, audience, page, limit } = {}) {
   if (page != null) params.set('page', String(page));
   if (limit != null) params.set('limit', String(limit));
   const query = params.toString();
-  return request(`/admin/submissions${query ? `?${query}` : ''}`, {
+  return request(`${STAFF}/submissions${query ? `?${query}` : ''}`, {
     headers: adminAuthHeaders(token)
   });
 }
 
 export function verifySubmission(token, id) {
-  return request(`/admin/verify/${id}`, {
+  return request(`${STAFF}/verify/${id}`, {
     method: 'PUT',
     headers: adminAuthHeaders(token)
   });
@@ -233,36 +304,44 @@ function buildFilterQuery(filters = {}) {
 }
 
 export function getMagazineSubscriptions(token, filters) {
-  return request(`/admin/subscriptions/magazine${buildFilterQuery(filters)}`, {
+  return request(`${STAFF}/subscriptions/magazine${buildFilterQuery(filters)}`, {
     headers: adminAuthHeaders(token)
   });
 }
 
 export function getBookSubscriptions(token, filters) {
-  return request(`/admin/subscriptions/books${buildFilterQuery(filters)}`, {
+  return request(`${STAFF}/subscriptions/books${buildFilterQuery(filters)}`, {
     headers: adminAuthHeaders(token)
   });
 }
 
 export function getSubscriptionFilterMeta(token) {
-  return request('/admin/subscriptions/meta', {
+  return request(`${STAFF}/subscriptions/meta`, {
     headers: adminAuthHeaders(token)
   });
 }
 
 export async function downloadSubscriptionsPdf(token, filters = {}) {
   const stamp = new Date().toISOString().slice(0, 10);
-  await downloadAdminFile(token, '/admin/subscriptions/export/pdf', filters, `subscriptions-${stamp}.pdf`);
+  await downloadAdminFile(token, `${STAFF}/subscriptions/export/pdf`, filters, `subscriptions-${stamp}.pdf`);
 }
 
 async function downloadAdminFile(token, path, filters, filename) {
-  const url = `${API_BASE_URL}${path}${buildFilterQuery(filters)}`;
-  const response = await fetch(url, { headers: adminAuthHeaders(token) });
+  const pathWithQuery = `${path}${buildFilterQuery(filters)}`;
+  const { response } = await apiFetch(pathWithQuery, { headers: adminAuthHeaders(token) });
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
-    throw new Error(payload.message || 'Download failed.');
+    if (response.status === 401) {
+      throw Object.assign(new Error(payload.message || 'Session expired. Please sign in again.'), {
+        status: 401
+      });
+    }
+    throw new Error(payload.message || `Download failed (${response.status}).`);
   }
   const blob = await response.blob();
+  if (!blob.size) {
+    throw new Error('Download failed — the file was empty.');
+  }
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
   link.download = filename;
@@ -274,12 +353,12 @@ async function downloadAdminFile(token, path, filters, filename) {
 
 export async function downloadSubmissionsPdf(token, filters = {}) {
   const stamp = new Date().toISOString().slice(0, 10);
-  await downloadAdminFile(token, '/admin/submissions/export/pdf', filters, `subscribers-${stamp}.pdf`);
+  await downloadAdminFile(token, `${STAFF}/submissions/export/pdf`, filters, `subscribers-${stamp}.pdf`);
 }
 
 export async function downloadSubmissionsExcel(token, filters = {}) {
   const stamp = new Date().toISOString().slice(0, 10);
-  await downloadAdminFile(token, '/admin/submissions/export/excel', filters, `subscribers-${stamp}.csv`);
+  await downloadAdminFile(token, `${STAFF}/submissions/export/excel`, filters, `subscribers-${stamp}.csv`);
 }
 
 export function listAdminUsers(token, filters = {}) {
@@ -293,19 +372,19 @@ export function listAdminUsers(token, filters = {}) {
     if (filters.max_subscriber) params.set('max_subscriber', String(filters.max_subscriber));
   }
   const query = params.toString();
-  return request(`/admin/users${query ? `?${query}` : ''}`, {
+  return request(`${STAFF}/users${query ? `?${query}` : ''}`, {
     headers: adminAuthHeaders(token)
   });
 }
 
 export function getAdminUser(token, userId) {
-  return request(`/admin/users/${userId}`, {
+  return request(`${STAFF}/users/${userId}`, {
     headers: adminAuthHeaders(token)
   });
 }
 
 export function updateAdminUser(token, userId, body) {
-  return request(`/admin/users/${userId}`, {
+  return request(`${STAFF}/users/${userId}`, {
     method: 'PUT',
     headers: { ...adminAuthHeaders(token), 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
@@ -313,7 +392,7 @@ export function updateAdminUser(token, userId, body) {
 }
 
 export function updateAdminSubmission(token, submissionId, body) {
-  return request(`/admin/submissions/${submissionId}`, {
+  return request(`${STAFF}/submissions/${submissionId}`, {
     method: 'PUT',
     headers: { ...adminAuthHeaders(token), 'Content-Type': 'application/json' },
     body: JSON.stringify(body)

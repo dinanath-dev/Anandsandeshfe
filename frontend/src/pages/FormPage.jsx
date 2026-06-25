@@ -6,6 +6,7 @@ import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import DonationFormRow from '../components/DonationFormRow.jsx';
 import DonationFormPair from '../components/DonationFormPair.jsx';
+import PersonTitleSelect from '../components/PersonTitleSelect.jsx';
 import AddressFieldsBlock from '../components/AddressFieldsBlock.jsx';
 import FormChoiceGroup, { FormChoiceOption } from '../components/FormChoiceGroup.jsx';
 import MobileNumberField from '../components/MobileNumberField.jsx';
@@ -54,6 +55,7 @@ function formatPeriodEnd(value) {
 }
 
 const initialForm = {
+  title: '',
   firstName: '',
   lastName: '',
   subscriberNo: '',
@@ -123,6 +125,7 @@ function submissionToFormState(sub) {
   const { national: mobileNational } = parseMobileFromStorage(sub.mobile || sub.phone, country);
 
   return {
+    title: String(sub.prefix || sub.title || '').trim(),
     firstName,
     lastName,
     subscriberNo: sn,
@@ -335,6 +338,7 @@ export default function FormPage() {
     return {
       first_name: form.firstName.trim(),
       last_name: form.lastName.trim(),
+      prefix: form.title.trim(),
       mobile: form.mobile.trim(),
       email: form.email.trim(),
       gender: form.gender,
@@ -477,7 +481,21 @@ export default function FormPage() {
               {t('form.personalSectionTitle')}
             </h2>
 
-            <DonationFormPair>
+            <DonationFormPair className="donation-form-pair--name">
+              <DonationFormRow
+                label={t('form.labels.title')}
+                optional={t('common.optional')}
+                error={errors.title}
+                labelFor="df-title"
+              >
+                <PersonTitleSelect
+                  id="df-title"
+                  value={form.title}
+                  onChange={(e) => updateField('title', e.target.value)}
+                  invalid={Boolean(errors.title)}
+                />
+              </DonationFormRow>
+
               <DonationFormRow
                 label={t('form.labels.firstName')}
                 required

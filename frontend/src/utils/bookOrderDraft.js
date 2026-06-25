@@ -41,8 +41,11 @@ export function draftFromBookOrder(order) {
 
   return {
     bookOrderId: order.id || null,
+    fulfillmentMode: order.fulfillment_mode || 'home_delivery',
+    step: 2,
     form: {
       name: String(order.name || '').trim(),
+      counter: String(order.pickup_counter || order.counter || '').trim(),
       mobile: String(order.phone || '').trim(),
       email: String(order.email || '').trim(),
       address: String(order.address_1 || '').trim(),

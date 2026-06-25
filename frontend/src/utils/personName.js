@@ -17,6 +17,7 @@ export function joinFullName(first, last) {
 
 export function namesFromSubmission(sub) {
   const row = sub || {};
+  const prefix = String(row.prefix || row.title || '').trim();
   let firstName = String(row.first_name || '').trim();
   let lastName = String(row.last_name || '').trim();
   if (!firstName && !lastName) {
@@ -24,9 +25,12 @@ export function namesFromSubmission(sub) {
     firstName = split.firstName;
     lastName = split.lastName;
   }
+  const nameOnly = joinFullName(firstName, lastName) || String(row.name || '').trim();
   return {
+    prefix,
+    title: prefix,
     firstName,
     lastName,
-    fullName: joinFullName(firstName, lastName) || String(row.name || '').trim()
+    fullName: [prefix, nameOnly].filter(Boolean).join(' ')
   };
 }

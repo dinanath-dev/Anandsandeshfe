@@ -12,9 +12,14 @@ export function formatSubmissionAddress(sub) {
   const area =
     String(sub.area || '').trim() ||
     (address2 ? address2.split('\n').map((l) => l.trim()).filter(Boolean)[1] || '' : '');
-  const postOffice =
+  const rawPostOffice =
     String(sub.post_office || sub.postOffice || '').trim() ||
     (address2 ? address2.split('\n').map((l) => l.trim()).filter(Boolean)[2] || '' : '');
+  const postOffice = rawPostOffice
+    ? /^PO:\s*/i.test(rawPostOffice)
+      ? rawPostOffice
+      : `PO: ${rawPostOffice}`
+    : '';
   const landmark = String(sub.mark || sub.landmark || '').trim();
 
   const town = String(sub.town || sub.city || '').trim();

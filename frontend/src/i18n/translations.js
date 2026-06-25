@@ -231,6 +231,28 @@ export const translations = {
     books: {
       subtitle: 'Buy spiritual books',
       backToProfile: 'Back to profile',
+      fulfillmentHeading: 'How would you like to buy?',
+      counterSale: 'Counter sale',
+      homeDelivery: 'Home delivery',
+      counterSaleHelp: 'Flat counter price — collect books at Shri Anandpur Dham.',
+      homeDeliveryHelp: 'Flat home delivery price — books shipped to your address.',
+      selectedPrice: 'Your price',
+      contactDetails: 'Your details',
+      pickupCounter: 'Pickup counter',
+      selectCounter: 'Select counter',
+      counterSalePickupNote:
+        'After payment, collect your books at the Publication Society counter, Shri Anandpur Dham.',
+      stepperAria: 'Book order steps',
+      stepMode: 'Choose mode',
+      stepBooks: 'Books & details',
+      stepPayment: 'Payment',
+      continueBtn: 'Continue',
+      backBtn: 'Back',
+      columnSrNo: 'Sr',
+      columnBook: 'Book',
+      columnRate: 'Rate',
+      columnSelect: 'Select',
+      selectedModeLabel: 'Selected',
       selectBook: 'Select a book',
       selectBooks: 'Select books',
       chooseBook: 'Choose a book…',
@@ -261,6 +283,8 @@ export const translations = {
       errors: {
         loadFailed: 'Could not load books. Please try again.',
         bookRequired: 'Please select at least one book.',
+        fulfillmentRequired: 'Please choose counter sale or home delivery.',
+        counterRequired: 'Please select a pickup counter.',
         orderFailed: 'Could not create your order. Please try again.'
       }
     },
@@ -280,6 +304,7 @@ export const translations = {
         'After you save this form, use Proceed to payment to complete Razorpay checkout so your subscription can be verified.',
       saveSuccess: 'Your details were saved. Your subscription stays active.',
       labels: {
+        title: 'Title',
         firstName: 'First name',
         lastName: 'Last name',
         name: 'Name',
@@ -317,6 +342,7 @@ export const translations = {
       planBestValue: 'Best Value',
       subscriptionLegend: 'Choose your plan',
       placeholders: {
+        selectTitle: 'Select',
         selectGender: 'Select',
         male: 'Male',
         female: 'Female',
@@ -341,6 +367,15 @@ export const translations = {
         town: 'Village, town or city',
         district: 'District',
         stateProvince: 'State or province'
+      },
+      titles: {
+        mr: 'Mr.',
+        mrs: 'Mrs.',
+        ms: 'Ms.',
+        miss: 'Miss',
+        dr: 'Dr.',
+        shri: 'Shri',
+        smt: 'Smt.'
       },
       pinLookupHint: 'Enter your postal or ZIP code',
       pinLookupHintIndia: 'Enter 6-digit pincode — city & district fill automatically',
@@ -845,6 +880,28 @@ export const translations = {
     books: {
       subtitle: 'आध्यात्मिक पुस्तकें खरीदें',
       backToProfile: 'प्रोफ़ाइल पर वापस',
+      fulfillmentHeading: 'आप कैसे खरीदना चाहेंगे?',
+      counterSale: 'काउंटर मूल्य',
+      homeDelivery: 'घर पर डिलीवरी',
+      counterSaleHelp: 'निश्चित काउंटर मूल्य — श्री आनंदपुर धाम पर पुस्तकें लें।',
+      homeDeliveryHelp: 'निश्चित घर-पहुँच मूल्य — पुस्तकें आपके पते पर भेजी जाएँगी।',
+      selectedPrice: 'आपकी कीमत',
+      contactDetails: 'आपका विवरण',
+      pickupCounter: 'काउंटर',
+      selectCounter: 'काउंटर चुनें',
+      counterSalePickupNote:
+        'भुगतान के बाद, श्री आनंदपुर धाम में प्रकाशन सोसाइटी काउंटर से अपनी पुस्तकें लें।',
+      stepperAria: 'पुस्तक ऑर्डर के चरण',
+      stepMode: 'विकल्प चुनें',
+      stepBooks: 'पुस्तकें और विवरण',
+      stepPayment: 'भुगतान',
+      continueBtn: 'आगे बढ़ें',
+      backBtn: 'वापस',
+      columnSrNo: 'क्र.',
+      columnBook: 'पुस्तक',
+      columnRate: 'मूल्य',
+      columnSelect: 'चुनें',
+      selectedModeLabel: 'चयनित',
       selectBook: 'पुस्तक चुनें',
       selectBooks: 'पुस्तकें चुनें',
       chooseBook: 'पुस्तक चुनें…',
@@ -875,6 +932,8 @@ export const translations = {
       errors: {
         loadFailed: 'पुस्तकें लोड नहीं हो सकीं। पुनः प्रयास करें।',
         bookRequired: 'कृपया कम से कम एक पुस्तक चुनें।',
+        fulfillmentRequired: 'कृपया काउंटर मूल्य या घर पर डिलीवरी चुनें।',
+        counterRequired: 'कृपया काउंटर चुनें।',
         orderFailed: 'ऑर्डर नहीं बन सका। पुनः प्रयास करें।'
       }
     },
@@ -896,6 +955,7 @@ export const translations = {
       saveSuccess:
         'आपका विवरण सहेज लिया गया। आपकी सदस्यता सक्रिय बनी रहेगी।',
       labels: {
+        title: 'उपाधि',
         firstName: 'पहला नाम',
         lastName: 'उपनाम',
         name: 'नाम',
@@ -933,6 +993,7 @@ export const translations = {
       planBestValue: 'सर्वोत्तम मूल्य',
       subscriptionLegend: 'अपनी योजना चुनें',
       placeholders: {
+        selectTitle: 'चुनें',
         selectGender: 'चुनें',
         male: 'पुरुष',
         female: 'महिला',
@@ -957,6 +1018,15 @@ export const translations = {
         town: 'गाँव, कस्बा या शहर',
         district: 'ज़िला',
         stateProvince: 'राज्य या प्रांत'
+      },
+      titles: {
+        mr: 'श्री',
+        mrs: 'श्रीमती',
+        ms: 'सुश्री',
+        miss: 'कुमारी',
+        dr: 'डॉ.',
+        shri: 'श्री',
+        smt: 'श्रीमती'
       },
       pinLookupHint: 'अपना पिन या ज़िप कोड दर्ज करें',
       pinLookupHintIndia: '6 अंकों का पिन कोड — शहर और ज़िला स्वतः भरेंगे',

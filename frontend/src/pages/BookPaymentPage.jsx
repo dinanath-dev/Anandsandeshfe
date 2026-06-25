@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen } from 'lucide-react';
+import BookOrderStepper from '../components/BookOrderStepper.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import Alert from '../components/Alert.jsx';
@@ -178,8 +179,9 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
   return (
     <DonationLayout subtitle={t('books.paymentSubtitle')}>
       {busy ? <LoadingBlock label={t('loaders.startingCheckout')} /> : null}
-      <div className="donation-form-shell mx-auto max-w-lg px-2 py-4 text-center sm:px-4">
-        <div className="rounded-lg border border-[#0d2d7f]/28 bg-white/90 px-5 py-8 shadow-md backdrop-blur-sm">
+      <div className="book-order-shell mx-auto max-w-lg px-2 py-4 sm:px-4">
+        <BookOrderStepper currentStep={3} t={t} />
+        <div className="rounded-lg border border-[#0d2d7f]/28 bg-white/90 px-5 py-8 text-center shadow-md backdrop-blur-sm">
           <BookOpen className="mx-auto mb-4 text-primary" size={48} />
           <h2 className="text-xl font-black text-[#152a48] sm:text-2xl">{t('books.paymentHeading')}</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">{t('books.paymentSummary')}</p>
@@ -201,15 +203,11 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
                           formatInr(Number(item.unit_price_paise || 0) * Number(item.quantity || 1))}
                       </span>
                     </div>
-                    {item.sales_rate != null ? (
+                    {item.unit_total_rupees != null ? (
                       <p className="mt-1 text-xs text-muted">
-                        {t('books.bookRate')}{' '}
+                        {t('books.priceLabel')}:{' '}
                         {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(
-                          Number(item.sales_rate)
-                        )}{' '}
-                        + {t('books.totalPostage')}{' '}
-                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(
-                          Number(item.total_postage || 0)
+                          Number(item.unit_total_rupees)
                         )}
                       </p>
                     ) : null}
