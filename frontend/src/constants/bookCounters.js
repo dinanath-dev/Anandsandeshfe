@@ -29,7 +29,13 @@ export const BOOK_PICKUP_COUNTERS = [
 export const BOOK_PICKUP_COUNTER_CODES = BOOK_PICKUP_COUNTERS.map((c) => c.code);
 
 const byCode = new Map(BOOK_PICKUP_COUNTERS.map((c) => [c.code, c.label]));
-const byLabel = new Map(BOOK_PICKUP_COUNTERS.map((c) => [c.label, c.code]));
+
+function collapseCounterText(value) {
+  return String(value || '')
+    .trim()
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, '-')
+    .replace(/\s+/g, ' ');
+}
 
 export function pickupCounterLabel(code) {
   return byCode.get(code) || code;
@@ -39,6 +45,21 @@ export function pickupCounterLabel(code) {
 export function normalizePickupCounter(value) {
   const raw = String(value || '').trim();
   if (!raw) return '';
+
+  const upper = raw.toUpperCase();
+  if (byCode.has(upper)) return upper;
   if (byCode.has(raw)) return raw;
-  return byLabel.get(raw) || '';
+
+  const codeMatch = raw.match(/^(ASK-[ASP][12])\b/i);
+  if (codeMatch) {
+    const code = codeMatch[1].toUpperCase();
+    if (byCode.has(code)) return code;
+  }
+
+  const normalized = collapseCounterText(raw);
+  for (const { code, label } of BOOK_PICKUP_COUNTERS) {
+    if (collapseCounterText(label) === normalized) return code;
+  }
+
+  return '';
 }

@@ -13,7 +13,6 @@ import MobileNumberField from '../components/MobileNumberField.jsx';
 import { DEFAULT_COUNTRY } from '../data/countries.js';
 import {
   BOOK_PICKUP_COUNTERS,
-  BOOK_PICKUP_COUNTER_CODES,
   normalizePickupCounter
 } from '../constants/bookCounters.js';
 import { validateNationalMobile, applyCountryToForm } from '../utils/mobileNumber.js';
@@ -277,7 +276,7 @@ export default function BookFormPage() {
     if (!form.email.trim()) next.email = t('form.errors.emailRequired');
 
     if (isCounterSale) {
-      if (!BOOK_PICKUP_COUNTER_CODES.includes(form.counter)) {
+      if (!normalizePickupCounter(form.counter)) {
         next.counter = t('books.errors.counterRequired');
       }
     }
@@ -316,7 +315,7 @@ export default function BookFormPage() {
       };
 
       if (isCounterSale) {
-        payload.pickup_counter = form.counter;
+        payload.pickup_counter = normalizePickupCounter(form.counter);
       }
 
       if (isHomeDelivery) {
@@ -670,7 +669,7 @@ export default function BookFormPage() {
                         <select
                           id="bf-counter"
                           className={`${inputClass('counter', errors)} appearance-none pr-10`}
-                          value={form.counter}
+                          value={normalizePickupCounter(form.counter)}
                           onChange={(e) => updateField('counter', e.target.value)}
                         >
                           <option value="">{t('books.selectCounter')}</option>
