@@ -1,3 +1,5 @@
+import { normalizePickupCounter } from '../constants/bookCounters.js';
+
 const STORAGE_KEY = 'anand_book_order_draft';
 
 export function saveBookOrderDraft(draft) {
@@ -45,7 +47,7 @@ export function draftFromBookOrder(order) {
     step: 2,
     form: {
       name: String(order.name || '').trim(),
-      counter: String(order.pickup_counter || order.counter || '').trim(),
+      counter: normalizePickupCounter(order.pickup_counter || order.counter),
       mobile: String(order.phone || '').trim(),
       email: String(order.email || '').trim(),
       address: String(order.address_1 || '').trim(),

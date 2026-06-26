@@ -11,7 +11,11 @@ import PersonTitleSelect from '../components/PersonTitleSelect.jsx';
 import AddressFieldsBlock from '../components/AddressFieldsBlock.jsx';
 import MobileNumberField from '../components/MobileNumberField.jsx';
 import { DEFAULT_COUNTRY } from '../data/countries.js';
-import { BOOK_PICKUP_COUNTERS } from '../constants/bookCounters.js';
+import {
+  BOOK_PICKUP_COUNTERS,
+  BOOK_PICKUP_COUNTER_CODES,
+  normalizePickupCounter
+} from '../constants/bookCounters.js';
 import { validateNationalMobile, applyCountryToForm } from '../utils/mobileNumber.js';
 import { joinFullName, namesFromSubmission, splitFullName } from '../utils/personName.js';
 import { createBookOrder, getBooks, getCurrentUser, getMyFormSubmission } from '../services/api.js';
@@ -87,6 +91,7 @@ function normalizeBookDraftForm(draftForm) {
     next.lastName = split.lastName;
   }
   delete next.name;
+  next.counter = normalizePickupCounter(next.counter);
   return next;
 }
 
@@ -272,7 +277,7 @@ export default function BookFormPage() {
     if (!form.email.trim()) next.email = t('form.errors.emailRequired');
 
     if (isCounterSale) {
-      if (!BOOK_PICKUP_COUNTERS.includes(form.counter)) {
+      if (!BOOK_PICKUP_COUNTER_CODES.includes(form.counter)) {
         next.counter = t('books.errors.counterRequired');
       }
     }
@@ -669,9 +674,9 @@ export default function BookFormPage() {
                           onChange={(e) => updateField('counter', e.target.value)}
                         >
                           <option value="">{t('books.selectCounter')}</option>
-                          {BOOK_PICKUP_COUNTERS.map((code) => (
+                          {BOOK_PICKUP_COUNTERS.map(({ code, label }) => (
                             <option key={code} value={code}>
-                              {code}
+                              {label}
                             </option>
                           ))}
                         </select>
