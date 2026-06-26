@@ -52,9 +52,9 @@ function isHtmlResponse(response) {
 }
 
 function networkErrorMessage(url) {
-  const isLocal = /localhost|127\.0\.0\.1/i.test(url);
+  const isLocal = url.startsWith('/api') || /localhost|127\.0\.0\.1/i.test(url);
   if (isLocal) {
-    return `Cannot reach the API (${url}). Start the backend with "npm run dev" on port 5000.`;
+    return 'Cannot reach the API. Make sure the backend is running (npm run dev on port 5000), then refresh this page.';
   }
   return `Cannot reach the API (${url}). The server may be busy — wait a moment and try again. If this keeps happening, refresh and sign in again.`;
 }
