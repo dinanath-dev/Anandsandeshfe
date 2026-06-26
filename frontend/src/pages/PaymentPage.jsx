@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, CreditCard } from 'lucide-react';
 import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import Alert from '../components/Alert.jsx';
+import UpiPaymentHelp from '../components/UpiPaymentHelp.jsx';
 import {
   createSubscription,
   getCurrentUser,
@@ -325,6 +326,7 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
               <CreditCard className="mx-auto mb-4 text-primary" size={48} />
               <h2 className="text-xl font-black text-[#152a48] sm:text-2xl">{t('payment.heading')}</h2>
               <p className="mt-3 text-sm leading-relaxed text-muted">{t('payment.summaryRecurring')}</p>
+              <UpiPaymentHelp />
               <p className="mt-4 text-base font-bold text-ink">
                 {t('payment.planLabel')} <span className="text-primary font-black">{planLabel}</span>
               </p>

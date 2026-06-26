@@ -5,6 +5,7 @@ import BookOrderStepper from '../components/BookOrderStepper.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import Alert from '../components/Alert.jsx';
+import UpiPaymentHelp from '../components/UpiPaymentHelp.jsx';
 import { createOrder, getBookOrder, getCurrentUser, verifyPayment } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
 import {
@@ -185,6 +186,7 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
           <BookOpen className="mx-auto mb-4 text-primary" size={48} />
           <h2 className="text-xl font-black text-[#152a48] sm:text-2xl">{t('books.paymentHeading')}</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">{t('books.paymentSummary')}</p>
+          <UpiPaymentHelp />
           {items.length > 0 ? (
             <div className="mt-4 rounded-xl border border-[#0d2d7f]/12 bg-[#f8faff] px-4 py-3 text-left">
               <p className="text-xs font-bold uppercase tracking-wide text-primary">{t('books.orderItems')}</p>

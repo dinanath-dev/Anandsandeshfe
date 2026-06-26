@@ -475,6 +475,15 @@ export const translations = {
       viewConfirmation: 'View confirmation',
       oneYear: 'One year',
       fiveYear: '5 year',
+      upiHelp: {
+        title: 'Paying with UPI',
+        desktop:
+          'On a computer: choose UPI in Razorpay, then scan the QR code with PhonePe, Google Pay, or Paytm on your phone.',
+        mobile:
+          'On a phone: choose UPI, then tap your UPI app (Google Pay, PhonePe, or Paytm). The app opens directly — you do not need to enter a UPI ID.',
+        note:
+          'Manual UPI ID entry is no longer available on most devices (NPCI rules from Feb 2026). Use QR on desktop or your UPI app on mobile.'
+      },
       errors: {
         notSignedIn: 'You need to be signed in to pay.',
         checkoutFailed:
@@ -1134,6 +1143,15 @@ export const translations = {
       viewConfirmation: 'पुष्टि देखें',
       oneYear: 'एक वर्ष',
       fiveYear: '5 वर्ष',
+      upiHelp: {
+        title: 'UPI से भुगतान',
+        desktop:
+          'कंप्यूटर पर: Razorpay में UPI चुनें, फिर अपने फ़ोन पर PhonePe, Google Pay या Paytm से QR कोड स्कैन करें।',
+        mobile:
+          'फ़ोन पर: UPI चुनें, फिर अपना UPI ऐप (Google Pay, PhonePe या Paytm) टैप करें। ऐप सीधे खुल जाता है — UPI ID दर्ज करने की ज़रूरत नहीं।',
+        note:
+          'अधिकांश उपकरणों पर मैन्युअल UPI ID दर्ज अब उपलब्ध नहीं है (फ़रवरी 2026 से NPCI नियम)। डेस्कटॉप पर QR या मोबाइल पर UPI ऐप का उपयोग करें।'
+      },
       errors: {
         notSignedIn: 'भुगतान करने के लिए आपको साइन इन करना होगा।',
         checkoutFailed:
