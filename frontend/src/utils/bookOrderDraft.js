@@ -57,8 +57,7 @@ export function draftFromBookOrder(order) {
       state: String(order.state || '').trim(),
       town: String(order.city || '').trim(),
       district: String(order.district || '').trim(),
-      pin: String(order.pincode || '').trim(),
-      gender: String(order.gender || '').trim()
+      pin: String(order.pincode || '').trim()
     },
     cart
   };

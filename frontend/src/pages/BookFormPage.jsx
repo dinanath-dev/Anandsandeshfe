@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, Search } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import BookOrderStepper from '../components/BookOrderStepper.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import DonationFormRow from '../components/DonationFormRow.jsx';
 import DonationFormPair from '../components/DonationFormPair.jsx';
-import BookSearchSelect from '../components/BookSearchSelect.jsx';
+import PersonTitleSelect from '../components/PersonTitleSelect.jsx';
 import AddressFieldsBlock from '../components/AddressFieldsBlock.jsx';
 import MobileNumberField from '../components/MobileNumberField.jsx';
 import { DEFAULT_COUNTRY } from '../data/countries.js';
 import { BOOK_PICKUP_COUNTERS } from '../constants/bookCounters.js';
 import { validateNationalMobile, applyCountryToForm } from '../utils/mobileNumber.js';
-import { namesFromSubmission } from '../utils/personName.js';
+import { joinFullName, namesFromSubmission, splitFullName } from '../utils/personName.js';
 import { createBookOrder, getBooks, getCurrentUser, getMyFormSubmission } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
@@ -27,7 +27,9 @@ import {
 const FULFILLMENT_MODES = ['counter_sale', 'home_delivery'];
 
 const initialForm = {
-  name: '',
+  title: '',
+  firstName: '',
+  lastName: '',
   counter: '',
   mobile: '',
   email: '',
@@ -41,8 +43,7 @@ const initialForm = {
   state: '',
   town: '',
   district: '',
-  pin: '',
-  gender: ''
+  pin: ''
 };
 
 function inputClass(field, errors) {
@@ -68,13 +69,30 @@ function fulfillmentLabel(mode, t) {
 
 function profileContactFromSources(user, submission) {
   const fromSub = submission ? namesFromSubmission(submission) : null;
-  const name =
-    fromSub?.fullName ||
-    String(user?.fullName || user?.name || '').trim();
+  const fromUser = splitFullName(user?.fullName || user?.name || '');
   const mobile = String(submission?.mobile || submission?.phone || user?.mobile || '').trim();
-  const gender =
-    submission?.gender === 'male' || submission?.gender === 'female' ? submission.gender : '';
-  return { name, mobile, gender };
+  return {
+    title: fromSub?.prefix || '',
+    firstName: fromSub?.firstName || fromUser.firstName,
+    lastName: fromSub?.lastName || fromUser.lastName,
+    mobile
+  };
+}
+
+function normalizeBookDraftForm(draftForm) {
+  const next = { ...initialForm, ...draftForm };
+  if (!next.firstName && next.name) {
+    const split = splitFullName(next.name);
+    next.firstName = split.firstName;
+    next.lastName = split.lastName;
+  }
+  delete next.name;
+  return next;
+}
+
+function buildOrderName(form) {
+  const nameOnly = joinFullName(form.firstName, form.lastName);
+  return [form.title.trim(), nameOnly].filter(Boolean).join(' ');
 }
 
 export default function BookFormPage() {
@@ -93,10 +111,11 @@ export default function BookFormPage() {
   const [form, setForm] = useState(initialForm);
   const [fulfillmentMode, setFulfillmentMode] = useState('counter_sale');
   const [cart, setCart] = useState({});
+  const [bookSearchQuery, setBookSearchQuery] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadError, setLoadError] = useState('');
-  const profileContactRef = useRef({ name: '', mobile: '', gender: '' });
+  const profileContactRef = useRef({ title: '', firstName: '', lastName: '', mobile: '' });
 
   const isHomeDelivery = fulfillmentMode === 'home_delivery';
   const isCounterSale = fulfillmentMode === 'counter_sale';
@@ -119,6 +138,12 @@ export default function BookFormPage() {
     [selectedLines, fulfillmentMode]
   );
 
+  const filteredBooks = useMemo(() => {
+    const q = bookSearchQuery.trim().toLowerCase();
+    if (!q) return books;
+    return books.filter((b) => String(b.name || '').toLowerCase().includes(q));
+  }, [books, bookSearchQuery]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -135,7 +160,7 @@ export default function BookFormPage() {
         const storedDraft = routeDraft || loadBookOrderDraft();
 
         if (storedDraft?.form) {
-          const draftForm = { ...initialForm, ...storedDraft.form };
+          const draftForm = normalizeBookDraftForm(storedDraft.form);
           if (!draftForm.houseNo && draftForm.address) {
             draftForm.houseNo = String(draftForm.address).trim();
           }
@@ -156,10 +181,11 @@ export default function BookFormPage() {
 
         setForm((prev) => ({
           ...prev,
-          name: profileContact.name || prev.name,
+          title: profileContact.title || prev.title,
+          firstName: profileContact.firstName || prev.firstName,
+          lastName: profileContact.lastName || prev.lastName,
           mobile: profileContact.mobile || prev.mobile,
-          email: String(user.email || auth?.user?.email || '').trim() || prev.email,
-          gender: profileContact.gender || prev.gender
+          email: String(user.email || auth?.user?.email || '').trim() || prev.email
         }));
       } catch (err) {
         if (!cancelled) setLoadError(err.message || t('books.errors.loadFailed'));
@@ -174,12 +200,13 @@ export default function BookFormPage() {
 
   useEffect(() => {
     if (!isCounterSale) return;
-    const { name, mobile, gender } = profileContactRef.current;
+    const { title, firstName, lastName, mobile } = profileContactRef.current;
     setForm((prev) => ({
       ...prev,
-      name: name || prev.name,
-      mobile: mobile || prev.mobile,
-      gender: gender || prev.gender
+      title: title || prev.title,
+      firstName: firstName || prev.firstName,
+      lastName: lastName || prev.lastName,
+      mobile: mobile || prev.mobile
     }));
   }, [isCounterSale]);
 
@@ -221,17 +248,14 @@ export default function BookFormPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function addBook(bookId) {
-    setCart((prev) => ({ ...prev, [bookId]: prev[bookId] || 1 }));
-    setErrors((prev) => ({ ...prev, books: '' }));
-  }
-
-  function removeBook(bookId) {
+  function toggleBook(bookId) {
     setCart((prev) => {
       const next = { ...prev };
-      delete next[bookId];
+      if (next[bookId]) delete next[bookId];
+      else next[bookId] = 1;
       return next;
     });
+    setErrors((prev) => ({ ...prev, books: '' }));
   }
 
   function updateBookQuantity(bookId, rawValue) {
@@ -242,8 +266,8 @@ export default function BookFormPage() {
   function validateStep2() {
     const next = {};
     if (selectedLines.length === 0) next.books = t('books.errors.bookRequired');
-    if (!form.name.trim()) next.name = t('form.errors.nameRequired');
-    if (!form.gender) next.gender = t('form.errors.genderRequired');
+    if (!form.firstName.trim()) next.firstName = t('form.errors.firstNameRequired');
+    if (!form.lastName.trim()) next.lastName = t('form.errors.lastNameRequired');
     if (!validateNationalMobile(form.mobile, form.country).valid) next.mobile = t('form.errors.mobileInvalid');
     if (!form.email.trim()) next.email = t('form.errors.emailRequired');
 
@@ -281,10 +305,9 @@ export default function BookFormPage() {
       const payload = {
         fulfillment_mode: fulfillmentMode,
         items,
-        name: form.name.trim(),
+        name: buildOrderName(form),
         mobile: form.mobile.trim(),
-        email: form.email.trim(),
-        gender: form.gender
+        email: form.email.trim()
       };
 
       if (isCounterSale) {
@@ -426,24 +449,78 @@ export default function BookFormPage() {
               {books.length === 0 ? (
                 <p className="mt-2 text-center text-sm text-muted">{t('books.noBooks')}</p>
               ) : (
-                <DonationFormRow
-                  label={t('books.selectBook')}
-                  required
-                  error={errors.books}
-                  labelFor="bf-books"
-                >
-                  <BookSearchSelect
-                    books={books}
-                    cart={cart}
-                    fulfillmentMode={fulfillmentMode}
-                    onSelectBook={addBook}
-                    formatInr={formatInr}
-                    bookUnitPrice={bookUnitPrice}
-                    placeholder={t('books.searchBooksPlaceholder')}
-                    noResultsText={t('books.noBooksMatch')}
-                    invalid={Boolean(errors.books)}
-                  />
-                </DonationFormRow>
+                <>
+                  <div className="book-order-search-wrap">
+                    <Search className="book-order-search-icon" aria-hidden />
+                    <input
+                      id="bf-books"
+                      type="search"
+                      className="donation-input book-order-search-input"
+                      value={bookSearchQuery}
+                      onChange={(e) => setBookSearchQuery(e.target.value)}
+                      placeholder={t('books.searchBooksPlaceholder')}
+                      autoComplete="off"
+                    />
+                  </div>
+                  <div
+                    className={`book-order-table-wrap mt-3 ${errors.books ? '!border-red-400' : ''}`}
+                    aria-invalid={Boolean(errors.books)}
+                  >
+                    <table className="book-order-table">
+                      <thead>
+                        <tr>
+                          <th>{t('books.columnSrNo')}</th>
+                          <th>{t('books.columnBook')}</th>
+                          <th>{t('books.columnRate')}</th>
+                          <th className="col-qty">{t('books.columnSelect')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredBooks.map((b) => {
+                          const selected = cart[b.id] > 0;
+                          const unitPrice = bookUnitPrice(b, fulfillmentMode);
+                          return (
+                            <tr key={b.id} className={selected ? 'is-selected' : ''}>
+                              <td>{b.s_no}</td>
+                              <td>
+                                <span className="font-semibold text-ink">{b.name}</span>
+                                {b.measurements ? (
+                                  <span className="mt-0.5 block text-xs text-muted">{b.measurements}</span>
+                                ) : null}
+                              </td>
+                              <td className="col-rate">{formatInr(unitPrice)}</td>
+                              <td className="col-qty">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    className="h-4 w-4 shrink-0 accent-primary"
+                                    checked={selected}
+                                    onChange={() => toggleBook(b.id)}
+                                    aria-label={`${b.name}`}
+                                  />
+                                  {selected ? (
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      max={10}
+                                      className="donation-input !w-14 !min-w-0 !rounded-lg !py-1 !text-center !text-sm"
+                                      value={cart[b.id]}
+                                      onChange={(e) => updateBookQuantity(b.id, e.target.value)}
+                                      aria-label={t('books.quantity')}
+                                    />
+                                  ) : null}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  {filteredBooks.length === 0 ? (
+                    <p className="mt-2 text-center text-sm text-muted">{t('books.noBooksMatch')}</p>
+                  ) : null}
+                </>
               )}
               {errors.books ? <p className="donation-form-hint mt-1">{errors.books}</p> : null}
             </section>
@@ -457,36 +534,14 @@ export default function BookFormPage() {
                     return (
                       <li
                         key={book.id}
-                        className="flex flex-col gap-2 rounded-lg border border-primary/10 bg-white/80 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                        className="flex flex-col gap-0.5 rounded-lg border border-primary/10 bg-white/80 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
                       >
-                        <div className="min-w-0 flex-1">
-                          <span className="font-semibold">{book.name}</span>
-                          {book.measurements ? (
-                            <span className="mt-0.5 block text-xs text-muted">{book.measurements}</span>
-                          ) : null}
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <input
-                            type="number"
-                            min={1}
-                            max={10}
-                            className="donation-input !w-14 !min-w-0 !rounded-lg !py-1 !text-center !text-sm"
-                            value={quantity}
-                            onChange={(e) => updateBookQuantity(book.id, e.target.value)}
-                            aria-label={t('books.quantity')}
-                          />
-                          <span className="min-w-[4.5rem] tabular-nums text-right font-bold text-primary">
-                            {formatInr(unitTotal * quantity)}
-                          </span>
-                          <button
-                            type="button"
-                            className="book-order-cart-remove"
-                            onClick={() => removeBook(book.id)}
-                            aria-label={`${t('books.removeBook')} ${book.name}`}
-                          >
-                            <X size={16} aria-hidden />
-                          </button>
-                        </div>
+                        <span className="min-w-0 font-semibold">
+                          {book.name} × {quantity}
+                        </span>
+                        <span className="shrink-0 tabular-nums font-bold text-primary">
+                          {formatInr(unitTotal * quantity)}
+                        </span>
                       </li>
                     );
                   })}
@@ -503,28 +558,51 @@ export default function BookFormPage() {
                 {isHomeDelivery ? t('books.deliveryDetails') : t('books.contactDetails')}
               </h3>
 
-              <DonationFormPair>
-                <DonationFormRow label={t('form.labels.name')} required error={errors.name} labelFor="bf-name">
-                  <input
-                    id="bf-name"
-                    className={inputClass('name', errors)}
-                    value={form.name}
-                    onChange={(e) => updateField('name', e.target.value)}
-                    autoComplete="name"
-                    readOnly={isCounterSale && Boolean(form.name.trim())}
+              <DonationFormPair className="donation-form-pair--name">
+                <DonationFormRow
+                  label={t('form.labels.title')}
+                  optional={t('common.optional')}
+                  error={errors.title}
+                  labelFor="bf-title"
+                >
+                  <PersonTitleSelect
+                    id="bf-title"
+                    value={form.title}
+                    onChange={(e) => updateField('title', e.target.value)}
+                    invalid={Boolean(errors.title)}
                   />
                 </DonationFormRow>
-                <DonationFormRow label={t('form.labels.gender')} required error={errors.gender} labelFor="bf-gender">
-                  <select
-                    id="bf-gender"
-                    className={inputClass('gender', errors)}
-                    value={form.gender}
-                    onChange={(e) => updateField('gender', e.target.value)}
-                  >
-                    <option value="">{t('form.placeholders.selectGender')}</option>
-                    <option value="male">{t('form.placeholders.male')}</option>
-                    <option value="female">{t('form.placeholders.female')}</option>
-                  </select>
+
+                <DonationFormRow
+                  label={t('form.labels.firstName')}
+                  required
+                  error={errors.firstName}
+                  labelFor="bf-firstName"
+                >
+                  <input
+                    id="bf-firstName"
+                    className={inputClass('firstName', errors)}
+                    value={form.firstName}
+                    onChange={(e) => updateField('firstName', e.target.value)}
+                    autoComplete="given-name"
+                    readOnly={isCounterSale && Boolean(form.firstName.trim())}
+                  />
+                </DonationFormRow>
+
+                <DonationFormRow
+                  label={t('form.labels.lastName')}
+                  required
+                  error={errors.lastName}
+                  labelFor="bf-lastName"
+                >
+                  <input
+                    id="bf-lastName"
+                    className={inputClass('lastName', errors)}
+                    value={form.lastName}
+                    onChange={(e) => updateField('lastName', e.target.value)}
+                    autoComplete="family-name"
+                    readOnly={isCounterSale && Boolean(form.lastName.trim())}
+                  />
                 </DonationFormRow>
               </DonationFormPair>
 
