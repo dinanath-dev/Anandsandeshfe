@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, BookOpen, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, X } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import BookOrderStepper from '../components/BookOrderStepper.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import DonationFormRow from '../components/DonationFormRow.jsx';
 import DonationFormPair from '../components/DonationFormPair.jsx';
+import BookSearchSelect from '../components/BookSearchSelect.jsx';
 import AddressFieldsBlock from '../components/AddressFieldsBlock.jsx';
 import MobileNumberField from '../components/MobileNumberField.jsx';
 import { DEFAULT_COUNTRY } from '../data/countries.js';
@@ -90,7 +91,7 @@ export default function BookFormPage() {
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(initialForm);
-  const [fulfillmentMode, setFulfillmentMode] = useState(null);
+  const [fulfillmentMode, setFulfillmentMode] = useState('counter_sale');
   const [cart, setCart] = useState({});
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -220,14 +221,17 @@ export default function BookFormPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function toggleBook(bookId) {
+  function addBook(bookId) {
+    setCart((prev) => ({ ...prev, [bookId]: prev[bookId] || 1 }));
+    setErrors((prev) => ({ ...prev, books: '' }));
+  }
+
+  function removeBook(bookId) {
     setCart((prev) => {
       const next = { ...prev };
-      if (next[bookId]) delete next[bookId];
-      else next[bookId] = 1;
+      delete next[bookId];
       return next;
     });
-    setErrors((prev) => ({ ...prev, books: '' }));
   }
 
   function updateBookQuantity(bookId, rawValue) {
@@ -358,25 +362,45 @@ export default function BookFormPage() {
         ) : step === 1 ? (
           <div className="book-order-card">
             <h3 className="book-order-section-title">{t('books.fulfillmentHeading')}</h3>
-            <div className="book-order-mode-grid" role="radiogroup" aria-label={t('books.fulfillmentHeading')}>
+            <div className="book-order-fulfillment" role="radiogroup" aria-label={t('books.fulfillmentHeading')}>
               <button
                 type="button"
-                className={`book-order-mode-card ${fulfillmentMode === 'home_delivery' ? 'is-selected' : ''}`}
-                onClick={() => selectFulfillmentMode('home_delivery')}
-                aria-pressed={fulfillmentMode === 'home_delivery'}
-              >
-                <span className="book-order-mode-card-title">{t('books.homeDelivery')}</span>
-                <span className="book-order-mode-card-help">{t('books.homeDeliveryHelp')}</span>
-              </button>
-              <button
-                type="button"
-                className={`book-order-mode-card ${fulfillmentMode === 'counter_sale' ? 'is-selected' : ''}`}
+                className={`book-order-mode-card book-order-mode-card--featured ${fulfillmentMode === 'counter_sale' ? 'is-selected' : ''}`}
                 onClick={() => selectFulfillmentMode('counter_sale')}
                 aria-pressed={fulfillmentMode === 'counter_sale'}
               >
                 <span className="book-order-mode-card-title">{t('books.counterSale')}</span>
                 <span className="book-order-mode-card-help">{t('books.counterSaleHelp')}</span>
               </button>
+
+              {fulfillmentMode === 'home_delivery' ? (
+                <div className="book-order-mode-secondary">
+                  <button
+                    type="button"
+                    className="book-order-mode-card book-order-mode-card--compact is-selected"
+                    onClick={() => selectFulfillmentMode('home_delivery')}
+                    aria-pressed
+                  >
+                    <span className="book-order-mode-card-title">{t('books.homeDelivery')}</span>
+                    <span className="book-order-mode-card-help">{t('books.homeDeliveryHelp')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="book-order-mode-alt-link"
+                    onClick={() => selectFulfillmentMode('counter_sale')}
+                  >
+                    {t('books.counterSaleInstead')}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="book-order-mode-alt-link"
+                  onClick={() => selectFulfillmentMode('home_delivery')}
+                >
+                  {t('books.homeDeliveryInstead')}
+                </button>
+              )}
             </div>
             {errors.fulfillmentMode ? (
               <p className="donation-form-hint mt-2">{errors.fulfillmentMode}</p>
@@ -399,66 +423,29 @@ export default function BookFormPage() {
                 {t('books.selectedModeLabel')}: {fulfillmentLabel(fulfillmentMode, t)}
               </p>
               <h3 className="book-order-section-title">{t('books.selectBooks')}</h3>
-              <div
-                id="bf-books"
-                className={`book-order-table-wrap ${errors.books ? '!border-red-400' : ''}`}
-                aria-invalid={Boolean(errors.books)}
-              >
-                <table className="book-order-table">
-                  <thead>
-                    <tr>
-                      <th>{t('books.columnSrNo')}</th>
-                      <th>{t('books.columnBook')}</th>
-                      <th>{t('books.columnRate')}</th>
-                      <th className="col-qty">{t('books.columnSelect')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {books.map((b) => {
-                      const selected = cart[b.id] > 0;
-                      const unitPrice = bookUnitPrice(b, fulfillmentMode);
-                      return (
-                        <tr key={b.id} className={selected ? 'is-selected' : ''}>
-                          <td>{b.s_no}</td>
-                          <td>
-                            <span className="font-semibold text-ink">{b.name}</span>
-                            {b.measurements ? (
-                              <span className="mt-0.5 block text-xs text-muted">{b.measurements}</span>
-                            ) : null}
-                          </td>
-                          <td className="col-rate">{formatInr(unitPrice)}</td>
-                          <td className="col-qty">
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                className="h-4 w-4 shrink-0 accent-primary"
-                                checked={selected}
-                                onChange={() => toggleBook(b.id)}
-                                aria-label={`${b.name}`}
-                              />
-                              {selected ? (
-                                <input
-                                  type="number"
-                                  min={1}
-                                  max={10}
-                                  className="donation-input !w-14 !min-w-0 !rounded-lg !py-1 !text-center !text-sm"
-                                  value={cart[b.id]}
-                                  onChange={(e) => updateBookQuantity(b.id, e.target.value)}
-                                  aria-label={t('books.quantity')}
-                                />
-                              ) : null}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              {errors.books ? <p className="donation-form-hint mt-1">{errors.books}</p> : null}
               {books.length === 0 ? (
                 <p className="mt-2 text-center text-sm text-muted">{t('books.noBooks')}</p>
-              ) : null}
+              ) : (
+                <DonationFormRow
+                  label={t('books.selectBook')}
+                  required
+                  error={errors.books}
+                  labelFor="bf-books"
+                >
+                  <BookSearchSelect
+                    books={books}
+                    cart={cart}
+                    fulfillmentMode={fulfillmentMode}
+                    onSelectBook={addBook}
+                    formatInr={formatInr}
+                    bookUnitPrice={bookUnitPrice}
+                    placeholder={t('books.searchBooksPlaceholder')}
+                    noResultsText={t('books.noBooksMatch')}
+                    invalid={Boolean(errors.books)}
+                  />
+                </DonationFormRow>
+              )}
+              {errors.books ? <p className="donation-form-hint mt-1">{errors.books}</p> : null}
             </section>
 
             {selectedLines.length > 0 ? (
@@ -470,14 +457,36 @@ export default function BookFormPage() {
                     return (
                       <li
                         key={book.id}
-                        className="flex flex-col gap-0.5 rounded-lg border border-primary/10 bg-white/80 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                        className="flex flex-col gap-2 rounded-lg border border-primary/10 bg-white/80 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
                       >
-                        <span className="min-w-0 font-semibold">
-                          {book.name} × {quantity}
-                        </span>
-                        <span className="shrink-0 tabular-nums font-bold text-primary">
-                          {formatInr(unitTotal * quantity)}
-                        </span>
+                        <div className="min-w-0 flex-1">
+                          <span className="font-semibold">{book.name}</span>
+                          {book.measurements ? (
+                            <span className="mt-0.5 block text-xs text-muted">{book.measurements}</span>
+                          ) : null}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <input
+                            type="number"
+                            min={1}
+                            max={10}
+                            className="donation-input !w-14 !min-w-0 !rounded-lg !py-1 !text-center !text-sm"
+                            value={quantity}
+                            onChange={(e) => updateBookQuantity(book.id, e.target.value)}
+                            aria-label={t('books.quantity')}
+                          />
+                          <span className="min-w-[4.5rem] tabular-nums text-right font-bold text-primary">
+                            {formatInr(unitTotal * quantity)}
+                          </span>
+                          <button
+                            type="button"
+                            className="book-order-cart-remove"
+                            onClick={() => removeBook(book.id)}
+                            aria-label={`${t('books.removeBook')} ${book.name}`}
+                          >
+                            <X size={16} aria-hidden />
+                          </button>
+                        </div>
                       </li>
                     );
                   })}

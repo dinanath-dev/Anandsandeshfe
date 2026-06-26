@@ -15,7 +15,7 @@ function isDeployedFrontendHost(hostname) {
   );
 }
 
-/** Ordered list of API bases — direct backend only (no /api proxy; it breaks PDF exports). */
+/** Ordered list of API bases. Dev uses same-origin /api (Vite proxy) to avoid CORS on LAN IPs. */
 function resolveApiBaseUrls() {
   const fromEnv = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
   const envBase = fromEnv
@@ -23,6 +23,10 @@ function resolveApiBaseUrls() {
       ? fromEnv
       : `${fromEnv}/api`
     : 'http://localhost:5000/api';
+
+  if (import.meta.env.DEV && typeof window !== 'undefined') {
+    return ['/api', envBase].filter((base, index, all) => all.indexOf(base) === index);
+  }
 
   if (typeof window !== 'undefined' && isDeployedFrontendHost(window.location.hostname)) {
     if (envBase && !/localhost|127\.0\.0\.1/i.test(envBase)) return [envBase];
@@ -79,6 +83,25 @@ function withAuthHeaders(headersInit) {
   return headers;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(url, options, attempts = 3) {
+  let lastError;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      return await fetch(url, options);
+    } catch (err) {
+      lastError = err;
+      if (attempt < attempts - 1) {
+        await sleep(350 * (attempt + 1));
+      }
+    }
+  }
+  throw lastError;
+}
+
 async function apiFetch(path, options = {}) {
   const bases = orderApiBases();
   const paths = staffPathVariants(path);
@@ -92,7 +115,7 @@ async function apiFetch(path, options = {}) {
       const url = `${base}${pathTry}`;
       lastUrl = url;
       try {
-        const response = await fetch(url, {
+        const response = await fetchWithRetry(url, {
           ...options,
           headers: withAuthHeaders(options.headers)
         });

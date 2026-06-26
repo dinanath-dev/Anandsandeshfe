@@ -41,7 +41,7 @@ export function draftFromBookOrder(order) {
 
   return {
     bookOrderId: order.id || null,
-    fulfillmentMode: order.fulfillment_mode || 'home_delivery',
+    fulfillmentMode: order.fulfillment_mode || 'counter_sale',
     step: 2,
     form: {
       name: String(order.name || '').trim(),

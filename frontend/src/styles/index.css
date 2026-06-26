@@ -862,6 +862,12 @@ textarea.donation-input.donation-input--address {
   background: rgba(30, 74, 158, 0.35);
 }
 
+.book-order-fulfillment {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .book-order-mode-grid {
   display: grid;
   gap: 1rem;
@@ -879,13 +885,54 @@ textarea.donation-input.donation-input--address {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.5rem;
+  width: 100%;
   padding: 1.25rem 1.1rem;
   border-radius: 0.75rem;
   border: 2px solid rgba(13, 45, 127, 0.14);
   background: #fff;
+  color: inherit;
   cursor: pointer;
   text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.book-order-mode-card--featured {
+  padding: 1.5rem 1.25rem;
+}
+
+.book-order-mode-card--featured.is-selected {
+  border-color: var(--primary);
+  background: linear-gradient(180deg, rgba(248, 250, 255, 0.98), rgba(255, 255, 255, 1));
+  box-shadow: 0 6px 24px rgba(30, 74, 158, 0.18);
+}
+
+.book-order-mode-card--compact {
+  padding: 1rem 1.1rem;
+}
+
+.book-order-mode-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.book-order-mode-alt-link {
+  align-self: center;
+  padding: 0.35rem 0.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--brand-sky);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.book-order-mode-alt-link:hover {
+  color: var(--brand-royal);
 }
 
 .book-order-mode-card:hover {
@@ -993,6 +1040,12 @@ textarea.donation-input.donation-input--address {
   padding: 1rem 1.1rem;
   box-shadow: 0 4px 24px rgba(13, 45, 127, 0.08);
   backdrop-filter: blur(6px);
+}
+
+.book-order-card:has(.book-search-select.is-open) {
+  position: relative;
+  z-index: 40;
+  overflow: visible;
 }
 
 @media (min-width: 640px) {
@@ -1107,6 +1160,133 @@ textarea.donation-input.donation-input--address {
   padding-top: 0.25rem;
   font-weight: 800;
   color: var(--brand-royal);
+}
+
+.book-search-select {
+  position: relative;
+  z-index: 1;
+}
+
+.book-search-select-input-wrap {
+  position: relative;
+}
+
+.book-search-select-icon {
+  pointer-events: none;
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  z-index: 1;
+  height: 1rem;
+  width: 1rem;
+  transform: translateY(-50%);
+  color: var(--muted);
+}
+
+.book-search-select-input {
+  width: 100%;
+  padding-left: 2.5rem !important;
+  padding-right: 2.25rem !important;
+}
+
+.book-search-select-clear {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.book-search-select-clear:hover {
+  color: var(--ink);
+}
+
+.book-search-select-panel {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(13, 45, 127, 0.14);
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(13, 45, 127, 0.18);
+}
+
+.book-search-select-list {
+  max-height: min(16rem, 40vh);
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+}
+
+.book-search-select-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.book-search-select-option:hover,
+.book-search-select-option.is-highlighted {
+  background: rgba(30, 74, 158, 0.08);
+}
+
+.book-search-select-option-name {
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.book-search-select-option-rate {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand-royal);
+}
+
+.book-search-select-empty {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.book-order-cart-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.book-order-cart-remove:hover {
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
 }
 
 .profile-detail-grid {
