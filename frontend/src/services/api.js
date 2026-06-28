@@ -346,7 +346,26 @@ export function getSubscriptionFilterMeta(token) {
 
 export async function downloadSubscriptionsPdf(token, filters = {}) {
   const stamp = new Date().toISOString().slice(0, 10);
-  await downloadAdminFile(token, `${STAFF}/subscriptions/export/pdf`, filters, `subscriptions-${stamp}.pdf`);
+  const suffix =
+    filters.type === 'books' ? 'book-orders' : filters.type === 'magazine' ? 'magazine' : 'subscriptions';
+  await downloadAdminFile(token, `${STAFF}/subscriptions/export/pdf`, filters, `${suffix}-${stamp}.pdf`);
+}
+
+export async function downloadSubscriptionsExcel(token, filters = {}) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  const suffix =
+    filters.type === 'books' ? 'book-orders' : filters.type === 'magazine' ? 'magazine' : 'subscriptions';
+  await downloadAdminFile(token, `${STAFF}/subscriptions/export/excel`, filters, `${suffix}-${stamp}.csv`);
+}
+
+export async function downloadBookOrdersPdf(token, filters = {}) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  await downloadAdminFile(token, `${STAFF}/subscriptions/books/export/pdf`, filters, `book-orders-${stamp}.pdf`);
+}
+
+export async function downloadBookOrdersExcel(token, filters = {}) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  await downloadAdminFile(token, `${STAFF}/subscriptions/books/export/excel`, filters, `book-orders-${stamp}.csv`);
 }
 
 async function downloadAdminFile(token, path, filters, filename) {

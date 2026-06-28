@@ -584,7 +584,7 @@ export const translations = {
       eyebrow: 'Admin Panel',
       pageTitle: 'Administration',
       pageDescription:
-        'Review pending submissions, inspect uploaded screenshots, and mark completed payments as verified.',
+        'Review Anand Sandesh subscriptions and book orders with filters, and export PDF or Excel reports.',
       pageDescriptionSuper:
         'Manage payments, view all Anand Sandesh and book subscriptions with filters, export PDF reports, and update user records.',
       roleAdmin: 'Admin',
@@ -603,8 +603,8 @@ export const translations = {
         showing: 'Showing {from}–{to} of {total}'
       },
       tabs: {
-        payments: 'Payments',
         subscriptions: 'Subscriptions',
+        bookOrders: 'Books Order',
         users: 'Users',
         magazine: 'Anand Sandesh',
         books: 'Book orders'
@@ -1253,7 +1253,7 @@ export const translations = {
       eyebrow: 'व्यवस्थापक पैनल',
       pageTitle: 'प्रशासन',
       pageDescription:
-        'लंबित प्रविष्टियों की समीक्षा करें, अपलोड किए गए स्क्रीनशॉट देखें, और पूर्ण भुगतानों को सत्यापित के रूप में चिह्नित करें।',
+        'फ़िल्टर के साथ आनंद संदेश सदस्यताएँ और पुस्तक ऑर्डर देखें, और PDF या Excel रिपोर्ट डाउनलोड करें।',
       pageDescriptionSuper:
         'भुगतान प्रबंधित करें, सभी आनंद संदेश और पुस्तक सदस्यताएँ फ़िल्टर के साथ देखें, PDF रिपोर्ट निर्यात करें, और उपयोगकर्ता रिकॉर्ड अपडेट करें।',
       roleAdmin: 'व्यवस्थापक',
@@ -1272,8 +1272,8 @@ export const translations = {
         showing: '{total} में से {from}–{to} दिखा रहे हैं'
       },
       tabs: {
-        payments: 'भुगतान',
         subscriptions: 'सदस्यताएँ',
+        bookOrders: 'पुस्तक ऑर्डर',
         users: 'उपयोगकर्ता',
         magazine: 'आनंद संदेश',
         books: 'पुस्तक ऑर्डर'

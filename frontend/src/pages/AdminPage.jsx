@@ -5,13 +5,12 @@ import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import {
   adminLogin,
-  downloadSubscriptionsPdf,
+  downloadBookOrdersPdf,
+  downloadBookOrdersExcel,
   downloadSubmissionsExcel,
   downloadSubmissionsPdf,
   getBookSubscriptions,
-  getMagazineSubscriptions,
   getSubmissions,
-  getSubscriptionFilterMeta,
   listAdminUsers,
   updateAdminUser
 } from '../services/api.js';
@@ -38,13 +37,9 @@ function formatUptoPeriod(item) {
   return `${month} / ${year}`;
 }
 
-const EMPTY_FILTERS = {
-  status: '',
-  state: '',
-  city: '',
-  subscription_type: '',
-  search: '',
-  type: 'all'
+const DEFAULT_BOOK_FILTERS = {
+  status: 'verified',
+  search: ''
 };
 
 const DEFAULT_PAYMENT_FILTERS = {
@@ -201,67 +196,17 @@ function UserFilters({ filters, onChange, onApply, isLoading, t }) {
   );
 }
 
-function SubscriptionFilters({ filters, meta, onChange, onApply, onDownload, isLoading, t }) {
+function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloadExcel, isLoading, isExporting, t }) {
   return (
     <div className="card mb-5 space-y-4 p-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <label className="block">
-          <span className="label">{t('admin.filters.type')}</span>
-          <select className="input" value={filters.type} onChange={(e) => onChange('type', e.target.value)}>
-            <option value="all">{t('admin.filters.typeAll')}</option>
-            <option value="magazine">{t('admin.filters.typeMagazine')}</option>
-            <option value="books">{t('admin.filters.typeBooks')}</option>
-          </select>
-        </label>
+      <div className="grid gap-3 sm:grid-cols-2">
         <label className="block">
           <span className="label">{t('admin.filters.status')}</span>
           <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
-            <option value="">{t('admin.filterAll')}</option>
-            <option value="pending">{t('admin.filterPending')}</option>
             <option value="verified">{t('admin.filterVerified')}</option>
-            <option value="failed">{t('admin.filterFailed')}</option>
-          </select>
-        </label>
-        <label className="block">
-          <span className="label">{t('admin.filters.state')}</span>
-          <input
-            className="input"
-            list="admin-states"
-            value={filters.state}
-            onChange={(e) => onChange('state', e.target.value)}
-            placeholder={t('admin.filters.statePlaceholder')}
-          />
-          <datalist id="admin-states">
-            {(meta.states || []).map((s) => (
-              <option key={s} value={s} />
-            ))}
-          </datalist>
-        </label>
-        <label className="block">
-          <span className="label">{t('admin.filters.city')}</span>
-          <input
-            className="input"
-            list="admin-cities"
-            value={filters.city}
-            onChange={(e) => onChange('city', e.target.value)}
-            placeholder={t('admin.filters.cityPlaceholder')}
-          />
-          <datalist id="admin-cities">
-            {(meta.cities || []).map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
-        </label>
-        <label className="block">
-          <span className="label">{t('admin.filters.plan')}</span>
-          <select
-            className="input"
-            value={filters.subscription_type}
-            onChange={(e) => onChange('subscription_type', e.target.value)}
-          >
+            <option value="pending">{t('admin.filterPending')}</option>
             <option value="">{t('admin.filterAll')}</option>
-            <option value="yearly">{t('admin.oneYear')}</option>
-            <option value="five_year">{t('admin.fiveYear')}</option>
+            <option value="failed">{t('admin.filterFailed')}</option>
           </select>
         </label>
         <label className="block">
@@ -282,11 +227,20 @@ function SubscriptionFilters({ filters, meta, onChange, onApply, onDownload, isL
         <button
           className="btn-secondary inline-flex items-center gap-2"
           type="button"
-          onClick={onDownload}
-          disabled={isLoading}
+          onClick={onDownloadPdf}
+          disabled={isLoading || isExporting}
         >
           <Download size={16} />
           {t('admin.filters.downloadPdf')}
+        </button>
+        <button
+          className="btn-secondary inline-flex items-center gap-2"
+          type="button"
+          onClick={onDownloadExcel}
+          disabled={isLoading || isExporting}
+        >
+          <Download size={16} />
+          {t('admin.filters.downloadExcel')}
         </button>
       </div>
     </div>
@@ -367,7 +321,7 @@ export default function AdminPage() {
 
   const [token, setToken] = useState(() => getAdminToken());
   const [role, setRole] = useState(() => getAdminRole());
-  const [activeTab, setActiveTab] = useState('payments');
+  const [activeTab, setActiveTab] = useState('subscriptions');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const PAYMENTS_PAGE_SIZE = 50;
@@ -382,14 +336,12 @@ export default function AdminPage() {
   });
   const [paymentCounts, setPaymentCounts] = useState({ all: 0, pending: 0, verified: 0 });
   const [submissions, setSubmissions] = useState([]);
-  const [magazineRows, setMagazineRows] = useState([]);
   const [bookRows, setBookRows] = useState([]);
   const [users, setUsers] = useState([]);
   const [userSearch, setUserSearch] = useState('');
   const [userFilters, setUserFilters] = useState(EMPTY_USER_FILTERS);
   const [editingUser, setEditingUser] = useState(null);
-  const [subFilters, setSubFilters] = useState(EMPTY_FILTERS);
-  const [filterMeta, setFilterMeta] = useState({ states: [], cities: [] });
+  const [bookFilters, setBookFilters] = useState(DEFAULT_BOOK_FILTERS);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -398,8 +350,8 @@ export default function AdminPage() {
   const superAdmin = role === 'super_admin';
 
   const tabHasCachedData =
-    (activeTab === 'payments' && submissions.length > 0) ||
-    (activeTab === 'subscriptions' && (magazineRows.length > 0 || bookRows.length > 0)) ||
+    (activeTab === 'subscriptions' && submissions.length > 0) ||
+    (activeTab === 'bookOrders' && bookRows.length > 0) ||
     (activeTab === 'users' && users.length > 0);
 
   const loadingOverlayLabel = isExporting
@@ -464,54 +416,28 @@ export default function AdminPage() {
     [token, superAdmin, userSearch, userFilters]
   );
 
-  const loadSubscriptionData = useCallback(
-    async (activeToken = token, filters = subFilters) => {
-      if (!activeToken || !superAdmin) return;
+  const loadBookOrders = useCallback(
+    async (activeToken = token, filters = bookFilters) => {
+      if (!activeToken) return;
       setIsLoading(true);
       setError('');
       try {
-        const shared = {
+        const data = await getBookSubscriptions(activeToken, {
           status: filters.status || undefined,
-          state: filters.state || undefined,
-          city: filters.city || undefined,
-          subscription_type: filters.subscription_type || undefined,
           search: filters.search || undefined
-        };
-        const requests = [];
-        if (filters.type === 'all' || filters.type === 'magazine') {
-          requests.push(getMagazineSubscriptions(activeToken, shared));
-        } else {
-          requests.push(Promise.resolve({ submissions: [] }));
-        }
-        if (filters.type === 'all' || filters.type === 'books') {
-          requests.push(getBookSubscriptions(activeToken, shared));
-        } else {
-          requests.push(Promise.resolve({ orders: [] }));
-        }
-        const [magazineData, bookData] = await Promise.all(requests);
-        setMagazineRows(magazineData.submissions || []);
-        setBookRows(bookData.orders || []);
+        });
+        setBookRows(data.orders || []);
       } catch (err) {
         handleAuthError(err);
       } finally {
         setIsLoading(false);
       }
     },
-    [token, superAdmin, subFilters]
+    [token, bookFilters]
   );
 
   async function loadUsersNow() {
     await loadUsers();
-  }
-
-  async function loadFilterMeta(activeToken = token) {
-    if (!activeToken || !superAdmin) return;
-    try {
-      const data = await getSubscriptionFilterMeta(activeToken);
-      setFilterMeta(data);
-    } catch {
-      /* non-critical */
-    }
   }
 
   async function handleLogin(event) {
@@ -529,9 +455,6 @@ export default function AdminPage() {
       setEmail('');
       setPassword('');
       await loadSubmissions(data.token);
-      if (data.role === 'super_admin') {
-        await loadFilterMeta(data.token);
-      }
     } catch (err) {
       setError(err.message);
     }
@@ -542,7 +465,6 @@ export default function AdminPage() {
     setToken('');
     setRole('');
     setSubmissions([]);
-    setMagazineRows([]);
     setBookRows([]);
     setUsers([]);
   }
@@ -562,8 +484,8 @@ export default function AdminPage() {
     }
   }
 
-  function updateSubFilter(key, value) {
-    setSubFilters((prev) => ({ ...prev, [key]: value }));
+  function updateBookFilter(key, value) {
+    setBookFilters((prev) => ({ ...prev, [key]: value }));
   }
 
   function updatePaymentFilter(key, value) {
@@ -577,13 +499,10 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!isAdminAuthenticated()) return;
-    if (activeTab === 'payments') loadSubmissions();
-    if (activeTab === 'subscriptions' && superAdmin) {
-      loadFilterMeta();
-      loadSubscriptionData();
-    }
+    if (activeTab === 'subscriptions') loadSubmissions();
+    if (activeTab === 'bookOrders') loadBookOrders();
     if (activeTab === 'users' && superAdmin) loadUsers();
-  }, [token, activeTab, superAdmin, loadSubmissions, loadUsers]);
+  }, [token, activeTab, superAdmin, loadSubmissions, loadBookOrders, loadUsers]);
 
   function applyPaymentFilters() {
     setPaymentPage(1);
@@ -607,6 +526,29 @@ export default function AdminPage() {
     setIsExporting(true);
     try {
       await downloadSubmissionsExcel(token, paymentFilters);
+    } catch (err) {
+      handleAuthError(err);
+    } finally {
+      setIsExporting(false);
+    }
+  }
+  async function handleDownloadBookOrdersPdf() {
+    setError('');
+    setIsExporting(true);
+    try {
+      await downloadBookOrdersPdf(token, bookFilters);
+    } catch (err) {
+      handleAuthError(err);
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  async function handleDownloadBookOrdersExcel() {
+    setError('');
+    setIsExporting(true);
+    try {
+      await downloadBookOrdersExcel(token, bookFilters);
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -679,29 +621,27 @@ export default function AdminPage() {
         <div className="mb-5 flex flex-wrap gap-2">
           <button
             type="button"
-            className={`rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'payments' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
-            onClick={() => setActiveTab('payments')}
+            className={`rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'subscriptions' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+            onClick={() => setActiveTab('subscriptions')}
           >
-            {t('admin.tabs.payments')}
+            {t('admin.tabs.subscriptions')}
+          </button>
+          <button
+            type="button"
+            className={`rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'bookOrders' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+            onClick={() => setActiveTab('bookOrders')}
+          >
+            {t('admin.tabs.bookOrders')}
           </button>
           {superAdmin ? (
-            <>
-              <button
-                type="button"
-                className={`rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'subscriptions' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
-                onClick={() => setActiveTab('subscriptions')}
-              >
-                {t('admin.tabs.subscriptions')}
-              </button>
-              <button
-                type="button"
-                className={`inline-flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'users' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
-                onClick={() => setActiveTab('users')}
-              >
-                <Users size={15} />
-                {t('admin.tabs.users')}
-              </button>
-            </>
+            <button
+              type="button"
+              className={`inline-flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'users' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+              onClick={() => setActiveTab('users')}
+            >
+              <Users size={15} />
+              {t('admin.tabs.users')}
+            </button>
           ) : null}
         </div>
 
@@ -711,7 +651,7 @@ export default function AdminPage() {
           </div>
         ) : null}
 
-        {activeTab === 'payments' ? (
+        {activeTab === 'subscriptions' ? (
           <>
             <PaymentFilters
               filters={paymentFilters}
@@ -852,117 +792,57 @@ export default function AdminPage() {
           </>
         ) : null}
 
-        {activeTab === 'subscriptions' && superAdmin ? (
+        {activeTab === 'bookOrders' ? (
           <>
-            <SubscriptionFilters
-              filters={subFilters}
-              meta={filterMeta}
-              onChange={updateSubFilter}
-              onApply={() => loadSubscriptionData(token, subFilters)}
-              onDownload={async () => {
-                setError('');
-                try {
-                  await downloadSubscriptionsPdf(token, subFilters);
-                } catch (err) {
-                  handleAuthError(err);
-                }
-              }}
+            <BookOrderFilters
+              filters={bookFilters}
+              onChange={updateBookFilter}
+              onApply={() => loadBookOrders(token, bookFilters)}
+              onDownloadPdf={handleDownloadBookOrdersPdf}
+              onDownloadExcel={handleDownloadBookOrdersExcel}
               isLoading={isLoading}
+              isExporting={isExporting}
               t={t}
             />
 
-            {(subFilters.type === 'all' || subFilters.type === 'magazine') && (
-              <div className="card mb-6 overflow-hidden">
-                <div className="border-b border-ink/10 bg-brand-surface px-4 py-3 font-black text-ink">
-                  {t('admin.tabs.magazine')} ({magazineRows.length})
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[800px] border-collapse text-left text-sm">
-                    <thead className="bg-white text-ink">
-                      <tr>
-                        <th className="px-4 py-3 font-black">#</th>
-                        <th className="px-4 py-3 font-black">{t('admin.table.name')}</th>
-                        <th className="px-4 py-3 font-black">{t('admin.table.contact')}</th>
-                        <th className="px-4 py-3 font-black">{t('admin.filters.state')}</th>
-                        <th className="px-4 py-3 font-black">{t('admin.filters.city')}</th>
-                        <th className="px-4 py-3 font-black">{t('admin.table.subscription')}</th>
-                        <th className="px-4 py-3 font-black">{t('admin.table.status')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {magazineRows.map((item) => (
-                        <tr key={item.id} className="border-t border-ink/10">
-                          <td className="px-4 py-3">{item.subscriber_no || item.id}</td>
-                          <td className="px-4 py-3 font-semibold">{item.name || '-'}</td>
-                          <td className="px-4 py-3 text-muted">
-                            <p>{item.mobile || '-'}</p>
-                            <p>{item.email || '-'}</p>
-                          </td>
-                          <td className="px-4 py-3">{item.state || '-'}</td>
-                          <td className="px-4 py-3">{item.town || item.city || '-'}</td>
-                          <td className="px-4 py-3">
-                            {item.subscription_type === 'five_year' ? t('admin.fiveYear') : item.subscription_type === 'yearly' ? t('admin.oneYear') : '-'}
-                          </td>
-                          <td className="px-4 py-3">{item.payment_status || '-'}</td>
-                        </tr>
-                      ))}
-                      {!magazineRows.length ? (
-                        <tr>
-                          <td colSpan="7" className="px-4 py-8 text-center text-muted">
-                            {t('admin.noSubmissions')}
-                          </td>
-                        </tr>
-                      ) : null}
-                    </tbody>
-                  </table>
-                </div>
+            <div className="card overflow-hidden">
+              <div className="border-b border-ink/10 bg-brand-surface px-4 py-3 font-black text-ink">
+                {t('admin.tabs.bookOrders')} ({bookRows.length})
               </div>
-            )}
-
-            {(subFilters.type === 'all' || subFilters.type === 'books') && (
-              <div className="card overflow-hidden">
-                <div className="border-b border-ink/10 bg-brand-surface px-4 py-3 font-black text-ink">
-                  {t('admin.tabs.books')} ({bookRows.length})
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[800px] border-collapse text-left text-sm">
-                    <thead className="bg-white text-ink">
-                      <tr>
-                        <th className="px-4 py-3 font-black">{t('admin.books.orderId')}</th>
-                        <th className="px-4 py-3 font-black">{t('admin.table.name')}</th>
-                        <th className="px-4 py-3 font-black">{t('admin.books.title')}</th>
-                        <th className="px-4 py-3 font-black">{t('admin.filters.state')}</th>
-                        <th className="px-4 py-3 font-black">{t('admin.filters.city')}</th>
-                        <th className="px-4 py-3 font-black">{t('admin.books.amount')}</th>
-                        <th className="px-4 py-3 font-black">{t('admin.table.status')}</th>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+                  <thead className="bg-white text-ink">
+                    <tr>
+                      <th className="px-4 py-3 font-black">{t('admin.books.orderId')}</th>
+                      <th className="px-4 py-3 font-black">{t('admin.table.name')}</th>
+                      <th className="px-4 py-3 font-black">{t('admin.books.title')}</th>
+                      <th className="px-4 py-3 font-black">{t('admin.books.amount')}</th>
+                      <th className="px-4 py-3 font-black">{t('admin.table.status')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bookRows.map((item) => (
+                      <tr key={item.id} className="border-t border-ink/10">
+                        <td className="px-4 py-3 font-mono text-xs">{String(item.id).slice(0, 8)}…</td>
+                        <td className="px-4 py-3 font-semibold">{item.name || '-'}</td>
+                        <td className="px-4 py-3">{item.book_name || '-'}</td>
+                        <td className="px-4 py-3">
+                          {item.total_amount_paise != null ? `₹${(item.total_amount_paise / 100).toFixed(2)}` : '-'}
+                        </td>
+                        <td className="px-4 py-3">{item.payment_status || '-'}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {bookRows.map((item) => (
-                        <tr key={item.id} className="border-t border-ink/10">
-                          <td className="px-4 py-3 font-mono text-xs">{String(item.id).slice(0, 8)}…</td>
-                          <td className="px-4 py-3 font-semibold">{item.name || '-'}</td>
-                          <td className="px-4 py-3">{item.book_name || '-'}</td>
-                          <td className="px-4 py-3">{item.state || '-'}</td>
-                          <td className="px-4 py-3">{item.city || '-'}</td>
-                          <td className="px-4 py-3">
-                            {item.total_amount_paise != null ? `₹${(item.total_amount_paise / 100).toFixed(2)}` : '-'}
-                          </td>
-                          <td className="px-4 py-3">{item.payment_status || '-'}</td>
-                        </tr>
-                      ))}
-                      {!bookRows.length ? (
-                        <tr>
-                          <td colSpan="7" className="px-4 py-8 text-center text-muted">
-                            {t('admin.noBookOrders')}
-                          </td>
-                        </tr>
-                      ) : null}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                    {!bookRows.length ? (
+                      <tr>
+                        <td colSpan="5" className="px-4 py-8 text-center text-muted">
+                          {t('admin.noBookOrders')}
+                        </td>
+                      </tr>
+                    ) : null}
+                  </tbody>
+                </table>
               </div>
-            )}
+            </div>
           </>
         ) : null}
 
