@@ -298,10 +298,12 @@ export function getAdminMe(token) {
   });
 }
 
-export function getSubmissions(token, { status, audience, page, limit } = {}) {
+export function getSubmissions(token, { status, audience, month, year, page, limit } = {}) {
   const params = new URLSearchParams();
   if (status) params.set('status', status);
   if (audience) params.set('audience', audience);
+  if (month != null && String(month).trim() !== '') params.set('month', String(month));
+  if (year != null && String(year).trim() !== '') params.set('year', String(year));
   if (page != null) params.set('page', String(page));
   if (limit != null) params.set('limit', String(limit));
   const query = params.toString();

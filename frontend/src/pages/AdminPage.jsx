@@ -37,15 +37,41 @@ function formatUptoPeriod(item) {
   return `${month} / ${year}`;
 }
 
+function currentAccountingFilterDefaults() {
+  const now = new Date();
+  return {
+    month: String(now.getMonth() + 1),
+    year: String(now.getFullYear())
+  };
+}
+
 const DEFAULT_BOOK_FILTERS = {
   status: 'verified',
-  search: ''
+  search: '',
+  ...currentAccountingFilterDefaults()
 };
 
 const DEFAULT_PAYMENT_FILTERS = {
   audience: 'online',
-  status: 'verified'
+  status: 'verified',
+  ...currentAccountingFilterDefaults()
 };
+
+const ACCOUNTING_YEAR_START = 2020;
+
+function accountingYearOptions() {
+  const current = new Date().getFullYear();
+  const years = [];
+  for (let y = current + 1; y >= ACCOUNTING_YEAR_START; y -= 1) years.push(y);
+  return years;
+}
+
+function accountingMonthOptions(locale = 'en-IN') {
+  return Array.from({ length: 12 }, (_, index) => ({
+    value: String(index + 1),
+    label: new Date(2000, index, 1).toLocaleString(locale, { month: 'long' })
+  }));
+}
 
 const EMPTY_USER_FILTERS = {
   is_verified: '',
@@ -82,10 +108,13 @@ function formatSubmissionAddress(item) {
   return [item.state, item.pin].filter(Boolean).join(' - ') || '-';
 }
 
-function PaymentFilters({ filters, counts, onChange, onApply, onDownloadPdf, onDownloadExcel, isLoading, isExporting, t }) {
+function PaymentFilters({ filters, counts, onChange, onApply, onDownloadPdf, onDownloadExcel, isLoading, isExporting, t, locale }) {
+  const monthOptions = accountingMonthOptions(locale);
+  const yearOptions = accountingYearOptions();
+
   return (
     <div className="mb-5 space-y-3">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <label className="block">
           <span className="label">{t('admin.filters.audience')}</span>
           <select className="input" value={filters.audience} onChange={(e) => onChange('audience', e.target.value)}>
@@ -107,6 +136,28 @@ function PaymentFilters({ filters, counts, onChange, onApply, onDownloadPdf, onD
               {t('admin.filterAll')} ({counts.all ?? 0})
             </option>
             <option value="failed">{t('admin.filterFailed')}</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="label">{t('admin.filters.accountingYear')}</span>
+          <select className="input" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
+            <option value="all">{t('admin.filterAll')}</option>
+            {yearOptions.map((year) => (
+              <option key={year} value={String(year)}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="label">{t('admin.filters.accountingMonth')}</span>
+          <select className="input" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
+            <option value="all">{t('admin.filterAll')}</option>
+            {monthOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </label>
       </div>
@@ -196,10 +247,13 @@ function UserFilters({ filters, onChange, onApply, isLoading, t }) {
   );
 }
 
-function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloadExcel, isLoading, isExporting, t }) {
+function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloadExcel, isLoading, isExporting, t, locale }) {
+  const monthOptions = accountingMonthOptions(locale);
+  const yearOptions = accountingYearOptions();
+
   return (
     <div className="card mb-5 space-y-4 p-4">
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <label className="block">
           <span className="label">{t('admin.filters.status')}</span>
           <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
@@ -217,6 +271,28 @@ function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloa
             onChange={(e) => onChange('search', e.target.value)}
             placeholder={t('admin.filters.searchPlaceholder')}
           />
+        </label>
+        <label className="block">
+          <span className="label">{t('admin.filters.accountingYear')}</span>
+          <select className="input" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
+            <option value="all">{t('admin.filterAll')}</option>
+            {yearOptions.map((year) => (
+              <option key={year} value={String(year)}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="label">{t('admin.filters.accountingMonth')}</span>
+          <select className="input" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
+            <option value="all">{t('admin.filterAll')}</option>
+            {monthOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </label>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -317,7 +393,8 @@ export default function AdminPage() {
     noindex: true
   });
 
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const locale = language === 'hi' ? 'hi-IN' : 'en-IN';
 
   const [token, setToken] = useState(() => getAdminToken());
   const [role, setRole] = useState(() => getAdminRole());
@@ -379,7 +456,9 @@ export default function AdminPage() {
           page: paymentPage,
           limit: PAYMENTS_PAGE_SIZE,
           status: paymentFilters.status,
-          audience: paymentFilters.audience
+          audience: paymentFilters.audience,
+          month: paymentFilters.month,
+          year: paymentFilters.year
         });
         setSubmissions(data.submissions || []);
         if (data.pagination) setPaymentPagination(data.pagination);
@@ -663,6 +742,7 @@ export default function AdminPage() {
               isLoading={isLoading}
               isExporting={isExporting}
               t={t}
+              locale={locale}
             />
 
             <div className="card overflow-hidden">
@@ -803,6 +883,7 @@ export default function AdminPage() {
               isLoading={isLoading}
               isExporting={isExporting}
               t={t}
+              locale={locale}
             />
 
             <div className="card overflow-hidden">

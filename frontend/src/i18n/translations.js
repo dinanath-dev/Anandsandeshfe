@@ -555,7 +555,7 @@ export const translations = {
       },
       subscribeHeading: 'Online Subscription',
       subscribeBody:
-        'Subscribe to Anand Sandesh through this official portal — create an account, complete your details, and pay securely online for yearly or multi-year membership.',
+        'Subscribe to Anand Sandesh through this official portal — create an account, complete your details, and pay securely online for yearly or multi-year subscription.',
       subscribeCta: 'Subscribe to Anand Sandesh online',
       contactHeading: 'Contact & Address',
       addressName: 'Anand Sandesh Karyalay',
@@ -564,10 +564,10 @@ export const translations = {
       addressPin: '473331',
       addressRegion: 'Madhya Pradesh, India',
       contactNote:
-        'For subscription enquiries, visit Anand Sandesh Karyalay at the address above or use this website to register and manage your membership.',
+        'For subscription enquiries, visit Anand Sandesh Karyalay at the address above or use this website to register and manage your subscription.',
       officialSiteHeading: 'Official website only',
       officialSiteBody:
-        'anandsandeshkaryalay.online is the official online portal of Anand Sandesh Karyalay, Shri Anandpur Dham — for magazine subscription, membership, and delivery. Other websites using a similar name are not affiliated with Shri Paramhans Advait Mat Publication Society.',
+        'anandsandeshkaryalay.online is the official online portal of Anand Sandesh Karyalay, Shri Anandpur Dham — for magazine subscription, book orders, and delivery. Other websites using a similar name are not affiliated with Shri Paramhans Advait Mat Publication Society.',
       backHome: 'Back to subscription portal',
       footerLink: 'About Anand Sandesh'
     },
@@ -627,6 +627,8 @@ export const translations = {
         plan: 'Subscription plan',
         search: 'Search',
         searchPlaceholder: 'Name, email, or mobile',
+        accountingYear: 'Accounting year',
+        accountingMonth: 'Accounting month',
         apply: 'Apply filters',
         downloadPdf: 'Download PDF',
         downloadExcel: 'Download Excel'
@@ -716,7 +718,7 @@ export const translations = {
     },
 
     auth: {
-      heroBadge: 'आनंद संदेश — सदस्यता पोर्टल',
+      heroBadge: 'आनंद संदेश — ग्राहकी पोर्टल',
       heroTitle: 'लॉगिन और साइन अप',
       heroAddress:
         'आनंद संदेश कार्यालय, श्री आनंदपुर धाम, पोस्ट ऑफिस श्री आनंदपुर,',
@@ -799,20 +801,20 @@ export const translations = {
 
     profile: {
       subtitle: 'फ़ाइल पर मौजूद आपकी संपर्क जानकारी',
-      cardEyebrow: 'सदस्य पोर्टल',
+      cardEyebrow: 'ग्राहकी पोर्टल',
       cardTitle: 'खाता अवलोकन',
-      subscriptionActive: 'आपकी आनंद संदेश सदस्यता भुगतान सहित सक्रिय है।',
+      subscriptionActive: 'आपकी आनंद संदेश ग्राहकी भुगतान सहित सक्रिय है।',
       validThrough: '{date} तक मान्य',
       periodRemainingToday: 'आज समाप्त हो रही है',
       periodRemainingOneDay: '1 दिन शेष',
       periodRemainingDays: '{count} दिन शेष',
       periodRemainingOneMonth: '1 महीना शेष',
       periodRemainingMonths: '{count} महीने शेष',
-      periodExpired: 'सदस्यता अवधि समाप्त हो गई है',
+      periodExpired: 'ग्राहकी अवधि समाप्त हो गई है',
       actionsHeading: 'आप क्या करना चाहेंगे?',
       bannerMaskedHelp:
         'फ़ोन और ईमेल आंशिक रूप से छिपे हुए हैं। आप अगली स्क्रीन पर पूरी जानकारी देख या अपडेट कर सकते हैं।',
-      offlineToggle: 'पहले ऑफ़लाइन सदस्यता ली थी? अपना रिकॉर्ड खोजें',
+      offlineToggle: 'पहले ऑफ़लाइन ग्राहकी ली थी? अपना रिकॉर्ड खोजें',
       offlineHelp:
         'यदि आपने पहले अलग ईमेल का उपयोग किया था या इस वेबसाइट पर नए हैं, तो आपकी जानकारी अभी भी हमारे डेटाबेस में ऑफ़लाइन प्रक्रिया से मौजूद हो सकती है। पुराने फ़ॉर्म का मोबाइल नंबर या सदस्य संख्या से खोजें — हम सहेजा गया पता दिखाएँगे ताकि आप पुष्टि कर सकें, फिर इसे इस लॉगिन से जोड़ें।',
       offlineHelpStrongMobile: 'मोबाइल नंबर',
@@ -846,16 +848,16 @@ export const translations = {
       mobileAria: 'मोबाइल नंबर (छिपा हुआ)',
       emailAria: 'ईमेल (छिपा हुआ)',
       addressAria: 'डाक पता',
-      continueToForm: 'सदस्यता फ़ॉर्म पर जारी रखें',
+      continueToForm: 'ग्राहकी फ़ॉर्म पर जारी रखें',
       buyBooks: 'पुस्तकें खरीदें',
       buyBooksComingSoon: 'जल्द आ रहा है — कार्य प्रगति पर है।',
-      tooltipAria: 'ऑफ़लाइन सदस्यता खोज के बारे में',
+      tooltipAria: 'ऑफ़लाइन ग्राहकी खोज के बारे में',
       pinEnding: 'पिन के अंतिम 4 अंक: {last4}',
       record: 'रिकॉर्ड',
       sub: 'सदस्य',
       errors: {
         mobileRequired:
-          'अपनी ऑफ़लाइन सदस्यता के लिए उपयोग किया गया वही 10-अंकीय मोबाइल नंबर दर्ज करें।',
+          'अपनी ऑफ़लाइन ग्राहकी के लिए उपयोग किया गया वही 10-अंकीय मोबाइल नंबर दर्ज करें।',
         subscriberRequired: 'पुराने फ़ॉर्म की सदस्य संख्या दर्ज करें।',
         notFound:
           'कोई ऑफ़लाइन रिकॉर्ड नहीं मिला। मोबाइल या सदस्य संख्या जाँचें, या सहायता से संपर्क करें।',
@@ -959,20 +961,20 @@ export const translations = {
 
     form: {
       subtitle: 'आनंद संदेश के लिए मेरी प्रविष्टि का विवरण',
-      verifiedTitle: 'आपकी सदस्यता पहले से फ़ाइल पर है।',
+      verifiedTitle: 'आपकी ग्राहकी पहले से फ़ाइल पर है।',
       verifiedPaidPrefix: 'आपकी',
       verifiedPaidSuffix: 'योजना भुगतान सहित सत्यापित है',
       verifiedPeriodPrefix: '(तक',
       verifiedPeriodSuffix: ').',
       verifiedRenews:
-        '. नवीनीकरण आपके Razorpay सदस्यता शेड्यूल के अनुसार होगा।',
+        '. नवीनीकरण आपके Razorpay ग्राहकी अनुसूची के अनुसार होगा।',
       verifiedSecondary:
         'आपको यह फ़ॉर्म पुनः जमा करने की आवश्यकता नहीं है। छिपी संपर्क जानकारी देखने के लिए अपनी प्रोफ़ाइल का उपयोग करें, या यदि कुछ गलत लगे तो सहायता से संपर्क करें।',
       pendingPaymentPrefix: 'भुगतान अभी भी लंबित है।',
       pendingPaymentBody:
-        'इस फ़ॉर्म को सहेजने के बाद, "भुगतान पर जाएँ" का उपयोग करके Razorpay चेकआउट पूरा करें ताकि आपकी सदस्यता सत्यापित हो सके।',
+        'इस फ़ॉर्म को सहेजने के बाद, "भुगतान पर जाएँ" का उपयोग करके Razorpay चेकआउट पूरा करें ताकि आपकी ग्राहकी सत्यापित हो सके।',
       saveSuccess:
-        'आपका विवरण सहेज लिया गया। आपकी सदस्यता सक्रिय बनी रहेगी।',
+        'आपका विवरण सहेज लिया गया। आपकी ग्राहकी सक्रिय बनी रहेगी।',
       labels: {
         title: 'उपाधि',
         firstName: 'पहला नाम',
@@ -1000,7 +1002,7 @@ export const translations = {
         pinPostal: 'पिन / ज़िप कोड',
         anandSandesh: 'आनंद संदेश',
         spiritualBliss: 'स्पिरिचुअल ब्लिस',
-        subscription: 'सदस्यता'
+        subscription: 'ग्राहकी'
       },
       addressSectionTitle: 'डाक पता',
       personalSectionTitle: 'व्यक्तिगत विवरण',
@@ -1110,7 +1112,7 @@ export const translations = {
         rehbarRequired: 'रहबर आवश्यक है',
         anandSandeshRequired:
           'आनंद संदेश के लिए हिन्दी या अंग्रेज़ी चुनें',
-        subscriptionRequired: 'एक वर्ष या पाँच वर्ष की सदस्यता चुनें',
+        subscriptionRequired: 'एक वर्ष या पाँच वर्ष की ग्राहकी चुनें',
         subscriberMissing:
           'सदस्य संख्या लोड नहीं हुई। थोड़ी देर रुकें या पुनः साइन इन करें।',
         fixHighlighted:
@@ -1124,7 +1126,7 @@ export const translations = {
       subtitle: 'भुगतान',
       heading: 'भुगतान पर जाएँ',
       summary:
-        'Razorpay के साथ सुरक्षित भुगतान करें। आपकी सदस्यता तभी पुष्ट होगी जब हमारा सर्वर भुगतान हस्ताक्षर सत्यापित कर ले।',
+        'Razorpay के साथ सुरक्षित भुगतान करें। आपकी ग्राहकी तभी पुष्ट होगी जब हमारा सर्वर भुगतान हस्ताक्षर सत्यापित कर ले।',
       summaryRecurring:
         'Razorpay के साथ सुरक्षित भुगतान करें। रद्द करने तक हर वर्ष आपके कार्ड या UPI से स्वचालित रूप से शुल्क लिया जाएगा। नवीनीकरण Razorpay द्वारा किया जाता है और वेबहुक के माध्यम से हमारे सर्वर द्वारा पुष्ट किया जाता है।',
       recurringDescription: 'Anand Sandesh — {plan} (प्रतिवर्ष स्वतः नवीनीकरण)',
@@ -1132,13 +1134,13 @@ export const translations = {
       amountLabel: 'राशि:',
       referenceLabel: 'संदर्भ आईडी:',
       configHelpA:
-        'आवर्ती भुगतानों के लिए Razorpay में एक सदस्यता योजना आवश्यक है। टेस्ट मोड में भी यही सुविधा उपलब्ध है: डैशबोर्ड को टेस्ट मोड में खोलें, फिर Subscriptions → Plans → + Create plan। योजना आईडी कॉपी करें (जैसे plan_…)।',
+        'आवर्ती भुगतानों के लिए Razorpay में एक आवर्ती ग्राहकी योजना आवश्यक है। टेस्ट मोड में भी यही सुविधा उपलब्ध है: डैशबोर्ड को टेस्ट मोड में खोलें, फिर Subscriptions → Plans → + Create plan। योजना आईडी कॉपी करें (जैसे plan_…)।',
       configHelpB:
         'त्वरित स्थानीय परीक्षण के लिए, .env में VITE_RAZORPAY_PLAN_ID में एक आईडी जोड़ें (1-वर्ष और 5-वर्ष दोनों इसी का उपयोग करेंगे जब तक आप अलग VITE_RAZORPAY_PLAN_ID_YEARLY / FIVE_YEAR सेट न करें)। env संपादित करने के बाद डेव सर्वर पुनः प्रारंभ करें।',
       payWithRazorpay: 'Razorpay से भुगतान करें',
       startingCheckout: 'चेकआउट शुरू हो रहा है…',
       editDetails: 'विवरण संपादित करें',
-      alreadyPaidHeading: 'सदस्यता पहले से सक्रिय',
+      alreadyPaidHeading: 'ग्राहकी पहले से सक्रिय',
       alreadyPaidSummary: 'आपका भुगतान पहले ही सत्यापित है। आगे कोई कार्रवाई आवश्यक नहीं है।',
       viewConfirmation: 'पुष्टि देखें',
       oneYear: 'एक वर्ष',
@@ -1159,7 +1161,7 @@ export const translations = {
         notConfigured:
           'इस योजना के लिए Razorpay पूरी तरह कॉन्फ़िगर नहीं है। सहायता से संपर्क करें।',
         couldNotStart:
-          'सदस्यता शुरू नहीं हो सकी। कृपया पुनः प्रयास करें।',
+          'भुगतान शुरू नहीं हो सका। कृपया पुनः प्रयास करें।',
         paymentFailed: 'भुगतान विफल हुआ।',
         paymentCancelled: 'भुगतान रद्द किया गया।',
         couldNotStartShort: 'भुगतान शुरू नहीं हो सका।',
@@ -1167,7 +1169,7 @@ export const translations = {
           'UPI Autopay के लिए मान्य 10 अंकीय मोबाइल नंबर आवश्यक है। फॉर्म में मोबाइल जोड़कर पुनः प्रयास करें।',
         emailRequiredForCheckout:
           'भुगतान के लिए ईमेल आवश्यक है। साइन इन करें या फॉर्म में ईमेल जोड़ें, फिर पुनः प्रयास करें।',
-        alreadyPaid: 'यह सदस्यता पहले ही भुगतान की जा चुकी है।',
+        alreadyPaid: 'यह ग्राहकी पहले ही भुगतान की जा चुकी है।',
         verificationPending:
           'भुगतान प्राप्त हो गया है, लेकिन सत्यापन अभी लंबित है।'
       }
@@ -1178,19 +1180,19 @@ export const translations = {
       paymentReceived: 'भुगतान प्राप्त हुआ',
       submissionReceived: 'प्रविष्टि प्राप्त हुई',
       paymentSuccessfulDesc:
-        'आपका सदस्यता भुगतान सत्यापित हो गया है। आपका खाता वेबहुक के माध्यम से Razorpay के साथ समकालिक रहेगा।',
+        'आपका ग्राहकी भुगतान सत्यापित हो गया है। आपका खाता वेबहुक के माध्यम से Razorpay के साथ समकालिक रहेगा।',
       paymentReceivedDesc:
-        'आपका भुगतान Razorpay पर पूरा हो गया है। हम इसे सर्वर से पुष्ट कर रहे हैं और आपकी सदस्यता शीघ्र ही दिखाई देगी।',
+        'आपका भुगतान Razorpay पर पूरा हो गया है। हम इसे सर्वर से पुष्ट कर रहे हैं और आपकी ग्राहकी शीघ्र ही दिखाई देगी।',
       submissionReceivedDesc:
         'आपका विवरण लंबित स्थिति के साथ सहेज लिया गया है। एक प्रशासक आपकी प्रविष्टि और अपलोड किए गए दस्तावेज़ की समीक्षा कर सकता है।',
       submitAnother: 'एक और जमा करें'
     },
 
     seo: {
-      officialBadge: 'आधिकारिक सदस्यता पोर्टल',
-      homeH1: 'आनंद संदेश कार्यालय — आनंद संदेश पत्रिका सदस्यता',
+      officialBadge: 'आधिकारिक ग्राहकी पोर्टल',
+      homeH1: 'आनंद संदेश कार्यालय — आनंद संदेश पत्रिका ग्राहकी',
       homeLead:
-        'हिन्दी और अंग्रेज़ी में आनंद संदेश (Anand Sandesh) मासिक आध्यात्मिक पत्रिका की सदस्यता लें। श्री परमहंस अद्वैत मत प्रकाशन सोसायटी, श्री आनंदपुर धाम, मध्य प्रदेश से प्रकाशित।',
+        'हिन्दी और अंग्रेज़ी में आनंद संदेश (Anand Sandesh) मासिक आध्यात्मिक पत्रिका की ग्राहकी लें। श्री परमहंस अद्वैत मत प्रकाशन सोसायटी, श्री आनंदपुर धाम, मध्य प्रदेश से प्रकाशित।',
       homePublisher:
         'पता: आनंद संदेश कार्यालय, श्री आनंदपुर धाम, पोस्ट ऑफिस श्री आनंदपुर — 473331, भारत।',
       officialDomain: 'आधिकारिक वेबसाइट: anandsandeshkaryalay.online'
@@ -1212,7 +1214,7 @@ export const translations = {
       magazinePoint2:
         'विषयों में आध्यात्म, भारतीय दर्शन, भक्ति, सत्संग और दैनिक जीवन के लिए मार्गदर्शन शामिल हैं।',
       magazinePoint3:
-        'श्री आनंदपुर धाम स्थित आनंद संदेश कार्यालय से भारत और विश्व भर के सदस्यों तक वितरण।',
+        'श्री आनंदपुर धाम स्थित आनंद संदेश कार्यालय से भारत और विश्व भर के ग्राहकों तक वितरण।',
       booksHeading: 'अन्य आध्यात्मिक पुस्तकें और प्रकाशन',
       booksBody:
         'मासिक आनंद संदेश पत्रिका के अतिरिक्त, प्रकाशन सोसायटी आध्यात्म, सत्संग और श्री परमहंस अद्वैत मत की शिक्षाओं से संबंधित अन्य पुस्तकें और साहित्य भी प्रदान करती है, जिनमें शामिल हैं:',
@@ -1222,10 +1224,10 @@ export const translations = {
         item3: 'साधकों और परिवारों के लिए हिन्दी और अंग्रेज़ी प्रकाशन।',
         item4: 'विशेष संस्करण और संबंधित आध्यात्मिक शीर्षक।'
       },
-      subscribeHeading: 'ऑनलाइन सदस्यता',
+      subscribeHeading: 'ऑनलाइन ग्राहकी',
       subscribeBody:
-        'इस आधिकारिक पोर्टल के माध्यम से आनंद संदेश की सदस्यता लें — खाता बनाएँ, विवरण भरें, और वार्षिक या बहु-वर्षीय सदस्यता के लिए सुरक्षित ऑनलाइन भुगतान करें।',
-      subscribeCta: 'आनंद संदेश की ऑनलाइन सदस्यता लें',
+        'इस आधिकारिक पोर्टल के माध्यम से आनंद संदेश की ग्राहकी लें — खाता बनाएँ, विवरण भरें, और वार्षिक या बहु-वर्षीय ग्राहकी के लिए सुरक्षित ऑनलाइन भुगतान करें।',
+      subscribeCta: 'आनंद संदेश की ऑनलाइन ग्राहकी लें',
       contactHeading: 'संपर्क और पता',
       addressName: 'आनंद संदेश कार्यालय',
       addressLine1: 'श्री आनंदपुर धाम',
@@ -1233,11 +1235,11 @@ export const translations = {
       addressPin: '473331',
       addressRegion: 'मध्य प्रदेश, भारत',
       contactNote:
-        'सदस्यता संबंधी पूछताछ के लिए उपरोक्त पते पर आनंद संदेश कार्यालय पर आएँ या इस वेबसाइट पर पंजीकरण और सदस्यता प्रबंधन करें।',
+        'ग्राहकी संबंधी पूछताछ के लिए उपरोक्त पते पर आनंद संदेश कार्यालय पर आएँ या इस वेबसाइट पर पंजीकरण और ग्राहकी प्रबंधन करें।',
       officialSiteHeading: 'केवल आधिकारिक वेबसाइट',
       officialSiteBody:
-        'anandsandeshkaryalay.online आनंद संदेश कार्यालय, श्री आनंदपुर धाम की आधिकारिक ऑनलाइन साइट है — पत्रिका सदस्यता, सदस्यता प्रबंधन और डिलीवरी के लिए। समान नाम वाली अन्य वेबसाइटें श्री परमहंस अद्वैत मत प्रकाशन सोसायटी से संबद्ध नहीं हैं।',
-      backHome: 'सदस्यता पोर्टल पर वापस जाएँ',
+        'anandsandeshkaryalay.online आनंद संदेश कार्यालय, श्री आनंदपुर धाम की आधिकारिक ऑनलाइन साइट है — पत्रिका ग्राहकी, पुस्तक ऑर्डर और डिलीवरी के लिए। समान नाम वाली अन्य वेबसाइटें श्री परमहंस अद्वैत मत प्रकाशन सोसायटी से संबद्ध नहीं हैं।',
+      backHome: 'ग्राहकी पोर्टल पर वापस जाएँ',
       footerLink: 'आनंद संदेश के बारे में'
     },
 
@@ -1253,9 +1255,9 @@ export const translations = {
       eyebrow: 'व्यवस्थापक पैनल',
       pageTitle: 'प्रशासन',
       pageDescription:
-        'फ़िल्टर के साथ आनंद संदेश सदस्यताएँ और पुस्तक ऑर्डर देखें, और PDF या Excel रिपोर्ट डाउनलोड करें।',
+        'फ़िल्टर के साथ आनंद संदेश ग्राहकियाँ और पुस्तक ऑर्डर देखें, और PDF या Excel रिपोर्ट डाउनलोड करें।',
       pageDescriptionSuper:
-        'भुगतान प्रबंधित करें, सभी आनंद संदेश और पुस्तक सदस्यताएँ फ़िल्टर के साथ देखें, PDF रिपोर्ट निर्यात करें, और उपयोगकर्ता रिकॉर्ड अपडेट करें।',
+        'भुगतान प्रबंधित करें, सभी आनंद संदेश ग्राहकियाँ और पुस्तक ऑर्डर फ़िल्टर के साथ देखें, PDF रिपोर्ट निर्यात करें, और उपयोगकर्ता रिकॉर्ड अपडेट करें।',
       roleAdmin: 'व्यवस्थापक',
       roleSuper: 'सुपर व्यवस्थापक',
       filterAll: 'सभी',
@@ -1272,7 +1274,7 @@ export const translations = {
         showing: '{total} में से {from}–{to} दिखा रहे हैं'
       },
       tabs: {
-        subscriptions: 'सदस्यताएँ',
+        subscriptions: 'ग्राहकियाँ',
         bookOrders: 'पुस्तक ऑर्डर',
         users: 'उपयोगकर्ता',
         magazine: 'आनंद संदेश',
@@ -1283,7 +1285,7 @@ export const translations = {
         typeAll: 'पत्रिका + पुस्तकें',
         typeMagazine: 'केवल आनंद संदेश',
         typeBooks: 'केवल पुस्तकें',
-        audience: 'सदस्य समूह',
+        audience: 'ग्राहक समूह',
         audienceOnline: 'ऑनलाइन (वेबसाइट पंजीकरण)',
         audienceLegacy: 'पुराना (आयातित रिकॉर्ड)',
         minSubscriber: 'न्यूनतम सदस्य #',
@@ -1293,9 +1295,11 @@ export const translations = {
         statePlaceholder: 'उदा. मध्य प्रदेश',
         city: 'शहर / कस्बा',
         cityPlaceholder: 'उदा. भोपाल',
-        plan: 'सदस्यता योजना',
+        plan: 'ग्राहकी योजना',
         search: 'खोजें',
         searchPlaceholder: 'नाम, ईमेल या मोबाइल',
+        accountingYear: 'लेखा वर्ष',
+        accountingMonth: 'लेखा माह',
         apply: 'फ़िल्टर लागू करें',
         downloadPdf: 'PDF डाउनलोड',
         downloadExcel: 'Excel डाउनलोड'
@@ -1322,7 +1326,7 @@ export const translations = {
         name: 'नाम',
         contact: 'संपर्क',
         address: 'पता',
-        subscription: 'सदस्यता',
+        subscription: 'ग्राहकी',
         transaction: 'लेन-देन',
         status: 'स्थिति',
         validUpto: 'तक माह / वर्ष',
