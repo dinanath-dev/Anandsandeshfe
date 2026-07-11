@@ -463,6 +463,7 @@ export default function AuthPage() {
   return (
     <main className="auth-page min-h-screen overflow-x-hidden px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 lg:px-8">
       {isLoggingIn ? <LoadingBlock label={t('loaders.signingIn')} /> : null}
+      {isVerifyingOtp ? <LoadingBlock label={t('auth.verifying')} /> : null}
       <div className="auth-grid mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-7xl flex-col items-stretch overflow-x-hidden rounded-2xl border border-white/20 bg-white/10 shadow-[0_32px_120px_rgba(6,13,26,0.45)] backdrop-blur-2xl sm:min-h-[calc(100vh-2.5rem)] sm:rounded-[2rem] md:min-h-[calc(100dvh-2.5rem)] md:flex-row">
         <section className="auth-hero relative hidden flex-1 flex-col justify-between overflow-hidden px-6 py-8 text-[#0d2d7f] md:flex lg:px-8 lg:py-10 xl:px-12">
           <div className="auth-hero-glow" aria-hidden />
@@ -878,7 +879,6 @@ export default function AuthPage() {
                   {status ? <p className="auth-success mt-4">{status}</p> : null}
 
                   <button className="auth-primary-btn mt-5 w-full" type="submit" disabled={isVerifyingOtp}>
-                    {isVerifyingOtp ? <InlineLoader size={22} /> : null}
                     {isVerifyingOtp ? t('auth.verifying') : t('auth.verifyAndContinue')}
                     {!isVerifyingOtp ? <ChevronRight size={18} aria-hidden /> : null}
                   </button>

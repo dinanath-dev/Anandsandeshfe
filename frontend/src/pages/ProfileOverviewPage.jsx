@@ -471,6 +471,7 @@ export default function ProfileOverviewPage() {
   return (
     <DonationLayout subtitle={t('profile.subtitle')}>
       {legacyLoading ? <LoadingBlock label={t('loaders.searchingRecords')} /> : null}
+      {emailLoading && emailStep === 'otp' ? <LoadingBlock label={t('profile.verifyingOtp')} /> : null}
 
       <div className="profile-page mx-auto w-full max-w-3xl px-2 pb-10 sm:px-4">
         <div className="profile-card overflow-hidden rounded-2xl border border-[#0d2d7f]/15 bg-white/95 shadow-[0_18px_50px_-22px_rgba(13,45,127,0.4)] backdrop-blur-sm">

@@ -285,7 +285,7 @@ export function getAdminPortalMeta(slug) {
   return request(`${STAFF}/portals/${encodeURIComponent(slug)}`);
 }
 
-export function adminLogin({ username, password }, portalSlug = ADMIN_PORTAL_SLUG) {
+export function adminLogin({ username, password }, portalSlug = ADMIN_PORTAL_SLUG_SLUG) {
   const body = { username, password, slug: getPortalSlug(portalSlug) };
   const portalId = getAdminPortalId(portalSlug);
   if (portalId) body.portal_id = portalId;
@@ -347,7 +347,7 @@ export function getMagazineSubscriptions(token, filters) {
   });
 }
 
-export function getBookSubscriptions(token, filters, portalSlug = ADMIN_PORTAL) {
+export function getBookSubscriptions(token, filters, portalSlug = ADMIN_PORTAL_SLUG) {
   const params = new URLSearchParams();
   if (filters?.status) params.set('status', filters.status);
   if (filters?.search) params.set('search', filters.search);
@@ -373,7 +373,7 @@ function buildBookSummaryQuery(filters = {}) {
   return query ? `?${query}` : '';
 }
 
-export function getBookOrdersSummary(token, filters = {}, portalSlug = ADMIN_PORTAL) {
+export function getBookOrdersSummary(token, filters = {}, portalSlug = ADMIN_PORTAL_SLUG) {
   return request(`${STAFF}/subscriptions/books/summary${buildBookSummaryQuery(filters)}`, {
     headers: adminAuthHeaders(token, portalSlug)
   });
@@ -399,7 +399,7 @@ export async function downloadSubscriptionsExcel(token, filters = {}) {
   await downloadAdminFile(token, `${STAFF}/subscriptions/export/excel`, filters, `${suffix}-${stamp}.csv`);
 }
 
-export async function downloadBookOrdersPdf(token, filters = {}, portalSlug = ADMIN_PORTAL) {
+export async function downloadBookOrdersPdf(token, filters = {}, portalSlug = ADMIN_PORTAL_SLUG) {
   const stamp = new Date().toISOString().slice(0, 10);
   await downloadAdminFile(
     token,
@@ -410,7 +410,7 @@ export async function downloadBookOrdersPdf(token, filters = {}, portalSlug = AD
   );
 }
 
-export async function downloadBookOrdersExcel(token, filters = {}, portalSlug = ADMIN_PORTAL) {
+export async function downloadBookOrdersExcel(token, filters = {}, portalSlug = ADMIN_PORTAL_SLUG) {
   const stamp = new Date().toISOString().slice(0, 10);
   await downloadAdminFile(
     token,
@@ -421,7 +421,7 @@ export async function downloadBookOrdersExcel(token, filters = {}, portalSlug = 
   );
 }
 
-export async function downloadBookOrdersSummaryPdf(token, filters = {}, portalSlug = ADMIN_PORTAL) {
+export async function downloadBookOrdersSummaryPdf(token, filters = {}, portalSlug = ADMIN_PORTAL_SLUG) {
   const stamp = new Date().toISOString().slice(0, 10);
   await downloadAdminFile(
     token,
@@ -432,7 +432,7 @@ export async function downloadBookOrdersSummaryPdf(token, filters = {}, portalSl
   );
 }
 
-async function downloadAdminFile(token, path, filters, filename, portalSlug = ADMIN_PORTAL) {
+async function downloadAdminFile(token, path, filters, filename, portalSlug = ADMIN_PORTAL_SLUG) {
   const pathWithQuery = `${path}${buildFilterQuery(filters)}`;
   const { response } = await apiFetch(pathWithQuery, { headers: adminAuthHeaders(token, portalSlug) });
   if (!response.ok) {
@@ -460,6 +460,32 @@ async function downloadAdminFile(token, path, filters, filename, portalSlug = AD
 export async function downloadSubmissionsPdf(token, filters = {}) {
   const stamp = new Date().toISOString().slice(0, 10);
   await downloadAdminFile(token, `${STAFF}/submissions/export/pdf`, filters, `subscribers-${stamp}.pdf`);
+}
+
+function buildSubmissionSummaryQuery(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters?.status) params.set('status', filters.status);
+  if (filters?.audience) params.set('audience', filters.audience);
+  if (filters?.month != null && String(filters.month).trim() !== '') params.set('month', String(filters.month));
+  if (filters?.year != null && String(filters.year).trim() !== '') params.set('year', String(filters.year));
+  const query = params.toString();
+  return query ? `?${query}` : '';
+}
+
+export function getSubmissionsSummary(token, filters = {}) {
+  return request(`${STAFF}/submissions/summary${buildSubmissionSummaryQuery(filters)}`, {
+    headers: adminAuthHeaders(token)
+  });
+}
+
+export async function downloadSubmissionsSummaryPdf(token, filters = {}) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  await downloadAdminFile(
+    token,
+    `${STAFF}/submissions/summary/export/pdf`,
+    filters,
+    `anand-sandesh-summary-${stamp}.pdf`
+  );
 }
 
 export async function downloadSubmissionsExcel(token, filters = {}) {

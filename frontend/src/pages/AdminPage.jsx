@@ -11,10 +11,12 @@ import {
   downloadBookOrdersSummaryPdf,
   downloadSubmissionsExcel,
   downloadSubmissionsPdf,
+  downloadSubmissionsSummaryPdf,
   downloadSubmissionLabelsPdf,
   getBookSubscriptions,
   getBookOrdersSummary,
   getSubmissions,
+  getSubmissionsSummary,
   listAdminUsers,
   updateAdminUser
 } from '../services/api.js';
@@ -70,6 +72,12 @@ const DEFAULT_PAYMENT_FILTERS = {
   audience: 'online',
   status: 'verified',
   search: '',
+  ...currentAccountingFilterDefaults()
+};
+
+const DEFAULT_SUBSCRIPTION_SUMMARY_FILTERS = {
+  audience: 'online',
+  status: 'verified',
   ...currentAccountingFilterDefaults()
 };
 
@@ -146,10 +154,10 @@ function PaymentFilters({
   const yearOptions = accountingYearOptions();
 
   return (
-    <div className="mb-5 space-y-3">
+    <div className="admin-report-filters">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <label className="block">
-          <span className="label">{t('admin.filters.audience')}</span>
+          <span className="admin-report-label">{t('admin.filters.audience')}</span>
           <select className="input" value={filters.audience} onChange={(e) => onChange('audience', e.target.value)}>
             <option value="online">{t('admin.filters.audienceOnline')}</option>
             <option value="legacy">{t('admin.filters.audienceLegacy')}</option>
@@ -157,7 +165,7 @@ function PaymentFilters({
           </select>
         </label>
         <label className="block">
-          <span className="label">{t('admin.filters.status')}</span>
+          <span className="admin-report-label">{t('admin.filters.status')}</span>
           <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
             <option value="verified">
               {t('admin.filterVerified')} ({counts.verified ?? 0})
@@ -172,7 +180,7 @@ function PaymentFilters({
           </select>
         </label>
         <label className="block">
-          <span className="label">{t('admin.filters.accountingYear')}</span>
+          <span className="admin-report-label">{t('admin.filters.accountingYear')}</span>
           <select className="input" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
             {yearOptions.map((year) => (
@@ -183,7 +191,7 @@ function PaymentFilters({
           </select>
         </label>
         <label className="block">
-          <span className="label">{t('admin.filters.accountingMonth')}</span>
+          <span className="admin-report-label">{t('admin.filters.accountingMonth')}</span>
           <select className="input" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
             {monthOptions.map((option) => (
@@ -195,7 +203,7 @@ function PaymentFilters({
         </label>
       </div>
       <label className="block">
-        <span className="label">{t('admin.filters.search')}</span>
+        <span className="admin-report-label">{t('admin.filters.search')}</span>
         <input
           className="input"
           value={filters.search}
@@ -211,7 +219,7 @@ function PaymentFilters({
       </label>
       <div className="flex flex-wrap gap-2">
         <button
-          className="btn-primary inline-flex h-[42px] items-center justify-center gap-2"
+          className="admin-report-btn-primary h-[42px]"
           type="button"
           onClick={onAddManual}
           disabled={isLoading}
@@ -220,7 +228,7 @@ function PaymentFilters({
           {t('admin.manualSubscription.addButton')}
         </button>
         <button
-          className="btn-secondary inline-flex h-[42px] items-center justify-center gap-2"
+          className="admin-report-btn-secondary h-[42px]"
           type="button"
           onClick={onApply}
           disabled={isLoading}
@@ -229,7 +237,7 @@ function PaymentFilters({
           {isLoading ? t('admin.refreshing') : t('admin.refresh')}
         </button>
         <button
-          className="btn-secondary inline-flex h-[42px] items-center gap-2"
+          className="admin-report-btn-secondary h-[42px]"
           type="button"
           onClick={onDownloadLabels}
           disabled={isLoading || isExporting}
@@ -238,7 +246,7 @@ function PaymentFilters({
           {t('admin.filters.downloadLabels')}
         </button>
         <button
-          className="btn-secondary inline-flex h-[42px] items-center gap-2"
+          className="admin-report-btn-secondary h-[42px]"
           type="button"
           onClick={onDownloadPdf}
           disabled={isLoading || isExporting}
@@ -247,7 +255,7 @@ function PaymentFilters({
           {t('admin.filters.downloadPdf')}
         </button>
         <button
-          className="btn-secondary inline-flex h-[42px] items-center gap-2"
+          className="admin-report-btn-secondary h-[42px]"
           type="button"
           onClick={onDownloadExcel}
           disabled={isLoading || isExporting}
@@ -263,9 +271,10 @@ function PaymentFilters({
 
 function UserFilters({ filters, onChange, onApply, isLoading, t }) {
   return (
-    <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="admin-report-filters mb-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       <label className="block">
-        <span className="label">{t('admin.filters.audience')}</span>
+        <span className="admin-report-label">{t('admin.filters.audience')}</span>
         <select className="input" value={filters.audience} onChange={(e) => onChange('audience', e.target.value)}>
           <option value="">{t('admin.filterAll')}</option>
           <option value="online">{t('admin.filters.audienceOnline')}</option>
@@ -273,7 +282,7 @@ function UserFilters({ filters, onChange, onApply, isLoading, t }) {
         </select>
       </label>
       <label className="block">
-        <span className="label">{t('admin.users.verified')}</span>
+        <span className="admin-report-label">{t('admin.users.verified')}</span>
         <select className="input" value={filters.is_verified} onChange={(e) => onChange('is_verified', e.target.value)}>
           <option value="">{t('admin.filterAll')}</option>
           <option value="true">{t('common.yes')}</option>
@@ -281,7 +290,7 @@ function UserFilters({ filters, onChange, onApply, isLoading, t }) {
         </select>
       </label>
       <label className="block">
-        <span className="label">{t('admin.filters.minSubscriber')}</span>
+        <span className="admin-report-label">{t('admin.filters.minSubscriber')}</span>
         <input
           className="input"
           type="number"
@@ -292,7 +301,7 @@ function UserFilters({ filters, onChange, onApply, isLoading, t }) {
         />
       </label>
       <label className="block">
-        <span className="label">{t('admin.filters.maxSubscriber')}</span>
+        <span className="admin-report-label">{t('admin.filters.maxSubscriber')}</span>
         <input
           className="input"
           type="number"
@@ -302,7 +311,7 @@ function UserFilters({ filters, onChange, onApply, isLoading, t }) {
         />
       </label>
       <button
-        className="btn-secondary inline-flex h-[42px] items-center justify-center gap-2 self-end"
+        className="admin-report-btn-secondary h-[42px] self-end"
         type="button"
         onClick={onApply}
         disabled={isLoading}
@@ -310,6 +319,7 @@ function UserFilters({ filters, onChange, onApply, isLoading, t }) {
         {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={16} />}
         {t('admin.filters.apply')}
       </button>
+      </div>
     </div>
   );
 }
@@ -319,10 +329,10 @@ function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloa
   const yearOptions = accountingYearOptions();
 
   return (
-    <div className="card mb-5 space-y-4 p-4">
+    <div className="admin-report-filters">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <label className="block">
-          <span className="label">{t('admin.filters.status')}</span>
+          <span className="admin-report-label">{t('admin.filters.status')}</span>
           <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
             <option value="verified">{t('admin.filterVerified')}</option>
             <option value="pending">{t('admin.filterPending')}</option>
@@ -331,7 +341,7 @@ function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloa
           </select>
         </label>
         <label className="block">
-          <span className="label">{t('admin.filters.search')}</span>
+          <span className="admin-report-label">{t('admin.filters.search')}</span>
           <input
             className="input"
             value={filters.search}
@@ -340,7 +350,7 @@ function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloa
           />
         </label>
         <label className="block">
-          <span className="label">{t('admin.filters.accountingYear')}</span>
+          <span className="admin-report-label">{t('admin.filters.accountingYear')}</span>
           <select className="input" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
             {yearOptions.map((year) => (
@@ -351,7 +361,7 @@ function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloa
           </select>
         </label>
         <label className="block">
-          <span className="label">{t('admin.filters.accountingMonth')}</span>
+          <span className="admin-report-label">{t('admin.filters.accountingMonth')}</span>
           <select className="input" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
             {monthOptions.map((option) => (
@@ -363,12 +373,12 @@ function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloa
         </label>
       </div>
       <div className="flex flex-wrap gap-2">
-        <button className="btn-primary inline-flex items-center gap-2" type="button" onClick={onApply} disabled={isLoading}>
+        <button className="admin-report-btn-primary" type="button" onClick={onApply} disabled={isLoading}>
           {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={16} />}
           {t('admin.filters.apply')}
         </button>
         <button
-          className="btn-secondary inline-flex items-center gap-2"
+          className="admin-report-btn-secondary"
           type="button"
           onClick={onDownloadPdf}
           disabled={isLoading || isExporting}
@@ -377,7 +387,7 @@ function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloa
           {t('admin.filters.downloadPdf')}
         </button>
         <button
-          className="btn-secondary inline-flex items-center gap-2"
+          className="admin-report-btn-secondary"
           type="button"
           onClick={onDownloadExcel}
           disabled={isLoading || isExporting}
@@ -396,15 +406,19 @@ function formatSalesRupees(paise) {
   return `₹${(n / 100).toFixed(2)}`;
 }
 
+function adminTabClass(isActive) {
+  return isActive ? 'admin-report-tab admin-report-tab--active' : 'admin-report-tab admin-report-tab--inactive';
+}
+
 function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoading, isExporting, t, locale }) {
   const monthOptions = accountingMonthOptions(locale);
   const yearOptions = accountingYearOptions();
 
   return (
-    <div className="card mb-5 space-y-4 border border-emerald-200/80 bg-gradient-to-br from-emerald-50/90 to-teal-50/70 p-5 shadow-sm">
+    <div className="admin-report-filters">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <label className="block">
-          <span className="label text-base font-semibold text-emerald-900">{t('admin.filters.status')}</span>
+          <span className="admin-report-label">{t('admin.filters.status')}</span>
           <select className="input text-base" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
             <option value="verified">{t('admin.filterVerified')}</option>
             <option value="pending">{t('admin.filterPending')}</option>
@@ -413,7 +427,7 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
           </select>
         </label>
         <label className="block">
-          <span className="label text-base font-semibold text-emerald-900">{t('admin.booksSummary.counter')}</span>
+          <span className="admin-report-label">{t('admin.booksSummary.counter')}</span>
           <select className="input text-base" value={filters.counter} onChange={(e) => onChange('counter', e.target.value)}>
             <option value="all">{t('admin.booksSummary.allCounters')}</option>
             {BOOK_PICKUP_COUNTERS.map((counter) => (
@@ -424,7 +438,7 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
           </select>
         </label>
         <label className="block">
-          <span className="label text-base font-semibold text-emerald-900">{t('admin.filters.accountingYear')}</span>
+          <span className="admin-report-label">{t('admin.filters.accountingYear')}</span>
           <select className="input text-base" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
             {yearOptions.map((year) => (
@@ -435,7 +449,7 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
           </select>
         </label>
         <label className="block">
-          <span className="label text-base font-semibold text-emerald-900">{t('admin.filters.accountingMonth')}</span>
+          <span className="admin-report-label">{t('admin.filters.accountingMonth')}</span>
           <select className="input text-base" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
             {monthOptions.map((option) => (
@@ -447,17 +461,12 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
         </label>
       </div>
       <div className="flex flex-wrap gap-3">
-        <button
-          className="btn-primary inline-flex items-center gap-2 !bg-emerald-600 !text-base hover:!bg-emerald-700 focus:!ring-emerald-500/35"
-          type="button"
-          onClick={onApply}
-          disabled={isLoading}
-        >
+        <button className="admin-report-btn-primary !text-base" type="button" onClick={onApply} disabled={isLoading}>
           {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={18} />}
           {t('admin.filters.apply')}
         </button>
         <button
-          className="btn-secondary inline-flex items-center gap-2 !border-emerald-300 !bg-white !text-base !text-emerald-900 hover:!border-emerald-500 hover:!bg-emerald-50"
+          className="admin-report-btn-secondary !text-base"
           type="button"
           onClick={onDownloadPdf}
           disabled={isLoading || isExporting}
@@ -470,10 +479,220 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
   );
 }
 
+function SummaryTableColGroup() {
+  return (
+    <colgroup>
+      <col className="summary-col-book" />
+      <col className="summary-col-qty" />
+      <col className="summary-col-sales" />
+    </colgroup>
+  );
+}
+
+function publicationLabel(code, t) {
+  if (code === 'hindi') return t('admin.subscriptionsSummary.hindi');
+  if (code === 'english') return t('admin.subscriptionsSummary.english');
+  if (code === 'spiritual_bliss') return t('admin.subscriptionsSummary.spiritualBliss');
+  return code;
+}
+
+function SubscriptionSummaryFilters({
+  filters,
+  counts,
+  onChange,
+  onApply,
+  onDownloadPdf,
+  isLoading,
+  isExporting,
+  t,
+  locale
+}) {
+  const monthOptions = accountingMonthOptions(locale);
+  const yearOptions = accountingYearOptions();
+  const verifiedCount = counts.verified ?? 0;
+  const pendingCount = counts.pending ?? 0;
+  const allCount = counts.all ?? 0;
+
+  return (
+    <div className="admin-report-filters">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <label className="block">
+          <span className="admin-report-label">{t('admin.filters.audience')}</span>
+          <select className="input text-base" value={filters.audience} onChange={(e) => onChange('audience', e.target.value)}>
+            <option value="online">{t('admin.filters.audienceOnline')}</option>
+            <option value="legacy">{t('admin.filters.audienceLegacy')}</option>
+            <option value="all">{t('admin.filterAll')}</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="admin-report-label">{t('admin.subscriptionsSummary.statusFilterLabel')}</span>
+          <select className="input text-base" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
+            <option value="verified">
+              {t('admin.subscriptionsSummary.verifiedSubscribers', { count: verifiedCount })}
+            </option>
+            <option value="pending">
+              {t('admin.subscriptionsSummary.pendingSubscribers', { count: pendingCount })}
+            </option>
+            <option value="all">
+              {t('admin.subscriptionsSummary.allSubscribers', { count: allCount })}
+            </option>
+            <option value="failed">{t('admin.filterFailed')}</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="admin-report-label">{t('admin.filters.accountingYear')}</span>
+          <select className="input text-base" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
+            <option value="all">{t('admin.filterAll')}</option>
+            {yearOptions.map((year) => (
+              <option key={year} value={String(year)}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="admin-report-label">{t('admin.filters.accountingMonth')}</span>
+          <select className="input text-base" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
+            <option value="all">{t('admin.filterAll')}</option>
+            {monthOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="flex flex-wrap gap-3">
+        <button className="admin-report-btn-primary !text-base" type="button" onClick={onApply} disabled={isLoading}>
+          {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={18} />}
+          {t('admin.filters.apply')}
+        </button>
+        <button
+          className="admin-report-btn-secondary !text-base"
+          type="button"
+          onClick={onDownloadPdf}
+          disabled={isLoading || isExporting}
+        >
+          <Download size={18} />
+          {t('admin.subscriptionsSummary.downloadPdf')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SubscriptionSummaryTable({ summary, subscriberCount, t }) {
+  const durations = summary?.durations || [];
+  const hasData = (summary?.totals?.total_quantity || 0) > 0;
+  const subscribers = summary?.subscriber_count ?? subscriberCount;
+
+  if (!hasData) {
+    return (
+      <div className="admin-report-card border border-emerald-200/70 bg-emerald-50/80 p-10 text-center text-base font-medium text-emerald-800">
+        {t('admin.subscriptionsSummary.none')}
+      </div>
+    );
+  }
+
+  function durationLabel(code) {
+    if (code === 'five_year') return t('admin.subscriptionsSummary.fiveYear');
+    return t('admin.subscriptionsSummary.oneYear');
+  }
+
+  function renderPublicationTable(publications, totals, totalLabel) {
+    return (
+      <table className="admin-report-table admin-summary-table min-w-[480px] text-base">
+        <SummaryTableColGroup />
+        <thead>
+          <tr>
+            <th>{t('admin.subscriptionsSummary.publication')}</th>
+            <th>{t('admin.subscriptionsSummary.copies')}</th>
+            <th>{t('admin.subscriptionsSummary.totalSales')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {publications
+            .filter((row) => row.quantity > 0)
+            .map((row) => (
+              <tr key={row.code}>
+                <td className="text-ink">{publicationLabel(row.code, t)}</td>
+                <td className="font-semibold text-emerald-800">{row.quantity}</td>
+                <td className="font-semibold text-emerald-900">{formatSalesRupees(row.total_sales_paise)}</td>
+              </tr>
+            ))}
+          <tr className="admin-report-table__total-row">
+            <td>{totalLabel}</td>
+            <td>{totals.total_quantity}</td>
+            <td>{formatSalesRupees(totals.total_sales_paise)}</td>
+          </tr>
+        </tbody>
+      </table>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {subscribers != null && summary.totals ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-emerald-300/80 bg-white px-4 py-4 text-center shadow-sm">
+            <div className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+              {t('admin.subscriptionsSummary.subscribersLabel')}
+            </div>
+            <div className="mt-1 text-3xl font-bold text-emerald-900">{subscribers}</div>
+          </div>
+          <div className="rounded-xl border border-emerald-300/80 bg-white px-4 py-4 text-center shadow-sm">
+            <div className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+              {t('admin.subscriptionsSummary.copiesLabel')}
+            </div>
+            <div className="mt-1 text-3xl font-bold text-emerald-900">{summary.totals.total_quantity}</div>
+          </div>
+        </div>
+      ) : null}
+
+      {subscribers != null && summary.totals ? (
+        <p className="rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-base text-emerald-900">
+          {t('admin.subscriptionsSummary.countsHint', {
+            subscribers,
+            copies: summary.totals.total_quantity
+          })}
+        </p>
+      ) : null}
+
+      {durations.map((section) => (
+        <div key={section.code} className="admin-report-card">
+          <div className="admin-report-section-title">
+            {t('admin.subscriptionsSummary.sectionTitle')} — {durationLabel(section.code)}
+          </div>
+          <div className="admin-report-table-wrap">
+            {renderPublicationTable(section.publications, section.totals, t('admin.subscriptionsSummary.grandTotalCopies'))}
+          </div>
+        </div>
+      ))}
+
+      {durations.length > 1 && summary.totals ? (
+        <div className="admin-report-card">
+          <div className="admin-report-table-wrap">
+            <table className="admin-report-table admin-summary-table min-w-[480px] text-base">
+              <SummaryTableColGroup />
+              <tbody>
+                <tr className="admin-report-table__total-row">
+                  <td>{t('admin.subscriptionsSummary.combinedTotals')}</td>
+                  <td>{summary.totals.total_quantity}</td>
+                  <td>{formatSalesRupees(summary.totals.total_sales_paise)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function BookSummaryTables({ summary, t }) {
   if (!summary?.counters?.length) {
     return (
-      <div className="card border border-emerald-200/70 bg-emerald-50/80 p-10 text-center text-base font-medium text-emerald-800">
+      <div className="admin-report-card border border-emerald-200/70 bg-emerald-50/80 p-10 text-center text-base font-medium text-emerald-800">
         {t('admin.booksSummary.none')}
       </div>
     );
@@ -482,31 +701,30 @@ function BookSummaryTables({ summary, t }) {
   return (
     <div className="space-y-6">
       {summary.counters.map((counter) => (
-        <div key={counter.code} className="card overflow-hidden border border-emerald-200/70 shadow-md">
-          <div className="border-b border-emerald-200/80 bg-gradient-to-r from-emerald-100 via-emerald-50 to-teal-50 px-5 py-4">
-            <p className="text-lg font-black text-emerald-900 sm:text-xl">{counter.label}</p>
-          </div>
-          <div className="overflow-x-auto bg-white/80">
-            <table className="w-full min-w-[480px] border-collapse text-left text-base">
-              <thead className="bg-emerald-100/90 text-emerald-900">
+        <div key={counter.code} className="admin-report-card">
+          <div className="admin-report-section-title sm:text-xl">{counter.label}</div>
+          <div className="admin-report-table-wrap">
+            <table className="admin-report-table admin-summary-table min-w-[480px] text-base">
+              <SummaryTableColGroup />
+              <thead>
                 <tr>
-                  <th className="px-5 py-3.5 text-base font-black">{t('admin.booksSummary.bookName')}</th>
-                  <th className="px-5 py-3.5 text-base font-black">{t('admin.booksSummary.quantity')}</th>
-                  <th className="px-5 py-3.5 text-base font-black">{t('admin.booksSummary.totalSales')}</th>
+                  <th>{t('admin.booksSummary.bookName')}</th>
+                  <th>{t('admin.booksSummary.quantity')}</th>
+                  <th>{t('admin.booksSummary.totalSales')}</th>
                 </tr>
               </thead>
               <tbody>
                 {counter.books.map((book) => (
-                  <tr key={`${counter.code}-${book.book_name}`} className="border-t border-emerald-100/80 even:bg-emerald-50/50">
-                    <td className="px-5 py-3.5 text-ink">{book.book_name}</td>
-                    <td className="px-5 py-3.5 font-semibold text-emerald-800">{book.quantity}</td>
-                    <td className="px-5 py-3.5 font-semibold text-emerald-900">{formatSalesRupees(book.total_sales_paise)}</td>
+                  <tr key={`${counter.code}-${book.book_name}`}>
+                    <td className="text-ink">{book.book_name}</td>
+                    <td className="font-semibold text-emerald-800">{book.quantity}</td>
+                    <td className="font-semibold text-emerald-900">{formatSalesRupees(book.total_sales_paise)}</td>
                   </tr>
                 ))}
-                <tr className="border-t-2 border-emerald-300 bg-emerald-200/60 text-base font-bold text-emerald-950">
-                  <td className="px-5 py-3.5">{t('admin.booksSummary.grandTotal')}</td>
-                  <td className="px-5 py-3.5">{counter.total_quantity}</td>
-                  <td className="px-5 py-3.5">{formatSalesRupees(counter.total_sales_paise)}</td>
+                <tr className="admin-report-table__total-row">
+                  <td>{t('admin.booksSummary.grandTotal')}</td>
+                  <td>{counter.total_quantity}</td>
+                  <td>{formatSalesRupees(counter.total_sales_paise)}</td>
                 </tr>
               </tbody>
             </table>
@@ -515,11 +733,19 @@ function BookSummaryTables({ summary, t }) {
       ))}
 
       {summary.counters.length > 1 && summary.totals ? (
-        <div className="card border-2 border-emerald-300/70 bg-gradient-to-br from-emerald-100 to-teal-50 p-5 text-base text-emerald-950 shadow-md">
-          <p className="text-lg font-black text-emerald-900">{t('admin.booksSummary.combinedTotals')}</p>
-          <p className="mt-2 text-base font-semibold text-emerald-800">
-            {t('admin.booksSummary.totalSales')}: {formatSalesRupees(summary.totals.total_sales_paise)}
-          </p>
+        <div className="admin-report-card">
+          <div className="admin-report-table-wrap">
+            <table className="admin-report-table admin-summary-table min-w-[480px] text-base">
+              <SummaryTableColGroup />
+              <tbody>
+                <tr className="admin-report-table__total-row">
+                  <td>{t('admin.booksSummary.combinedTotals')}</td>
+                  <td>{summary.totals.total_quantity}</td>
+                  <td>{formatSalesRupees(summary.totals.total_sales_paise)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : null}
     </div>
@@ -546,8 +772,8 @@ function UserEditModal({ user, onClose, onSave, saving, t }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
-      <form onSubmit={handleSubmit} className="card w-full max-w-md space-y-4 p-6">
-        <h2 className="text-xl font-black text-ink">{t('admin.users.editTitle')}</h2>
+      <form onSubmit={handleSubmit} className="admin-login-card w-full max-w-md">
+        <h2 className="text-xl font-black text-emerald-950">{t('admin.users.editTitle')}</h2>
         <p className="text-xs text-muted">{t('admin.users.editId')}: {user.id}</p>
         <label className="block">
           <span className="label">{t('admin.users.fullName')}</span>
@@ -567,7 +793,7 @@ function UserEditModal({ user, onClose, onSave, saving, t }) {
             onChange={(e) => setForm({ ...form, subscriber_no: e.target.value })}
           />
         </label>
-        <label className="flex items-center gap-2 text-sm font-semibold text-ink">
+        <label className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
           <input
             type="checkbox"
             checked={form.is_verified}
@@ -576,10 +802,10 @@ function UserEditModal({ user, onClose, onSave, saving, t }) {
           {t('admin.users.verified')}
         </label>
         <div className="flex gap-2">
-          <button className="btn-primary flex-1" type="submit" disabled={saving}>
+          <button className="admin-report-btn-primary flex-1" type="submit" disabled={saving}>
             {saving ? t('admin.users.saving') : t('admin.users.save')}
           </button>
-          <button className="btn-secondary flex-1" type="button" onClick={onClose} disabled={saving}>
+          <button className="admin-report-btn-secondary flex-1" type="button" onClick={onClose} disabled={saving}>
             {t('common.cancel')}
           </button>
         </div>
@@ -621,6 +847,9 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     totalPages: 1
   });
   const [paymentCounts, setPaymentCounts] = useState({ all: 0, pending: 0, verified: 0 });
+  const [subscriptionSubTab, setSubscriptionSubTab] = useState('list');
+  const [subscriptionSummaryFilters, setSubscriptionSummaryFilters] = useState(DEFAULT_SUBSCRIPTION_SUMMARY_FILTERS);
+  const [subscriptionSummary, setSubscriptionSummary] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [bookRows, setBookRows] = useState([]);
   const [users, setUsers] = useState([]);
@@ -651,7 +880,8 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   const showUsersTab = superAdmin && !booksOnlyView;
 
   const tabHasCachedData =
-    (activeTab === 'subscriptions' && submissions.length > 0) ||
+    (activeTab === 'subscriptions' && subscriptionSubTab === 'list' && submissions.length > 0) ||
+    (activeTab === 'subscriptions' && subscriptionSubTab === 'summary' && subscriptionSummary != null) ||
     (activeTab === 'bookOrders' && bookRows.length > 0) ||
     (activeTab === 'users' && users.length > 0);
 
@@ -663,7 +893,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
 
   function handleAuthError(err) {
     setError(err.message);
-    if (err.status === 401 || err.message.toLowerCase().includes('admin')) {
+    if (err.status === 401) {
       clearAdminSession(portalSlug);
       setToken('');
       setRole('');
@@ -781,6 +1011,30 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     [token, bookSummaryFilters, portalSlug]
   );
 
+  const loadSubscriptionSummary = useCallback(
+    async (activeToken = token, filters = subscriptionSummaryFilters, { silent = false } = {}) => {
+      if (!activeToken) return;
+      if (!silent) {
+        setIsLoading(true);
+        setError('');
+      }
+      try {
+        const data = await getSubmissionsSummary(activeToken, {
+          status: filters.status,
+          audience: filters.audience,
+          month: filters.month,
+          year: filters.year
+        });
+        setSubscriptionSummary(data);
+      } catch (err) {
+        if (!silent) handleAuthError(err);
+      } finally {
+        if (!silent) setIsLoading(false);
+      }
+    },
+    [token, subscriptionSummaryFilters]
+  );
+
   async function loadUsersNow() {
     await loadUsers();
   }
@@ -817,6 +1071,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setToken('');
     setRole('');
     setSubmissions([]);
+    setSubscriptionSummary(null);
     setBookRows([]);
     setBookSummary(null);
     setBookPage(1);
@@ -856,6 +1111,10 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setUserFilters((prev) => ({ ...prev, [key]: value }));
   }
 
+  function updateSubscriptionSummaryFilter(key, value) {
+    setSubscriptionSummaryFilters((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
+  }
+
   useEffect(() => {
     if (booksOnlyView && activeTab === 'subscriptions') {
       setActiveTab('bookOrders');
@@ -864,18 +1123,32 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
 
   useEffect(() => {
     if (!isAdminAuthenticated(portalSlug)) return;
-    if (activeTab === 'subscriptions' && showSubscriptionsTab) loadSubmissions();
+    if (activeTab === 'subscriptions' && showSubscriptionsTab && subscriptionSubTab === 'list') loadSubmissions();
+    if (activeTab === 'subscriptions' && showSubscriptionsTab && subscriptionSubTab === 'summary') loadSubscriptionSummary();
     if (activeTab === 'bookOrders' && bookSubTab === 'orders') loadBookOrders();
     if (activeTab === 'bookOrders' && bookSubTab === 'summary') loadBookSummary();
     if (activeTab === 'users' && showUsersTab) loadUsers();
-  }, [token, activeTab, bookSubTab, showSubscriptionsTab, showUsersTab, loadSubmissions, loadBookOrders, loadBookSummary, loadUsers, portalSlug]);
+  }, [
+    token,
+    activeTab,
+    subscriptionSubTab,
+    bookSubTab,
+    showSubscriptionsTab,
+    showUsersTab,
+    loadSubmissions,
+    loadSubscriptionSummary,
+    loadBookOrders,
+    loadBookSummary,
+    loadUsers,
+    portalSlug
+  ]);
 
   useEffect(() => {
     if (!token || isExporting) return undefined;
 
     const poll = () => {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
-      if (activeTab === 'subscriptions' && showSubscriptionsTab) {
+      if (activeTab === 'subscriptions' && showSubscriptionsTab && subscriptionSubTab === 'list') {
         loadSubmissions(token, { silent: true });
       } else if (activeTab === 'bookOrders' && bookSubTab === 'orders') {
         loadBookOrders(token, bookFilters, { silent: true, page: bookPage });
@@ -887,9 +1160,11 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   }, [
     token,
     activeTab,
+    subscriptionSubTab,
     showSubscriptionsTab,
     loadSubmissions,
     loadBookOrders,
+    bookSubTab,
     bookFilters,
     bookPage,
     isExporting
@@ -959,6 +1234,18 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     }
   }
 
+  async function handleDownloadSubscriptionSummaryPdf() {
+    setError('');
+    setIsExporting(true);
+    try {
+      await downloadSubmissionsSummaryPdf(token, subscriptionSummaryFilters);
+    } catch (err) {
+      handleAuthError(err);
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   async function handleDownloadBookSummaryPdf() {
     setError('');
     setIsExporting(true);
@@ -975,10 +1262,10 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     return (
       <main className="page-shell">
         <section className="content-wrap flex min-h-[calc(100vh-3rem)] items-center justify-center">
-          <form onSubmit={handleLogin} className="card w-full max-w-md space-y-5 p-6 sm:p-8">
+          <form onSubmit={handleLogin} className="admin-login-card sm:p-8">
             <div className="text-center">
-              <Lock className="mx-auto mb-4 text-primary" size={52} />
-              <h1 className="text-3xl font-black text-ink">
+              <Lock className="mx-auto mb-4 text-emerald-700" size={52} />
+              <h1 className="text-3xl font-black text-emerald-950">
                 {booksOnlyPortal ? t('booksAdmin.loginTitle') : t('admin.loginTitle')}
               </h1>
               <p className="mt-2 text-muted">
@@ -1021,7 +1308,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                 </button>
               </div>
             </label>
-            <button className="btn-primary w-full" type="submit" disabled={!isAdminPortalConfigured(portalSlug)}>
+            <button className="admin-report-btn-primary w-full" type="submit" disabled={!isAdminPortalConfigured(portalSlug)}>
               {t('admin.loginButton')}
             </button>
           </form>
@@ -1047,14 +1334,14 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
             }
           />
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-bold uppercase text-[#0d2d7f]">
+            <span className="admin-report-badge">
               {superAdmin
                 ? t('admin.roleSuper')
                 : booksAdminRole
                   ? t('booksAdmin.roleBooksAdmin')
                   : t('admin.roleAdmin')}
             </span>
-            <button className="btn-secondary inline-flex items-center gap-2" type="button" onClick={handleLogout}>
+            <button className="admin-report-btn-secondary" type="button" onClick={handleLogout}>
               <LogOut size={16} />
               {t('admin.logout')}
             </button>
@@ -1066,7 +1353,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
             {showSubscriptionsTab ? (
               <button
                 type="button"
-                className={`rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'subscriptions' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+                className={adminTabClass(activeTab === 'subscriptions')}
                 onClick={() => setActiveTab('subscriptions')}
               >
                 {t('admin.tabs.subscriptions')}
@@ -1075,7 +1362,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
             {!booksOnlyPortal ? (
               <button
                 type="button"
-                className={`rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'bookOrders' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+                className={adminTabClass(activeTab === 'bookOrders')}
                 onClick={() => setActiveTab('bookOrders')}
               >
                 {t('admin.tabs.bookOrders')}
@@ -1084,7 +1371,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
             {showUsersTab ? (
               <button
                 type="button"
-                className={`inline-flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'users' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+                className={`inline-flex items-center gap-1 ${adminTabClass(activeTab === 'users')}`}
                 onClick={() => setActiveTab('users')}
               >
                 <Users size={15} />
@@ -1102,6 +1389,25 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
 
         {activeTab === 'subscriptions' && showSubscriptionsTab ? (
           <>
+            <div className="mb-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={adminTabClass(subscriptionSubTab === 'list')}
+                onClick={() => setSubscriptionSubTab('list')}
+              >
+                {t('admin.subscriptionsSummary.tabList')}
+              </button>
+              <button
+                type="button"
+                className={adminTabClass(subscriptionSubTab === 'summary')}
+                onClick={() => setSubscriptionSubTab('summary')}
+              >
+                {t('admin.subscriptionsSummary.tabSummary')}
+              </button>
+            </div>
+
+            {subscriptionSubTab === 'list' ? (
+              <>
             <PaymentFilters
               filters={paymentFilters}
               counts={paymentCounts}
@@ -1117,27 +1423,30 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               locale={locale}
             />
 
-            <div className="card overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] border-collapse text-left text-sm md:min-w-[720px] lg:min-w-[840px]">
-                  <thead className="bg-brand-surface text-ink">
+            <div className="admin-report-card">
+              <div className="admin-report-section-title">
+                {t('admin.tabs.subscriptions')} ({paymentPagination.total || submissions.length})
+              </div>
+              <div className="admin-report-table-wrap">
+                <table className="admin-report-table min-w-[640px] md:min-w-[720px] lg:min-w-[840px]">
+                  <thead>
                     <tr>
-                      <th className="px-4 py-4 font-black">{t('admin.users.subscriberNo')}</th>
-                      <th className="px-4 py-4 font-black">{t('admin.table.name')}</th>
-                      <th className="px-4 py-4 font-black">{t('admin.table.contact')}</th>
-                      <th className="px-4 py-4 font-black">{t('admin.table.address')}</th>
-                      <th className="px-4 py-4 font-black">{t('admin.table.subscription')}</th>
-                      <th className="px-4 py-4 font-black">{t('admin.table.status')}</th>
-                      <th className="px-4 py-4 font-black">{t('admin.table.validUpto')}</th>
+                      <th>{t('admin.users.subscriberNo')}</th>
+                      <th>{t('admin.table.name')}</th>
+                      <th>{t('admin.table.contact')}</th>
+                      <th>{t('admin.table.address')}</th>
+                      <th>{t('admin.table.subscription')}</th>
+                      <th>{t('admin.table.status')}</th>
+                      <th>{t('admin.table.validUpto')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {submissions.map((item) => {
                       const status = displayPaymentStatus(item);
                       return (
-                      <tr key={submissionRowKey(item)} className="border-t border-ink/10 align-top">
-                        <td className="px-4 py-4 font-semibold tabular-nums text-ink">{formatSubscriberNo(item)}</td>
-                        <td className="px-4 py-4">
+                      <tr key={submissionRowKey(item)}>
+                        <td className="font-semibold tabular-nums text-ink">{formatSubscriberNo(item)}</td>
+                        <td>
                           <p className="font-bold text-ink">{item.name || t('admin.notSubmitted')}</p>
                           {item.gender ? (
                             <p className="text-xs capitalize text-muted">
@@ -1146,14 +1455,14 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                           ) : null}
                           <p className="text-xs text-muted">{new Date(item.created_at).toLocaleString()}</p>
                         </td>
-                        <td className="px-4 py-4 text-muted">
+                        <td className="text-muted">
                           <p>{item.mobile || '-'}</p>
                           <p>{item.email || '-'}</p>
                         </td>
-                        <td className="max-w-72 px-4 py-4 text-muted">
+                        <td className="max-w-72 text-muted">
                           <p className="whitespace-pre-wrap break-words">{formatSubmissionAddress(item)}</p>
                         </td>
-                        <td className="max-w-[14rem] px-4 py-4 text-xs font-semibold text-ink">
+                        <td className="max-w-[14rem] text-xs font-semibold text-ink">
                           <p>
                             {item.subscription_type === 'five_year'
                               ? t('admin.fiveYear')
@@ -1167,11 +1476,11 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                             </p>
                           ) : null}
                         </td>
-                        <td className="px-4 py-4">
+                        <td>
                           <span
                             className={`rounded-full px-3 py-1 text-xs font-black uppercase ${
                               status === 'verified'
-                                ? 'bg-primary/20 text-[#0d2d7f]'
+                                ? 'bg-emerald-100 text-emerald-800'
                                 : 'bg-amber-100 text-amber-800'
                             }`}
                           >
@@ -1182,7 +1491,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                                 : status}
                           </span>
                         </td>
-                        <td className="px-4 py-4 text-sm font-medium tabular-nums text-ink">
+                        <td className="text-sm font-medium tabular-nums text-ink">
                           {formatUptoPeriod(item)}
                         </td>
                       </tr>
@@ -1199,7 +1508,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                 </table>
               </div>
               {paymentPagination.total > 0 ? (
-                <div className="flex flex-col gap-3 border-t border-ink/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="admin-report-pagination">
                   <p className="text-sm text-muted">
                     {t('admin.pagination.showing', {
                       from: (paymentPagination.page - 1) * paymentPagination.pageSize + 1,
@@ -1213,7 +1522,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      className="btn-secondary inline-flex items-center gap-1 px-3 py-2 text-sm disabled:opacity-50"
+                      className="admin-report-btn-secondary px-3 py-2 text-sm disabled:opacity-50"
                       onClick={() => setPaymentPage((p) => Math.max(1, p - 1))}
                       disabled={paymentPagination.page <= 1 || isLoading}
                     >
@@ -1228,7 +1537,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                     </span>
                     <button
                       type="button"
-                      className="btn-secondary inline-flex items-center gap-1 px-3 py-2 text-sm disabled:opacity-50"
+                      className="admin-report-btn-secondary px-3 py-2 text-sm disabled:opacity-50"
                       onClick={() =>
                         setPaymentPage((p) => Math.min(paymentPagination.totalPages, p + 1))
                       }
@@ -1241,6 +1550,33 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                 </div>
               ) : null}
             </div>
+              </>
+            ) : (
+              <>
+                <SubscriptionSummaryFilters
+                  filters={subscriptionSummaryFilters}
+                  counts={paymentCounts}
+                  onChange={updateSubscriptionSummaryFilter}
+                  onApply={() => loadSubscriptionSummary(token, subscriptionSummaryFilters)}
+                  onDownloadPdf={handleDownloadSubscriptionSummaryPdf}
+                  isLoading={isLoading}
+                  isExporting={isExporting}
+                  t={t}
+                  locale={locale}
+                />
+                <SubscriptionSummaryTable
+                  summary={subscriptionSummary}
+                  subscriberCount={
+                    subscriptionSummaryFilters.status === 'verified'
+                      ? paymentCounts.verified
+                      : subscriptionSummaryFilters.status === 'pending'
+                        ? paymentCounts.pending
+                        : paymentCounts.all
+                  }
+                  t={t}
+                />
+              </>
+            )}
           </>
         ) : null}
 
@@ -1249,14 +1585,14 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
             <div className="mb-4 flex flex-wrap gap-2">
               <button
                 type="button"
-                className={`rounded-lg px-4 py-2 text-sm font-bold ${bookSubTab === 'orders' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+                className={adminTabClass(bookSubTab === 'orders')}
                 onClick={() => setBookSubTab('orders')}
               >
                 {t('admin.booksSummary.tabOrders')}
               </button>
               <button
                 type="button"
-                className={`rounded-lg px-4 py-2.5 text-base font-bold ${bookSubTab === 'summary' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-white text-muted border border-emerald-200/80'}`}
+                className={adminTabClass(bookSubTab === 'summary')}
                 onClick={() => setBookSubTab('summary')}
               >
                 {t('admin.booksSummary.tabSummary')}
@@ -1280,36 +1616,36 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               locale={locale}
             />
 
-            <div className="card overflow-hidden">
-              <div className="border-b border-ink/10 bg-brand-surface px-4 py-3 font-black text-ink">
+            <div className="admin-report-card">
+              <div className="admin-report-section-title">
                 {t('admin.tabs.bookOrders')} ({bookPagination.total || bookRows.length})
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-                  <thead className="bg-white text-ink">
+              <div className="admin-report-table-wrap">
+                <table className="admin-report-table min-w-[640px]">
+                  <thead>
                     <tr>
-                      <th className="px-4 py-3 font-black">{t('admin.books.orderId')}</th>
-                      <th className="px-4 py-3 font-black">{t('admin.table.name')}</th>
-                      <th className="px-4 py-3 font-black">{t('admin.books.title')}</th>
-                      <th className="px-4 py-3 font-black">{t('admin.books.amount')}</th>
-                      <th className="px-4 py-3 font-black">{t('admin.table.status')}</th>
+                      <th>{t('admin.books.orderId')}</th>
+                      <th>{t('admin.table.name')}</th>
+                      <th>{t('admin.books.title')}</th>
+                      <th>{t('admin.books.amount')}</th>
+                      <th>{t('admin.table.status')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {bookRows.map((item) => (
-                      <tr key={item.id} className="border-t border-ink/10">
-                        <td className="px-4 py-3 font-mono text-xs">{String(item.id).slice(0, 8)}…</td>
-                        <td className="px-4 py-3 font-semibold">{item.name || '-'}</td>
-                        <td className="px-4 py-3">{item.book_name || '-'}</td>
-                        <td className="px-4 py-3">
+                      <tr key={item.id}>
+                        <td className="font-mono text-xs">{String(item.id).slice(0, 8)}…</td>
+                        <td className="font-semibold">{item.name || '-'}</td>
+                        <td>{item.book_name || '-'}</td>
+                        <td className="font-semibold text-emerald-900">
                           {item.total_amount_paise != null ? `₹${(item.total_amount_paise / 100).toFixed(2)}` : '-'}
                         </td>
-                        <td className="px-4 py-3">{item.payment_status || '-'}</td>
+                        <td>{item.payment_status || '-'}</td>
                       </tr>
                     ))}
                     {!bookRows.length ? (
                       <tr>
-                        <td colSpan="5" className="px-4 py-8 text-center text-muted">
+                        <td colSpan="5" className="py-8 text-center text-muted">
                           {t('admin.noBookOrders')}
                         </td>
                       </tr>
@@ -1318,7 +1654,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                 </table>
               </div>
               {bookPagination.total > 0 ? (
-                <div className="flex flex-col gap-3 border-t border-ink/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="admin-report-pagination">
                   <p className="text-sm text-muted">
                     {t('admin.pagination.showing', {
                       from: (bookPagination.page - 1) * bookPagination.pageSize + 1,
@@ -1329,7 +1665,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      className="btn-secondary inline-flex items-center gap-1 px-3 py-2 text-sm disabled:opacity-50"
+                      className="admin-report-btn-secondary px-3 py-2 text-sm disabled:opacity-50"
                       onClick={() => setBookPage((p) => Math.max(1, p - 1))}
                       disabled={bookPagination.page <= 1 || isLoading}
                     >
@@ -1344,7 +1680,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                     </span>
                     <button
                       type="button"
-                      className="btn-secondary inline-flex items-center gap-1 px-3 py-2 text-sm disabled:opacity-50"
+                      className="admin-report-btn-secondary px-3 py-2 text-sm disabled:opacity-50"
                       onClick={() =>
                         setBookPage((p) => Math.min(bookPagination.totalPages, p + 1))
                       }
@@ -1393,32 +1729,33 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               isLoading={isLoading}
               t={t}
             />
-            <div className="card overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[700px] border-collapse text-left text-sm">
-                  <thead className="bg-brand-surface text-ink">
+            <div className="admin-report-card">
+              <div className="admin-report-section-title">{t('admin.tabs.users')}</div>
+              <div className="admin-report-table-wrap">
+                <table className="admin-report-table min-w-[700px]">
+                  <thead>
                     <tr>
-                      <th className="px-4 py-3 font-black">{t('admin.users.subscriberNo')}</th>
-                      <th className="px-4 py-3 font-black">{t('admin.users.fullName')}</th>
-                      <th className="px-4 py-3 font-black">{t('admin.emailLabel')}</th>
-                      <th className="px-4 py-3 font-black">{t('admin.users.verified')}</th>
-                      <th className="px-4 py-3 font-black">{t('admin.users.lastLogin')}</th>
-                      <th className="px-4 py-3 font-black">{t('admin.table.action')}</th>
+                      <th>{t('admin.users.subscriberNo')}</th>
+                      <th>{t('admin.users.fullName')}</th>
+                      <th>{t('admin.emailLabel')}</th>
+                      <th>{t('admin.users.verified')}</th>
+                      <th>{t('admin.users.lastLogin')}</th>
+                      <th>{t('admin.table.action')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {users.map((user) => (
-                      <tr key={user.id} className="border-t border-ink/10">
-                        <td className="px-4 py-3">{user.subscriber_no ?? '-'}</td>
-                        <td className="px-4 py-3 font-semibold">{user.full_name || '-'}</td>
-                        <td className="px-4 py-3 text-muted">{user.email}</td>
-                        <td className="px-4 py-3">{user.is_verified ? t('common.yes') : t('common.no')}</td>
-                        <td className="px-4 py-3 text-xs text-muted">
+                      <tr key={user.id}>
+                        <td>{user.subscriber_no ?? '-'}</td>
+                        <td className="font-semibold">{user.full_name || '-'}</td>
+                        <td className="text-muted">{user.email}</td>
+                        <td>{user.is_verified ? t('common.yes') : t('common.no')}</td>
+                        <td className="text-xs text-muted">
                           {user.last_login_at ? new Date(user.last_login_at).toLocaleString() : '-'}
                         </td>
-                        <td className="px-4 py-3">
+                        <td>
                           <button
-                            className="btn-secondary inline-flex items-center gap-1 px-3 py-1.5 text-xs"
+                            className="admin-report-btn-secondary px-3 py-1.5 text-xs"
                             type="button"
                             onClick={() => setEditingUser(user)}
                           >
@@ -1430,7 +1767,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                     ))}
                     {!users.length ? (
                       <tr>
-                        <td colSpan="6" className="px-4 py-8 text-center text-muted">
+                        <td colSpan="6" className="py-8 text-center text-muted">
                           {t('admin.users.none')}
                         </td>
                       </tr>

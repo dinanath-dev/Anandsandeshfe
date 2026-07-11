@@ -1881,6 +1881,118 @@ select {
   }
 }
 
+/* Admin reports — emerald theme (matches Book Sales Summary) */
+.admin-report-tab {
+  @apply rounded-lg px-4 py-2 text-sm font-bold transition;
+}
+
+.admin-report-tab--active {
+  @apply bg-emerald-700 text-white shadow-sm;
+}
+
+.admin-report-tab--inactive {
+  @apply border border-emerald-200/80 bg-white text-emerald-800 hover:bg-emerald-50;
+}
+
+.admin-report-badge {
+  @apply rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase text-emerald-800;
+}
+
+.admin-report-filters {
+  @apply card mb-5 space-y-4 border border-emerald-200/80 bg-emerald-50/60 p-5 shadow-sm;
+}
+
+.admin-report-label {
+  @apply label text-base font-semibold text-emerald-900;
+}
+
+.admin-report-card {
+  @apply card overflow-hidden border border-emerald-200/70 bg-emerald-50/40 shadow-md;
+}
+
+.admin-report-section-title {
+  @apply border-b border-emerald-200/80 bg-emerald-100 px-5 py-4 text-lg font-black text-emerald-900;
+}
+
+.admin-report-table-wrap {
+  @apply overflow-x-auto bg-emerald-50/20;
+}
+
+.admin-report-table {
+  @apply w-full border-collapse text-left text-sm text-emerald-950;
+}
+
+.admin-report-table thead {
+  @apply bg-emerald-100 text-emerald-900;
+}
+
+.admin-report-table th {
+  @apply px-4 py-3.5 font-black;
+}
+
+.admin-report-table tbody tr {
+  @apply border-t border-emerald-100/80 align-top bg-white;
+}
+
+.admin-report-table tbody tr:nth-child(even) {
+  @apply bg-emerald-50/50;
+}
+
+.admin-report-table td {
+  @apply px-4 py-3.5;
+}
+
+.admin-report-table__total-row {
+  @apply border-t-2 border-emerald-300 bg-emerald-100 font-bold text-emerald-950;
+}
+
+.admin-summary-table {
+  @apply w-full table-fixed;
+}
+
+.admin-summary-table col.summary-col-book {
+  width: 68%;
+}
+
+.admin-summary-table col.summary-col-qty {
+  width: 14%;
+}
+
+.admin-summary-table col.summary-col-sales {
+  width: 18%;
+}
+
+.admin-summary-table th:nth-child(2),
+.admin-summary-table th:nth-child(3),
+.admin-summary-table td:nth-child(2),
+.admin-summary-table td:nth-child(3) {
+  @apply text-right tabular-nums;
+}
+
+.admin-summary-table tbody tr.admin-report-table__total-row {
+  @apply bg-emerald-100;
+}
+
+.admin-report-btn-primary {
+  @apply btn-primary inline-flex items-center justify-center gap-2 !border-emerald-700 !bg-emerald-700 !text-white hover:!bg-emerald-800 focus:!ring-emerald-500/35;
+}
+
+.admin-report-btn-secondary {
+  @apply btn-secondary inline-flex items-center justify-center gap-2 !border-emerald-300 !bg-white !text-emerald-900 hover:!border-emerald-500 hover:!bg-emerald-50;
+}
+
+.admin-report-pagination {
+  @apply flex flex-col gap-3 border-t border-emerald-100/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between;
+}
+
+.admin-login-card {
+  @apply card mx-auto w-full max-w-md space-y-4 border border-emerald-200/80 bg-emerald-50/60 p-6 shadow-md;
+}
+
+.admin-login-card .label {
+  @apply font-semibold text-emerald-900;
+}
+
 /* Toast notifications */
 .toast-host {
   position: fixed;
