@@ -285,8 +285,8 @@ export function getAdminPortalMeta(slug) {
   return request(`${STAFF}/portals/${encodeURIComponent(slug)}`);
 }
 
-export function adminLogin({ email, password }, portalSlug = ADMIN_PORTAL_SLUG) {
-  const body = { email, password, slug: getPortalSlug(portalSlug) };
+export function adminLogin({ username, password }, portalSlug = ADMIN_PORTAL_SLUG) {
+  const body = { username, password, slug: getPortalSlug(portalSlug) };
   const portalId = getAdminPortalId(portalSlug);
   if (portalId) body.portal_id = portalId;
   return request(`${STAFF}/login`, {
@@ -339,7 +339,15 @@ export function getMagazineSubscriptions(token, filters) {
 }
 
 export function getBookSubscriptions(token, filters, portalSlug = ADMIN_PORTAL) {
-  return request(`${STAFF}/subscriptions/books${buildFilterQuery(filters)}`, {
+  const params = new URLSearchParams();
+  if (filters?.status) params.set('status', filters.status);
+  if (filters?.search) params.set('search', filters.search);
+  if (filters?.month != null && String(filters.month).trim() !== '') params.set('month', String(filters.month));
+  if (filters?.year != null && String(filters.year).trim() !== '') params.set('year', String(filters.year));
+  if (filters?.page != null) params.set('page', String(filters.page));
+  if (filters?.limit != null) params.set('limit', String(filters.limit));
+  const query = params.toString();
+  return request(`${STAFF}/subscriptions/books${query ? `?${query}` : ''}`, {
     headers: adminAuthHeaders(token, portalSlug)
   });
 }

@@ -44,12 +44,17 @@ The app calls `GET /api/staff/portals/:slug` to load role and UI (books-only vs 
 
 Backend must be running (`npm run dev` in `Anandsandeshbe/backend`) so `/api` proxy works.
 
-## Staff login (DB)
+## Staff login (DB — username + password)
 
-1. Run `sql/create_admin_portals.sql` in Supabase.
-2. Run `node scripts/seedAdminPortals.mjs` once, or insert rows in `admin_portals`.
+1. Run `sql/create_admin_portals.sql` in Supabase (or `alter_admin_portals_username.sql` if upgrading).
+2. Seed defaults:
 
-| slug | URL (production) |
-|------|------------------|
-| `admin` | https://admin.anandsandeshkaryalay.online |
-| `books` | https://books.anandsandeshkaryalay.online |
+```bash
+cd Anandsandeshbe/backend
+npm run seed:admin-portals
+```
+
+| slug | username | password | URL |
+|------|----------|----------|-----|
+| `admin` | `admin` | `SSDN@108` | admin.localhost:5173 / admin.anandsandeshkaryalay.online |
+| `books` | `books` | `SSDN@108` | books.localhost:5173 / books.anandsandeshkaryalay.online |

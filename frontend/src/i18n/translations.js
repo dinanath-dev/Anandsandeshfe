@@ -575,9 +575,10 @@ export const translations = {
     admin: {
       loginTitle: 'Admin Login',
       loginSubtitle:
-        'Sign in with the admin email and password to review submissions.',
+        'Sign in with your admin username and password to review submissions.',
       portalNotConfigured:
         'Admin portal is not configured. Use admin.anandsandeshkaryalay.online or /admin.',
+      usernameLabel: 'Username',
       emailLabel: 'Email',
       passwordLabel: 'Password',
       loginButton: 'Login',
@@ -679,7 +680,7 @@ export const translations = {
 
     booksAdmin: {
       loginTitle: 'Books Admin Login',
-      loginSubtitle: 'Sign in with the books admin email and password to review book orders.',
+      loginSubtitle: 'Sign in with your books admin username and password to review book orders.',
       portalNotConfigured:
         'Books admin portal is not configured. Use books.anandsandeshkaryalay.online or /books-admin.',
       eyebrow: 'Books Admin Panel',
@@ -1260,9 +1261,10 @@ export const translations = {
     admin: {
       loginTitle: 'व्यवस्थापक लॉगिन',
       loginSubtitle:
-        'प्रविष्टियों की समीक्षा के लिए व्यवस्थापक ईमेल और पासवर्ड से साइन इन करें।',
+        'प्रविष्टियों की समीक्षा के लिए व्यवस्थापक उपयोगकर्ता नाम और पासवर्ड से साइन इन करें।',
       portalNotConfigured:
         'व्यवस्थापक पोर्टल कॉन्फ़िगर नहीं है। admin.anandsandeshkaryalay.online या /admin उपयोग करें।',
+      usernameLabel: 'उपयोगकर्ता नाम',
       emailLabel: 'ईमेल',
       passwordLabel: 'पासवर्ड',
       loginButton: 'लॉगिन',
@@ -1364,7 +1366,7 @@ export const translations = {
 
     booksAdmin: {
       loginTitle: 'पुस्तक व्यवस्थापक लॉगिन',
-      loginSubtitle: 'पुस्तक ऑर्डर की समीक्षा के लिए पुस्तक व्यवस्थापक ईमेल और पासवर्ड से साइन इन करें।',
+      loginSubtitle: 'पुस्तक ऑर्डर की समीक्षा के लिए पुस्तक व्यवस्थापक उपयोगकर्ता नाम और पासवर्ड से साइन इन करें।',
       portalNotConfigured:
         'पुस्तक व्यवस्थापक पोर्टल कॉन्फ़िगर नहीं है। books.anandsandeshkaryalay.online या /books-admin उपयोग करें।',
       eyebrow: 'पुस्तक व्यवस्थापक पैनल',

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Download, Lock, LogOut, Pencil, RefreshCcw, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, LogOut, Pencil, RefreshCcw, Users } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import PageHeader from '../components/PageHeader.jsx';
@@ -52,6 +52,9 @@ const DEFAULT_BOOK_FILTERS = {
   search: '',
   ...currentAccountingFilterDefaults()
 };
+
+const ADMIN_POLL_INTERVAL_MS = 20_000;
+const BOOKS_PAGE_SIZE = 10;
 
 const DEFAULT_PAYMENT_FILTERS = {
   audience: 'online',
@@ -432,9 +435,10 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   const [token, setToken] = useState(() => getAdminToken(portalSlug));
   const [role, setRole] = useState(() => getAdminRole(portalSlug));
   const [activeTab, setActiveTab] = useState(booksOnlyPortal ? 'bookOrders' : 'subscriptions');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const PAYMENTS_PAGE_SIZE = 50;
+  const [showPassword, setShowPassword] = useState(false);
+  const PAYMENTS_PAGE_SIZE = 10;
 
   const [paymentFilters, setPaymentFilters] = useState(DEFAULT_PAYMENT_FILTERS);
   const [paymentPage, setPaymentPage] = useState(1);
@@ -452,6 +456,13 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   const [userFilters, setUserFilters] = useState(EMPTY_USER_FILTERS);
   const [editingUser, setEditingUser] = useState(null);
   const [bookFilters, setBookFilters] = useState(DEFAULT_BOOK_FILTERS);
+  const [bookPage, setBookPage] = useState(1);
+  const [bookPagination, setBookPagination] = useState({
+    page: 1,
+    pageSize: BOOKS_PAGE_SIZE,
+    total: 0,
+    totalPages: 1
+  });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -484,10 +495,12 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   }
 
   const loadSubmissions = useCallback(
-    async (activeToken = token) => {
+    async (activeToken = token, { silent = false } = {}) => {
       if (!activeToken) return;
-      setIsLoading(true);
-      setError('');
+      if (!silent) {
+        setIsLoading(true);
+        setError('');
+      }
       try {
         const data = await getSubmissions(activeToken, {
           page: paymentPage,
@@ -501,9 +514,9 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
         if (data.pagination) setPaymentPagination(data.pagination);
         if (data.counts) setPaymentCounts(data.counts);
       } catch (err) {
-        handleAuthError(err);
+        if (!silent) handleAuthError(err);
       } finally {
-        setIsLoading(false);
+        if (!silent) setIsLoading(false);
       }
     },
     [token, paymentPage, paymentFilters]
@@ -533,25 +546,34 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   );
 
   const loadBookOrders = useCallback(
-    async (activeToken = token, filters = bookFilters) => {
+    async (activeToken = token, filters = bookFilters, { silent = false, page = bookPage } = {}) => {
       if (!activeToken) return;
-      setIsLoading(true);
-      setError('');
+      if (!silent) {
+        setIsLoading(true);
+        setError('');
+      }
       try {
-        const data = await getBookSubscriptions(activeToken, {
-          status: filters.status || undefined,
-          search: filters.search || undefined,
-          month: filters.month,
-          year: filters.year
-        }, portalSlug);
+        const data = await getBookSubscriptions(
+          activeToken,
+          {
+            status: filters.status || undefined,
+            search: filters.search || undefined,
+            month: filters.month,
+            year: filters.year,
+            page,
+            limit: BOOKS_PAGE_SIZE
+          },
+          portalSlug
+        );
         setBookRows(data.orders || []);
+        if (data.pagination) setBookPagination(data.pagination);
       } catch (err) {
-        handleAuthError(err);
+        if (!silent) handleAuthError(err);
       } finally {
-        setIsLoading(false);
+        if (!silent) setIsLoading(false);
       }
     },
-    [token, bookFilters, portalSlug]
+    [token, bookFilters, bookPage, portalSlug]
   );
 
   async function loadUsersNow() {
@@ -568,11 +590,11 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
       return;
     }
     try {
-      const data = await adminLogin({ email, password }, portalSlug);
+      const data = await adminLogin({ username, password }, portalSlug);
       saveAdminSession({ token: data.token, role: data.role, portal_slug: data.portal_slug }, portalSlug);
       setToken(data.token);
       setRole(data.role);
-      setEmail('');
+      setUsername('');
       setPassword('');
       if (data.role === 'books_admin' || booksOnlyPortal) {
         setActiveTab('bookOrders');
@@ -591,6 +613,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setRole('');
     setSubmissions([]);
     setBookRows([]);
+    setBookPage(1);
     setUsers([]);
   }
 
@@ -610,6 +633,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   }
 
   function updateBookFilter(key, value) {
+    setBookPage(1);
     setBookFilters((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -634,6 +658,31 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     if (activeTab === 'bookOrders') loadBookOrders();
     if (activeTab === 'users' && showUsersTab) loadUsers();
   }, [token, activeTab, showSubscriptionsTab, showUsersTab, loadSubmissions, loadBookOrders, loadUsers, portalSlug]);
+
+  useEffect(() => {
+    if (!token || isExporting) return undefined;
+
+    const poll = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      if (activeTab === 'subscriptions' && showSubscriptionsTab) {
+        loadSubmissions(token, { silent: true });
+      } else if (activeTab === 'bookOrders') {
+        loadBookOrders(token, bookFilters, { silent: true, page: bookPage });
+      }
+    };
+
+    const intervalId = window.setInterval(poll, ADMIN_POLL_INTERVAL_MS);
+    return () => window.clearInterval(intervalId);
+  }, [
+    token,
+    activeTab,
+    showSubscriptionsTab,
+    loadSubmissions,
+    loadBookOrders,
+    bookFilters,
+    bookPage,
+    isExporting
+  ]);
 
   function applyPaymentFilters() {
     setPaymentPage(1);
@@ -720,24 +769,34 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               </Alert>
             ) : null}
             <label className="block">
-              <span className="label">{t('admin.emailLabel')}</span>
+              <span className="label">{t('admin.usernameLabel')}</span>
               <input
                 className="input"
-                type="email"
+                type="text"
                 autoComplete="username"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </label>
             <label className="block">
               <span className="label">{t('admin.passwordLabel')}</span>
-              <input
-                className="input"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  className="input pr-12"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted transition hover:text-ink"
+                  aria-label={showPassword ? t('auth.togglePasswordHide') : t('auth.togglePasswordShow')}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </label>
             <button className="btn-primary w-full" type="submit" disabled={!isAdminPortalConfigured(portalSlug)}>
               {t('admin.loginButton')}
@@ -966,7 +1025,10 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
             <BookOrderFilters
               filters={bookFilters}
               onChange={updateBookFilter}
-              onApply={() => loadBookOrders(token, bookFilters)}
+              onApply={() => {
+                setBookPage(1);
+                loadBookOrders(token, bookFilters, { page: 1 });
+              }}
               onDownloadPdf={handleDownloadBookOrdersPdf}
               onDownloadExcel={handleDownloadBookOrdersExcel}
               isLoading={isLoading}
@@ -977,7 +1039,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
 
             <div className="card overflow-hidden">
               <div className="border-b border-ink/10 bg-brand-surface px-4 py-3 font-black text-ink">
-                {t('admin.tabs.bookOrders')} ({bookRows.length})
+                {t('admin.tabs.bookOrders')} ({bookPagination.total || bookRows.length})
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[640px] border-collapse text-left text-sm">
@@ -1012,6 +1074,45 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                   </tbody>
                 </table>
               </div>
+              {bookPagination.total > 0 ? (
+                <div className="flex flex-col gap-3 border-t border-ink/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-muted">
+                    {t('admin.pagination.showing', {
+                      from: (bookPagination.page - 1) * bookPagination.pageSize + 1,
+                      to: Math.min(bookPagination.page * bookPagination.pageSize, bookPagination.total),
+                      total: bookPagination.total
+                    })}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      className="btn-secondary inline-flex items-center gap-1 px-3 py-2 text-sm disabled:opacity-50"
+                      onClick={() => setBookPage((p) => Math.max(1, p - 1))}
+                      disabled={bookPagination.page <= 1 || isLoading}
+                    >
+                      <ChevronLeft size={16} aria-hidden />
+                      {t('admin.pagination.previous')}
+                    </button>
+                    <span className="px-2 text-sm font-semibold text-ink">
+                      {t('admin.pagination.pageOf', {
+                        page: bookPagination.page,
+                        total: bookPagination.totalPages
+                      })}
+                    </span>
+                    <button
+                      type="button"
+                      className="btn-secondary inline-flex items-center gap-1 px-3 py-2 text-sm disabled:opacity-50"
+                      onClick={() =>
+                        setBookPage((p) => Math.min(bookPagination.totalPages, p + 1))
+                      }
+                      disabled={bookPagination.page >= bookPagination.totalPages || isLoading}
+                    >
+                      {t('admin.pagination.next')}
+                      <ChevronRight size={16} aria-hidden />
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </>
         ) : null}
