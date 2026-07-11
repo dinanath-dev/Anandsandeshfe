@@ -302,10 +302,11 @@ export function getAdminMe(token) {
   });
 }
 
-export function getSubmissions(token, { status, audience, month, year, page, limit } = {}) {
+export function getSubmissions(token, { status, audience, search, month, year, page, limit } = {}) {
   const params = new URLSearchParams();
   if (status) params.set('status', status);
   if (audience) params.set('audience', audience);
+  if (search) params.set('search', search);
   if (month != null && String(month).trim() !== '') params.set('month', String(month));
   if (year != null && String(year).trim() !== '') params.set('year', String(year));
   if (page != null) params.set('page', String(page));
@@ -352,6 +353,24 @@ export function getBookSubscriptions(token, filters, portalSlug = ADMIN_PORTAL) 
   });
 }
 
+function buildBookSummaryQuery(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters?.status) params.set('status', filters.status);
+  if (filters?.month != null && String(filters.month).trim() !== '') params.set('month', String(filters.month));
+  if (filters?.year != null && String(filters.year).trim() !== '') params.set('year', String(filters.year));
+  if (filters?.counter != null && String(filters.counter).trim() !== '' && filters.counter !== 'all') {
+    params.set('counter', String(filters.counter));
+  }
+  const query = params.toString();
+  return query ? `?${query}` : '';
+}
+
+export function getBookOrdersSummary(token, filters = {}, portalSlug = ADMIN_PORTAL) {
+  return request(`${STAFF}/subscriptions/books/summary${buildBookSummaryQuery(filters)}`, {
+    headers: adminAuthHeaders(token, portalSlug)
+  });
+}
+
 export function getSubscriptionFilterMeta(token) {
   return request(`${STAFF}/subscriptions/meta`, {
     headers: adminAuthHeaders(token)
@@ -390,6 +409,17 @@ export async function downloadBookOrdersExcel(token, filters = {}, portalSlug = 
     `${STAFF}/subscriptions/books/export/excel`,
     filters,
     `book-orders-${stamp}.csv`,
+    portalSlug
+  );
+}
+
+export async function downloadBookOrdersSummaryPdf(token, filters = {}, portalSlug = ADMIN_PORTAL) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  await downloadAdminFile(
+    token,
+    `${STAFF}/subscriptions/books/summary/export/pdf`,
+    { ...filters, counter: filters.counter === 'all' ? undefined : filters.counter },
+    `book-sales-summary-${stamp}.pdf`,
     portalSlug
   );
 }

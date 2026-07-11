@@ -16,6 +16,7 @@ import {
   normalizePickupCounter
 } from '../constants/bookCounters.js';
 import { validateNationalMobile, applyCountryToForm } from '../utils/mobileNumber.js';
+import { sanitizeFormField, validateIndianFormFields, maxLengthForField } from '../utils/formFieldValidation.js';
 import { joinFullName, namesFromSubmission, splitFullName } from '../utils/personName.js';
 import { createBookOrder, getBooks, getCurrentUser, getMyFormSubmission } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
@@ -215,7 +216,8 @@ export default function BookFormPage() {
   }, [isCounterSale]);
 
   function updateField(field, value) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    const nextValue = sanitizeFormField(field, value);
+    setForm((prev) => ({ ...prev, [field]: nextValue }));
     setErrors((prev) => ({ ...prev, [field]: '' }));
   }
 
@@ -270,9 +272,15 @@ export default function BookFormPage() {
   function validateStep2() {
     const next = {};
     if (selectedLines.length === 0) next.books = t('books.errors.bookRequired');
-    if (!form.firstName.trim()) next.firstName = t('form.errors.firstNameRequired');
-    if (!form.lastName.trim()) next.lastName = t('form.errors.lastNameRequired');
-    if (!validateNationalMobile(form.mobile, form.country).valid) next.mobile = t('form.errors.mobileInvalid');
+
+    const fieldErrors = validateIndianFormFields(form, t, {
+      requireRehbar: false,
+      requireAddress: isHomeDelivery
+    });
+    Object.assign(next, fieldErrors);
+
+    if (!form.mobile.trim()) next.mobile = t('form.errors.mobileRequired');
+    else if (!validateNationalMobile(form.mobile, form.country).valid) next.mobile = t('form.errors.mobileInvalid');
     if (!form.email.trim()) next.email = t('form.errors.emailRequired');
 
     if (isCounterSale) {
@@ -282,15 +290,9 @@ export default function BookFormPage() {
     }
 
     if (isHomeDelivery) {
-      if (!form.houseNo.trim()) next.houseNo = t('form.errors.houseNoRequired');
-      if (!form.street.trim()) next.street = t('form.errors.streetRequired');
-      if (!form.area.trim()) next.area = t('form.errors.areaRequired');
-      if (!form.postOffice.trim()) next.postOffice = t('form.errors.postOfficeRequired');
       if (!form.country.trim()) next.country = t('form.errors.countryRequired');
-      if (!form.state) next.state = t('form.errors.stateRequired');
-      if (!form.town.trim()) next.town = t('form.errors.required');
-      if (!form.district.trim()) next.district = t('form.errors.districtRequired');
-      if (!/^\d{4,10}$/.test(form.pin)) next.pin = t('form.errors.pinInvalid');
+      if (!form.pin.trim()) next.pin = t('form.errors.pinRequired');
+      else if (!/^\d{4,10}$/.test(form.pin)) next.pin = t('form.errors.pinInvalid');
     }
 
     setErrors(next);
@@ -588,6 +590,7 @@ export default function BookFormPage() {
                     className={inputClass('firstName', errors)}
                     value={form.firstName}
                     onChange={(e) => updateField('firstName', e.target.value)}
+                    maxLength={maxLengthForField('firstName')}
                     autoComplete="given-name"
                     readOnly={isCounterSale && Boolean(form.firstName.trim())}
                   />
@@ -604,6 +607,7 @@ export default function BookFormPage() {
                     className={inputClass('lastName', errors)}
                     value={form.lastName}
                     onChange={(e) => updateField('lastName', e.target.value)}
+                    maxLength={maxLengthForField('lastName')}
                     autoComplete="family-name"
                     readOnly={isCounterSale && Boolean(form.lastName.trim())}
                   />

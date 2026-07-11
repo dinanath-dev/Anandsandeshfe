@@ -35,6 +35,7 @@ import { maskEmail, maskPhone } from '../utils/maskContact.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
 import { namesFromSubmission } from '../utils/personName.js';
+import { sanitizeFormField, validateIndianFormFields, maxLengthForField } from '../utils/formFieldValidation.js';
 import { getSubscriptionPeriodSummary, normalizePaymentStatus } from '../utils/subscriptionPeriod.js';
 
 function normalizeMobile10(value) {
@@ -154,6 +155,7 @@ export default function ProfileOverviewPage() {
     state: ''
   });
   const [addressSaving, setAddressSaving] = useState(false);
+  const [addressFieldErrors, setAddressFieldErrors] = useState({});
   const [addressMessage, setAddressMessage] = useState('');
   const [addressError, setAddressError] = useState('');
 
@@ -366,10 +368,37 @@ export default function ProfileOverviewPage() {
     }
   }
 
+  function updateAddressField(field, value) {
+    const nextValue = sanitizeFormField(field, value);
+    setAddressForm((f) => ({ ...f, [field]: nextValue }));
+    setAddressFieldErrors((errors) => ({ ...errors, [field]: '' }));
+  }
+
+  function addressInputClass(field) {
+    return `donation-input !rounded-lg ${addressFieldErrors[field] ? 'donation-input--invalid' : ''}`;
+  }
+
   async function handleAddressSave(event) {
     event.preventDefault();
     setAddressError('');
     setAddressMessage('');
+
+    const fieldErrors = validateIndianFormFields(addressForm, t, {
+      requireRehbar: false,
+      requireAddress: true
+    });
+    if (!addressForm.mobile.trim()) fieldErrors.mobile = t('form.errors.mobileRequired');
+    else if (!/^\d{10}$/.test(addressForm.mobile.trim())) fieldErrors.mobile = t('form.errors.mobileInvalid');
+    if (!addressForm.pin.trim()) fieldErrors.pin = t('form.errors.pinRequired');
+    else if (!/^\d{4,10}$/.test(addressForm.pin)) fieldErrors.pin = t('form.errors.pinInvalid');
+
+    if (Object.keys(fieldErrors).length > 0) {
+      setAddressFieldErrors(fieldErrors);
+      setAddressError(t('form.errors.fixHighlighted'));
+      return;
+    }
+
+    setAddressFieldErrors({});
     setAddressSaving(true);
     try {
       const data = await updateMyAddress({
@@ -701,18 +730,20 @@ export default function ProfileOverviewPage() {
                           <label className="block">
                             <span className="label">{t('form.labels.firstName')}</span>
                             <input
-                              className="donation-input !rounded-lg"
+                              className={addressInputClass('firstName')}
                               value={addressForm.firstName}
-                              onChange={(e) => setAddressForm((f) => ({ ...f, firstName: e.target.value }))}
+                              onChange={(e) => updateAddressField('firstName', e.target.value)}
+                              maxLength={maxLengthForField('firstName')}
                               autoComplete="given-name"
                             />
                           </label>
                           <label className="block">
                             <span className="label">{t('form.labels.lastName')}</span>
                             <input
-                              className="donation-input !rounded-lg"
+                              className={addressInputClass('lastName')}
                               value={addressForm.lastName}
-                              onChange={(e) => setAddressForm((f) => ({ ...f, lastName: e.target.value }))}
+                              onChange={(e) => updateAddressField('lastName', e.target.value)}
+                              maxLength={maxLengthForField('lastName')}
                               autoComplete="family-name"
                             />
                           </label>
@@ -720,9 +751,10 @@ export default function ProfileOverviewPage() {
                         <label className="block sm:col-span-2">
                           <span className="label">{t('form.labels.careOf')}</span>
                           <input
-                            className="donation-input !rounded-lg"
+                            className={addressInputClass('careOf')}
                             value={addressForm.careOf}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, careOf: e.target.value }))}
+                            onChange={(e) => updateAddressField('careOf', e.target.value)}
+                            maxLength={maxLengthForField('careOf')}
                             placeholder={t('form.placeholders.careOf')}
                           />
                         </label>
@@ -744,36 +776,40 @@ export default function ProfileOverviewPage() {
                         <label className="block">
                           <span className="label">{t('form.labels.houseNo')}</span>
                           <input
-                            className="donation-input !rounded-lg"
+                            className={addressInputClass('houseNo')}
                             value={addressForm.houseNo}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, houseNo: e.target.value }))}
+                            onChange={(e) => updateAddressField('houseNo', e.target.value)}
+                            maxLength={maxLengthForField('houseNo')}
                             placeholder={t('form.placeholders.houseNo')}
                           />
                         </label>
                         <label className="block">
                           <span className="label">{t('form.labels.street')}</span>
                           <input
-                            className="donation-input !rounded-lg"
+                            className={addressInputClass('street')}
                             value={addressForm.street}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, street: e.target.value }))}
+                            onChange={(e) => updateAddressField('street', e.target.value)}
+                            maxLength={maxLengthForField('street')}
                             placeholder={t('form.placeholders.street')}
                           />
                         </label>
                         <label className="block">
                           <span className="label">{t('form.labels.area')}</span>
                           <input
-                            className="donation-input !rounded-lg"
+                            className={addressInputClass('area')}
                             value={addressForm.area}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, area: e.target.value }))}
+                            onChange={(e) => updateAddressField('area', e.target.value)}
+                            maxLength={maxLengthForField('area')}
                             placeholder={t('form.placeholders.area')}
                           />
                         </label>
                         <label className="block">
                           <span className="label">{t('form.labels.landmark')}</span>
                           <input
-                            className="donation-input !rounded-lg"
+                            className={addressInputClass('landmark')}
                             value={addressForm.landmark}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, landmark: e.target.value }))}
+                            onChange={(e) => updateAddressField('landmark', e.target.value)}
+                            maxLength={maxLengthForField('landmark')}
                             placeholder={t('form.placeholders.landmark')}
                           />
                         </label>
@@ -795,26 +831,29 @@ export default function ProfileOverviewPage() {
                         <label className="block">
                           <span className="label">{t('form.labels.postOffice')}</span>
                           <input
-                            className="donation-input !rounded-lg"
+                            className={addressInputClass('postOffice')}
                             value={addressForm.postOffice}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, postOffice: e.target.value }))}
+                            onChange={(e) => updateAddressField('postOffice', e.target.value)}
+                            maxLength={maxLengthForField('postOffice')}
                             placeholder={t('form.placeholders.postOffice')}
                           />
                         </label>
                         <label className="block">
                           <span className="label">{t('profile.townLabel')}</span>
                           <input
-                            className="donation-input !rounded-lg"
+                            className={addressInputClass('town')}
                             value={addressForm.town}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, town: e.target.value }))}
+                            onChange={(e) => updateAddressField('town', e.target.value)}
+                            maxLength={maxLengthForField('town')}
                           />
                         </label>
                         <label className="block">
                           <span className="label">{t('profile.districtLabel')}</span>
                           <input
-                            className="donation-input !rounded-lg"
+                            className={addressInputClass('district')}
                             value={addressForm.district}
-                            onChange={(e) => setAddressForm((f) => ({ ...f, district: e.target.value }))}
+                            onChange={(e) => updateAddressField('district', e.target.value)}
+                            maxLength={maxLengthForField('district')}
                           />
                         </label>
                         <label className="block sm:col-span-2">

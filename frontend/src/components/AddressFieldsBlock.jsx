@@ -6,6 +6,7 @@ import { INDIAN_STATES } from '../data/indianStates.js';
 import { getDistrictsForIndianState, matchIndianDistrict } from '../data/indianDistricts.js';
 import { lookupIndianPincode } from '../utils/lookupIndianPincode.js';
 import { sanitizeNationalMobile } from '../utils/mobileNumber.js';
+import { sanitizeFormField, maxLengthForField } from '../utils/formFieldValidation.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 
 function inputClass(field, errors) {
@@ -121,6 +122,10 @@ export default function AddressFieldsBlock({
     setPinLookup('idle');
   }
 
+  function handleFieldChange(field, raw) {
+    updateField(field, sanitizeFormField(field, raw));
+  }
+
   function handleStateChange(value) {
     setForm((current) => {
       const districts = getDistrictsForIndianState(value);
@@ -180,7 +185,8 @@ export default function AddressFieldsBlock({
             id={`${idPrefix}-house-no`}
             className={inputClass('houseNo', errors)}
             value={form.houseNo}
-            onChange={(e) => updateField('houseNo', e.target.value)}
+            onChange={(e) => handleFieldChange('houseNo', e.target.value)}
+            maxLength={maxLengthForField('houseNo')}
             placeholder={t('form.placeholders.houseNo')}
             autoComplete="address-line1"
           />
@@ -197,7 +203,8 @@ export default function AddressFieldsBlock({
             id={`${idPrefix}-street`}
             className={inputClass('street', errors)}
             value={form.street}
-            onChange={(e) => updateField('street', e.target.value)}
+            onChange={(e) => handleFieldChange('street', e.target.value)}
+            maxLength={maxLengthForField('street')}
             placeholder={t('form.placeholders.street')}
             autoComplete="address-line2"
           />
@@ -214,7 +221,8 @@ export default function AddressFieldsBlock({
             id={`${idPrefix}-area`}
             className={inputClass('area', errors)}
             value={form.area}
-            onChange={(e) => updateField('area', e.target.value)}
+            onChange={(e) => handleFieldChange('area', e.target.value)}
+            maxLength={maxLengthForField('area')}
             placeholder={t('form.placeholders.area')}
             autoComplete="address-line3"
           />
@@ -231,7 +239,8 @@ export default function AddressFieldsBlock({
             id={`${idPrefix}-landmark`}
             className={inputClass('landmark', errors)}
             value={form.landmark}
-            onChange={(e) => updateField('landmark', e.target.value)}
+            onChange={(e) => handleFieldChange('landmark', e.target.value)}
+            maxLength={maxLengthForField('landmark')}
             placeholder={t('form.placeholders.landmark')}
           />
         </DonationFormRow>
@@ -285,7 +294,7 @@ export default function AddressFieldsBlock({
               id={`${idPrefix}-post-office`}
               className={inputClass('postOffice', errors)}
               value={form.postOffice}
-              onChange={(e) => updateField('postOffice', e.target.value)}
+              onChange={(e) => handleFieldChange('postOffice', e.target.value)}
             >
               <option value="">{t('form.placeholders.selectPostOffice')}</option>
               {postOfficeOptions.map((office) => (
@@ -299,7 +308,8 @@ export default function AddressFieldsBlock({
               id={`${idPrefix}-post-office`}
               className={inputClass('postOffice', errors)}
               value={form.postOffice}
-              onChange={(e) => updateField('postOffice', e.target.value)}
+              onChange={(e) => handleFieldChange('postOffice', e.target.value)}
+              maxLength={maxLengthForField('postOffice')}
               placeholder={t('form.placeholders.postOffice')}
             />
           )}
@@ -318,7 +328,8 @@ export default function AddressFieldsBlock({
             id={`${idPrefix}-town`}
             className={inputClass('town', errors)}
             value={form.town}
-            onChange={(e) => updateField('town', e.target.value)}
+            onChange={(e) => handleFieldChange('town', e.target.value)}
+            maxLength={maxLengthForField('town')}
             placeholder={t('form.placeholders.town')}
             autoComplete="address-level2"
           />
@@ -350,7 +361,8 @@ export default function AddressFieldsBlock({
               id={`${idPrefix}-state`}
               className={inputClass('state', errors)}
               value={form.state}
-              onChange={(e) => updateField('state', e.target.value)}
+              onChange={(e) => handleFieldChange('state', e.target.value)}
+              maxLength={maxLengthForField('state')}
               placeholder={t('form.placeholders.stateProvince')}
               autoComplete="address-level1"
             />
@@ -369,7 +381,7 @@ export default function AddressFieldsBlock({
               id={`${idPrefix}-district`}
               className={inputClass('district', errors)}
               value={form.district}
-              onChange={(e) => updateField('district', e.target.value)}
+              onChange={(e) => handleFieldChange('district', e.target.value)}
             >
               <option value="">{t('form.placeholders.selectDistrict')}</option>
               {districtOptions.map((district) => (
@@ -383,7 +395,8 @@ export default function AddressFieldsBlock({
               id={`${idPrefix}-district`}
               className={inputClass('district', errors)}
               value={form.district}
-              onChange={(e) => updateField('district', e.target.value)}
+              onChange={(e) => handleFieldChange('district', e.target.value)}
+              maxLength={maxLengthForField('district')}
               placeholder={
                 india && !form.state
                   ? t('form.placeholders.selectStateFirst')

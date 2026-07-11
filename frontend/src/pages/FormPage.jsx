@@ -17,6 +17,7 @@ import {
   validateNationalMobile,
   applyCountryToForm
 } from '../utils/mobileNumber.js';
+import { sanitizeFormField, validateIndianFormFields, maxLengthForField } from '../utils/formFieldValidation.js';
 import { getCurrentUser, getMyFormSubmission, submitUserForm } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
@@ -293,7 +294,8 @@ export default function FormPage() {
   }, []);
 
   function updateField(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
+    const nextValue = sanitizeFormField(field, value);
+    setForm((current) => ({ ...current, [field]: nextValue }));
     setErrors((current) => ({ ...current, [field]: '' }));
   }
 
@@ -303,9 +305,8 @@ export default function FormPage() {
   }
 
   function validate() {
-    const nextErrors = {};
-    if (!form.firstName.trim()) nextErrors.firstName = t('form.errors.firstNameRequired');
-    if (!form.lastName.trim()) nextErrors.lastName = t('form.errors.lastNameRequired');
+    const nextErrors = validateIndianFormFields(form, t, { requireRehbar: true, requireAddress: true });
+
     if (!form.mobile.trim()) nextErrors.mobile = t('form.errors.mobileRequired');
     else if (!validateNationalMobile(form.mobile, form.country).valid) {
       nextErrors.mobile = t('form.errors.mobileInvalid');
@@ -314,17 +315,9 @@ export default function FormPage() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) nextErrors.email = t('form.errors.emailInvalid');
 
     if (!form.country.trim()) nextErrors.country = t('form.errors.countryRequired');
-    if (!form.houseNo.trim()) nextErrors.houseNo = t('form.errors.houseNoRequired');
-    if (!form.street.trim()) nextErrors.street = t('form.errors.streetRequired');
-    if (!form.area.trim()) nextErrors.area = t('form.errors.areaRequired');
-    if (!form.postOffice.trim()) nextErrors.postOffice = t('form.errors.postOfficeRequired');
-    if (!form.state.trim()) nextErrors.state = t('form.errors.stateRequired');
-    if (!form.town.trim()) nextErrors.town = t('form.errors.required');
-    if (!form.district.trim()) nextErrors.district = t('form.errors.districtRequired');
     if (!form.pin.trim()) nextErrors.pin = t('form.errors.pinRequired');
     else if (!/^\d{4,10}$/.test(form.pin)) nextErrors.pin = t('form.errors.pinInvalid');
     if (!form.gender) nextErrors.gender = t('form.errors.genderRequired');
-    if (!form.rehbar.trim()) nextErrors.rehbar = t('form.errors.rehbarRequired');
     if (!form.subscription) nextErrors.subscription = t('form.errors.subscriptionRequired');
     if (!form.subscriberNo.trim()) {
       nextErrors.subscriberNo = t('form.errors.subscriberMissing');
@@ -507,6 +500,7 @@ export default function FormPage() {
                   className={inputClass('firstName', errors)}
                   value={form.firstName}
                   onChange={(e) => updateField('firstName', e.target.value)}
+                  maxLength={maxLengthForField('firstName')}
                   autoComplete="given-name"
                 />
               </DonationFormRow>
@@ -522,6 +516,7 @@ export default function FormPage() {
                   className={inputClass('lastName', errors)}
                   value={form.lastName}
                   onChange={(e) => updateField('lastName', e.target.value)}
+                  maxLength={maxLengthForField('lastName')}
                   autoComplete="family-name"
                 />
               </DonationFormRow>
@@ -539,6 +534,7 @@ export default function FormPage() {
                   className={inputClass('careOf', errors)}
                   value={form.careOf}
                   onChange={(e) => updateField('careOf', e.target.value)}
+                  maxLength={maxLengthForField('careOf')}
                   placeholder={t('form.placeholders.careOf')}
                   autoComplete="off"
                 />
@@ -612,6 +608,7 @@ export default function FormPage() {
                   className={inputClass('rehbar', errors)}
                   value={form.rehbar}
                   onChange={(e) => updateField('rehbar', e.target.value)}
+                  maxLength={maxLengthForField('rehbar')}
                 />
               </DonationFormRow>
             </DonationFormPair>

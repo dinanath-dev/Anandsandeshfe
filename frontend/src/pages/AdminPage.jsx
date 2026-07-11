@@ -7,14 +7,17 @@ import {
   adminLogin,
   downloadBookOrdersPdf,
   downloadBookOrdersExcel,
+  downloadBookOrdersSummaryPdf,
   downloadSubmissionsExcel,
   downloadSubmissionsPdf,
   downloadSubmissionLabelsPdf,
   getBookSubscriptions,
+  getBookOrdersSummary,
   getSubmissions,
   listAdminUsers,
   updateAdminUser
 } from '../services/api.js';
+import { BOOK_PICKUP_COUNTERS } from '../constants/bookCounters.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import {
   ADMIN_PORTAL_SLUG,
@@ -53,12 +56,19 @@ const DEFAULT_BOOK_FILTERS = {
   ...currentAccountingFilterDefaults()
 };
 
+const DEFAULT_BOOK_SUMMARY_FILTERS = {
+  status: 'verified',
+  counter: 'all',
+  ...currentAccountingFilterDefaults()
+};
+
 const ADMIN_POLL_INTERVAL_MS = 20_000;
 const BOOKS_PAGE_SIZE = 10;
 
 const DEFAULT_PAYMENT_FILTERS = {
   audience: 'online',
   status: 'verified',
+  search: '',
   ...currentAccountingFilterDefaults()
 };
 
@@ -182,6 +192,21 @@ function PaymentFilters({
           </select>
         </label>
       </div>
+      <label className="block">
+        <span className="label">{t('admin.filters.search')}</span>
+        <input
+          className="input"
+          value={filters.search}
+          onChange={(e) => onChange('search', e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              onApply();
+            }
+          }}
+          placeholder={t('admin.filters.searchPlaceholderSubscriptions')}
+        />
+      </label>
       <div className="flex flex-wrap gap-2">
         <button
           className="btn-secondary inline-flex h-[42px] items-center justify-center gap-2"
@@ -354,6 +379,146 @@ function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloa
   );
 }
 
+function formatSalesRupees(paise) {
+  const n = Number(paise);
+  if (!Number.isFinite(n)) return '—';
+  return `₹${(n / 100).toFixed(2)}`;
+}
+
+function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoading, isExporting, t, locale }) {
+  const monthOptions = accountingMonthOptions(locale);
+  const yearOptions = accountingYearOptions();
+
+  return (
+    <div className="card mb-5 space-y-4 p-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <label className="block">
+          <span className="label">{t('admin.filters.status')}</span>
+          <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
+            <option value="verified">{t('admin.filterVerified')}</option>
+            <option value="pending">{t('admin.filterPending')}</option>
+            <option value="">{t('admin.filterAll')}</option>
+            <option value="failed">{t('admin.filterFailed')}</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="label">{t('admin.booksSummary.counter')}</span>
+          <select className="input" value={filters.counter} onChange={(e) => onChange('counter', e.target.value)}>
+            <option value="all">{t('admin.booksSummary.allCounters')}</option>
+            {BOOK_PICKUP_COUNTERS.map((counter) => (
+              <option key={counter.code} value={counter.code}>
+                {counter.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="label">{t('admin.filters.accountingYear')}</span>
+          <select className="input" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
+            <option value="all">{t('admin.filterAll')}</option>
+            {yearOptions.map((year) => (
+              <option key={year} value={String(year)}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="label">{t('admin.filters.accountingMonth')}</span>
+          <select className="input" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
+            <option value="all">{t('admin.filterAll')}</option>
+            {monthOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button className="btn-primary inline-flex items-center gap-2" type="button" onClick={onApply} disabled={isLoading}>
+          {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={16} />}
+          {t('admin.filters.apply')}
+        </button>
+        <button
+          className="btn-secondary inline-flex items-center gap-2"
+          type="button"
+          onClick={onDownloadPdf}
+          disabled={isLoading || isExporting}
+        >
+          <Download size={16} />
+          {t('admin.booksSummary.downloadPdf')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function BookSummaryTables({ summary, t }) {
+  if (!summary?.counters?.length) {
+    return (
+      <div className="card p-8 text-center text-muted">
+        {t('admin.booksSummary.none')}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      {summary.counters.map((counter) => (
+        <div key={counter.code} className="card overflow-hidden">
+          <div className="border-b border-ink/10 bg-brand-surface px-4 py-3">
+            <p className="font-black text-ink">{counter.label}</p>
+            <p className="mt-1 text-sm text-muted">
+              {t('admin.booksSummary.briefIntroSold', { count: counter.brief_introduction_qty })}
+              {' · '}
+              {t('admin.booksSummary.bothParichay', { count: counter.both_parichay_count })}
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px] border-collapse text-left text-sm">
+              <thead className="bg-white text-ink">
+                <tr>
+                  <th className="px-4 py-3 font-black">{t('admin.booksSummary.bookName')}</th>
+                  <th className="px-4 py-3 font-black">{t('admin.booksSummary.quantity')}</th>
+                  <th className="px-4 py-3 font-black">{t('admin.booksSummary.totalSales')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {counter.books.map((book) => (
+                  <tr key={`${counter.code}-${book.book_name}`} className="border-t border-ink/10">
+                    <td className="px-4 py-3">{book.book_name}</td>
+                    <td className="px-4 py-3">{book.quantity}</td>
+                    <td className="px-4 py-3">{formatSalesRupees(book.total_sales_paise)}</td>
+                  </tr>
+                ))}
+                <tr className="border-t border-ink/10 bg-brand-surface/60 font-bold">
+                  <td className="px-4 py-3">{t('admin.booksSummary.grandTotal')}</td>
+                  <td className="px-4 py-3">{counter.total_quantity}</td>
+                  <td className="px-4 py-3">{formatSalesRupees(counter.total_sales_paise)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+
+      {summary.counters.length > 1 && summary.totals ? (
+        <div className="card border border-primary/20 bg-primary/5 p-4 text-sm text-ink">
+          <p className="font-black">{t('admin.booksSummary.combinedTotals')}</p>
+          <p className="mt-1 text-muted">
+            {t('admin.booksSummary.briefIntroSold', { count: summary.totals.brief_introduction_qty })}
+            {' · '}
+            {t('admin.booksSummary.bothParichay', { count: summary.totals.both_parichay_count })}
+            {' · '}
+            {t('admin.booksSummary.totalSales')}: {formatSalesRupees(summary.totals.total_sales_paise)}
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function UserEditModal({ user, onClose, onSave, saving, t }) {
   const [form, setForm] = useState({
     full_name: user.full_name || '',
@@ -456,6 +621,9 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   const [userFilters, setUserFilters] = useState(EMPTY_USER_FILTERS);
   const [editingUser, setEditingUser] = useState(null);
   const [bookFilters, setBookFilters] = useState(DEFAULT_BOOK_FILTERS);
+  const [bookSummaryFilters, setBookSummaryFilters] = useState(DEFAULT_BOOK_SUMMARY_FILTERS);
+  const [bookSubTab, setBookSubTab] = useState('orders');
+  const [bookSummary, setBookSummary] = useState(null);
   const [bookPage, setBookPage] = useState(1);
   const [bookPagination, setBookPagination] = useState({
     page: 1,
@@ -507,6 +675,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
           limit: PAYMENTS_PAGE_SIZE,
           status: paymentFilters.status,
           audience: paymentFilters.audience,
+          search: paymentFilters.search || undefined,
           month: paymentFilters.month,
           year: paymentFilters.year
         });
@@ -576,6 +745,34 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     [token, bookFilters, bookPage, portalSlug]
   );
 
+  const loadBookSummary = useCallback(
+    async (activeToken = token, filters = bookSummaryFilters, { silent = false } = {}) => {
+      if (!activeToken) return;
+      if (!silent) {
+        setIsLoading(true);
+        setError('');
+      }
+      try {
+        const data = await getBookOrdersSummary(
+          activeToken,
+          {
+            status: filters.status || undefined,
+            month: filters.month,
+            year: filters.year,
+            counter: filters.counter
+          },
+          portalSlug
+        );
+        setBookSummary(data);
+      } catch (err) {
+        if (!silent) handleAuthError(err);
+      } finally {
+        if (!silent) setIsLoading(false);
+      }
+    },
+    [token, bookSummaryFilters, portalSlug]
+  );
+
   async function loadUsersNow() {
     await loadUsers();
   }
@@ -613,6 +810,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setRole('');
     setSubmissions([]);
     setBookRows([]);
+    setBookSummary(null);
     setBookPage(1);
     setUsers([]);
   }
@@ -637,6 +835,10 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setBookFilters((prev) => ({ ...prev, [key]: value }));
   }
 
+  function updateBookSummaryFilter(key, value) {
+    setBookSummaryFilters((prev) => ({ ...prev, [key]: value }));
+  }
+
   function updatePaymentFilter(key, value) {
     setPaymentPage(1);
     setPaymentFilters((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
@@ -655,9 +857,10 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   useEffect(() => {
     if (!isAdminAuthenticated(portalSlug)) return;
     if (activeTab === 'subscriptions' && showSubscriptionsTab) loadSubmissions();
-    if (activeTab === 'bookOrders') loadBookOrders();
+    if (activeTab === 'bookOrders' && bookSubTab === 'orders') loadBookOrders();
+    if (activeTab === 'bookOrders' && bookSubTab === 'summary') loadBookSummary();
     if (activeTab === 'users' && showUsersTab) loadUsers();
-  }, [token, activeTab, showSubscriptionsTab, showUsersTab, loadSubmissions, loadBookOrders, loadUsers, portalSlug]);
+  }, [token, activeTab, bookSubTab, showSubscriptionsTab, showUsersTab, loadSubmissions, loadBookOrders, loadBookSummary, loadUsers, portalSlug]);
 
   useEffect(() => {
     if (!token || isExporting) return undefined;
@@ -666,7 +869,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       if (activeTab === 'subscriptions' && showSubscriptionsTab) {
         loadSubmissions(token, { silent: true });
-      } else if (activeTab === 'bookOrders') {
+      } else if (activeTab === 'bookOrders' && bookSubTab === 'orders') {
         loadBookOrders(token, bookFilters, { silent: true, page: bookPage });
       }
     };
@@ -741,6 +944,18 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setIsExporting(true);
     try {
       await downloadBookOrdersExcel(token, bookFilters, portalSlug);
+    } catch (err) {
+      handleAuthError(err);
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  async function handleDownloadBookSummaryPdf() {
+    setError('');
+    setIsExporting(true);
+    try {
+      await downloadBookOrdersSummaryPdf(token, bookSummaryFilters, portalSlug);
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -1022,6 +1237,25 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
 
         {activeTab === 'bookOrders' ? (
           <>
+            <div className="mb-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={`rounded-lg px-4 py-2 text-sm font-bold ${bookSubTab === 'orders' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+                onClick={() => setBookSubTab('orders')}
+              >
+                {t('admin.booksSummary.tabOrders')}
+              </button>
+              <button
+                type="button"
+                className={`rounded-lg px-4 py-2 text-sm font-bold ${bookSubTab === 'summary' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+                onClick={() => setBookSubTab('summary')}
+              >
+                {t('admin.booksSummary.tabSummary')}
+              </button>
+            </div>
+
+            {bookSubTab === 'orders' ? (
+              <>
             <BookOrderFilters
               filters={bookFilters}
               onChange={updateBookFilter}
@@ -1114,6 +1348,22 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                 </div>
               ) : null}
             </div>
+              </>
+            ) : (
+              <>
+                <BookSummaryFilters
+                  filters={bookSummaryFilters}
+                  onChange={updateBookSummaryFilter}
+                  onApply={() => loadBookSummary(token, bookSummaryFilters)}
+                  onDownloadPdf={handleDownloadBookSummaryPdf}
+                  isLoading={isLoading}
+                  isExporting={isExporting}
+                  t={t}
+                  locale={locale}
+                />
+                <BookSummaryTables summary={bookSummary} t={t} />
+              </>
+            )}
           </>
         ) : null}
 
