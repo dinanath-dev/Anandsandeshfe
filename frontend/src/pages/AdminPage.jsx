@@ -17,6 +17,7 @@ import {
 } from '../services/api.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import {
+  ADMIN_PORTAL_SLUG,
   clearAdminSession,
   getAdminRole,
   getAdminToken,
@@ -412,20 +413,25 @@ function UserEditModal({ user, onClose, onSave, saving, t }) {
   );
 }
 
-export default function AdminPage() {
+export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: booksOnlyPortal = false }) {
+
   useSeo({
-    title: 'Admin — Anand Sandesh Karyalay',
-    description: 'Staff administration for Anand Sandesh Karyalay subscriptions.',
-    canonical: 'https://anandsandeshkaryalay.online/admin',
+    title: booksOnlyPortal ? 'Books Admin — Anand Sandesh Karyalay' : 'Admin — Anand Sandesh Karyalay',
+    description: booksOnlyPortal
+      ? 'Staff administration for Anand Sandesh Karyalay book orders.'
+      : 'Staff administration for Anand Sandesh Karyalay subscriptions.',
+    canonical: booksOnlyPortal
+      ? 'https://anandsandeshkaryalay.online/books-admin'
+      : 'https://anandsandeshkaryalay.online/admin',
     noindex: true
   });
 
   const { t, language } = useTranslation();
   const locale = language === 'hi' ? 'hi-IN' : 'en-IN';
 
-  const [token, setToken] = useState(() => getAdminToken());
-  const [role, setRole] = useState(() => getAdminRole());
-  const [activeTab, setActiveTab] = useState('subscriptions');
+  const [token, setToken] = useState(() => getAdminToken(portalSlug));
+  const [role, setRole] = useState(() => getAdminRole(portalSlug));
+  const [activeTab, setActiveTab] = useState(booksOnlyPortal ? 'bookOrders' : 'subscriptions');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const PAYMENTS_PAGE_SIZE = 50;
@@ -452,6 +458,10 @@ export default function AdminPage() {
   const [isSavingUser, setIsSavingUser] = useState(false);
 
   const superAdmin = role === 'super_admin';
+  const booksAdminRole = role === 'books_admin';
+  const booksOnlyView = booksOnlyPortal || booksAdminRole;
+  const showSubscriptionsTab = !booksOnlyView;
+  const showUsersTab = superAdmin && !booksOnlyView;
 
   const tabHasCachedData =
     (activeTab === 'subscriptions' && submissions.length > 0) ||
@@ -467,7 +477,7 @@ export default function AdminPage() {
   function handleAuthError(err) {
     setError(err.message);
     if (err.status === 401 || err.message.toLowerCase().includes('admin')) {
-      clearAdminSession();
+      clearAdminSession(portalSlug);
       setToken('');
       setRole('');
     }
@@ -533,7 +543,7 @@ export default function AdminPage() {
           search: filters.search || undefined,
           month: filters.month,
           year: filters.year
-        });
+        }, portalSlug);
         setBookRows(data.orders || []);
       } catch (err) {
         handleAuthError(err);
@@ -541,7 +551,7 @@ export default function AdminPage() {
         setIsLoading(false);
       }
     },
-    [token, bookFilters]
+    [token, bookFilters, portalSlug]
   );
 
   async function loadUsersNow() {
@@ -551,25 +561,32 @@ export default function AdminPage() {
   async function handleLogin(event) {
     event.preventDefault();
     setError('');
-    if (!isAdminPortalConfigured()) {
-      setError(t('admin.portalNotConfigured'));
+    if (!isAdminPortalConfigured(portalSlug)) {
+      setError(
+        booksOnlyPortal ? t('booksAdmin.portalNotConfigured') : t('admin.portalNotConfigured')
+      );
       return;
     }
     try {
-      const data = await adminLogin({ email, password });
-      saveAdminSession({ token: data.token, role: data.role });
+      const data = await adminLogin({ email, password }, portalSlug);
+      saveAdminSession({ token: data.token, role: data.role, portal_slug: data.portal_slug }, portalSlug);
       setToken(data.token);
       setRole(data.role);
       setEmail('');
       setPassword('');
-      await loadSubmissions(data.token);
+      if (data.role === 'books_admin' || booksOnlyPortal) {
+        setActiveTab('bookOrders');
+        await loadBookOrders(data.token);
+      } else {
+        await loadSubmissions(data.token);
+      }
     } catch (err) {
       setError(err.message);
     }
   }
 
   function handleLogout() {
-    clearAdminSession();
+    clearAdminSession(portalSlug);
     setToken('');
     setRole('');
     setSubmissions([]);
@@ -606,11 +623,17 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    if (!isAdminAuthenticated()) return;
-    if (activeTab === 'subscriptions') loadSubmissions();
+    if (booksOnlyView && activeTab === 'subscriptions') {
+      setActiveTab('bookOrders');
+    }
+  }, [booksOnlyView, activeTab]);
+
+  useEffect(() => {
+    if (!isAdminAuthenticated(portalSlug)) return;
+    if (activeTab === 'subscriptions' && showSubscriptionsTab) loadSubmissions();
     if (activeTab === 'bookOrders') loadBookOrders();
-    if (activeTab === 'users' && superAdmin) loadUsers();
-  }, [token, activeTab, superAdmin, loadSubmissions, loadBookOrders, loadUsers]);
+    if (activeTab === 'users' && showUsersTab) loadUsers();
+  }, [token, activeTab, showSubscriptionsTab, showUsersTab, loadSubmissions, loadBookOrders, loadUsers, portalSlug]);
 
   function applyPaymentFilters() {
     setPaymentPage(1);
@@ -656,7 +679,7 @@ export default function AdminPage() {
     setError('');
     setIsExporting(true);
     try {
-      await downloadBookOrdersPdf(token, bookFilters);
+      await downloadBookOrdersPdf(token, bookFilters, portalSlug);
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -668,7 +691,7 @@ export default function AdminPage() {
     setError('');
     setIsExporting(true);
     try {
-      await downloadBookOrdersExcel(token, bookFilters);
+      await downloadBookOrdersExcel(token, bookFilters, portalSlug);
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -683,11 +706,19 @@ export default function AdminPage() {
           <form onSubmit={handleLogin} className="card w-full max-w-md space-y-5 p-6 sm:p-8">
             <div className="text-center">
               <Lock className="mx-auto mb-4 text-primary" size={52} />
-              <h1 className="text-3xl font-black text-ink">{t('admin.loginTitle')}</h1>
-              <p className="mt-2 text-muted">{t('admin.loginSubtitle')}</p>
+              <h1 className="text-3xl font-black text-ink">
+                {booksOnlyPortal ? t('booksAdmin.loginTitle') : t('admin.loginTitle')}
+              </h1>
+              <p className="mt-2 text-muted">
+                {booksOnlyPortal ? t('booksAdmin.loginSubtitle') : t('admin.loginSubtitle')}
+              </p>
             </div>
             {error ? <Alert>{error}</Alert> : null}
-            {!isAdminPortalConfigured() ? <Alert>{t('admin.portalNotConfigured')}</Alert> : null}
+            {!isAdminPortalConfigured(portalSlug) ? (
+              <Alert>
+                {booksOnlyPortal ? t('booksAdmin.portalNotConfigured') : t('admin.portalNotConfigured')}
+              </Alert>
+            ) : null}
             <label className="block">
               <span className="label">{t('admin.emailLabel')}</span>
               <input
@@ -708,7 +739,7 @@ export default function AdminPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </label>
-            <button className="btn-primary w-full" type="submit" disabled={!isAdminPortalConfigured()}>
+            <button className="btn-primary w-full" type="submit" disabled={!isAdminPortalConfigured(portalSlug)}>
               {t('admin.loginButton')}
             </button>
           </form>
@@ -723,13 +754,23 @@ export default function AdminPage() {
       <section className="content-wrap py-8">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <PageHeader
-            eyebrow={t('admin.eyebrow')}
-            title={t('admin.pageTitle')}
-            description={superAdmin ? t('admin.pageDescriptionSuper') : t('admin.pageDescription')}
+            eyebrow={booksOnlyPortal ? t('booksAdmin.eyebrow') : t('admin.eyebrow')}
+            title={booksOnlyPortal ? t('booksAdmin.pageTitle') : t('admin.pageTitle')}
+            description={
+              booksOnlyPortal
+                ? t('booksAdmin.pageDescription')
+                : superAdmin
+                  ? t('admin.pageDescriptionSuper')
+                  : t('admin.pageDescription')
+            }
           />
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-bold uppercase text-[#0d2d7f]">
-              {superAdmin ? t('admin.roleSuper') : t('admin.roleAdmin')}
+              {superAdmin
+                ? t('admin.roleSuper')
+                : booksAdminRole
+                  ? t('booksAdmin.roleBooksAdmin')
+                  : t('admin.roleAdmin')}
             </span>
             <button className="btn-secondary inline-flex items-center gap-2" type="button" onClick={handleLogout}>
               <LogOut size={16} />
@@ -738,32 +779,38 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="mb-5 flex flex-wrap gap-2">
-          <button
-            type="button"
-            className={`rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'subscriptions' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
-            onClick={() => setActiveTab('subscriptions')}
-          >
-            {t('admin.tabs.subscriptions')}
-          </button>
-          <button
-            type="button"
-            className={`rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'bookOrders' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
-            onClick={() => setActiveTab('bookOrders')}
-          >
-            {t('admin.tabs.bookOrders')}
-          </button>
-          {superAdmin ? (
-            <button
-              type="button"
-              className={`inline-flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'users' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
-              onClick={() => setActiveTab('users')}
-            >
-              <Users size={15} />
-              {t('admin.tabs.users')}
-            </button>
-          ) : null}
-        </div>
+        {showSubscriptionsTab || showUsersTab ? (
+          <div className="mb-5 flex flex-wrap gap-2">
+            {showSubscriptionsTab ? (
+              <button
+                type="button"
+                className={`rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'subscriptions' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+                onClick={() => setActiveTab('subscriptions')}
+              >
+                {t('admin.tabs.subscriptions')}
+              </button>
+            ) : null}
+            {!booksOnlyPortal ? (
+              <button
+                type="button"
+                className={`rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'bookOrders' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+                onClick={() => setActiveTab('bookOrders')}
+              >
+                {t('admin.tabs.bookOrders')}
+              </button>
+            ) : null}
+            {showUsersTab ? (
+              <button
+                type="button"
+                className={`inline-flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-bold ${activeTab === 'users' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+                onClick={() => setActiveTab('users')}
+              >
+                <Users size={15} />
+                {t('admin.tabs.users')}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
 
         {error ? (
           <div className="mb-5">
@@ -771,7 +818,7 @@ export default function AdminPage() {
           </div>
         ) : null}
 
-        {activeTab === 'subscriptions' ? (
+        {activeTab === 'subscriptions' && showSubscriptionsTab ? (
           <>
             <PaymentFilters
               filters={paymentFilters}
@@ -969,7 +1016,7 @@ export default function AdminPage() {
           </>
         ) : null}
 
-        {activeTab === 'users' && superAdmin ? (
+        {activeTab === 'users' && showUsersTab ? (
           <>
             <div className="mb-4 flex flex-col gap-3 sm:flex-row">
               <input

@@ -576,7 +576,8 @@ export const translations = {
       loginTitle: 'Admin Login',
       loginSubtitle:
         'Sign in with the admin email and password to review submissions.',
-      portalNotConfigured: 'Admin portal is not configured. Set VITE_ADMIN_PORTAL_ID in the frontend environment.',
+      portalNotConfigured:
+        'Admin portal is not configured. Use admin.anandsandeshkaryalay.online or /admin.',
       emailLabel: 'Email',
       passwordLabel: 'Password',
       loginButton: 'Login',
@@ -674,6 +675,17 @@ export const translations = {
       noBookOrders: 'No book orders found.',
       oneYear: 'One year',
       fiveYear: '5 year'
+    },
+
+    booksAdmin: {
+      loginTitle: 'Books Admin Login',
+      loginSubtitle: 'Sign in with the books admin email and password to review book orders.',
+      portalNotConfigured:
+        'Books admin portal is not configured. Use books.anandsandeshkaryalay.online or /books-admin.',
+      eyebrow: 'Books Admin Panel',
+      pageTitle: 'Book Orders',
+      pageDescription: 'Review book orders with filters, and export PDF or Excel reports.',
+      roleBooksAdmin: 'Books Admin'
     }
   },
 
@@ -1249,7 +1261,8 @@ export const translations = {
       loginTitle: 'व्यवस्थापक लॉगिन',
       loginSubtitle:
         'प्रविष्टियों की समीक्षा के लिए व्यवस्थापक ईमेल और पासवर्ड से साइन इन करें।',
-      portalNotConfigured: 'व्यवस्थापक पोर्टल कॉन्फ़िगर नहीं है। फ्रंटएंड में VITE_ADMIN_PORTAL_ID सेट करें।',
+      portalNotConfigured:
+        'व्यवस्थापक पोर्टल कॉन्फ़िगर नहीं है। admin.anandsandeshkaryalay.online या /admin उपयोग करें।',
       emailLabel: 'ईमेल',
       passwordLabel: 'पासवर्ड',
       loginButton: 'लॉगिन',
@@ -1347,6 +1360,17 @@ export const translations = {
       noBookOrders: 'कोई पुस्तक ऑर्डर नहीं मिला।',
       oneYear: 'एक वर्ष',
       fiveYear: '5 वर्ष'
+    },
+
+    booksAdmin: {
+      loginTitle: 'पुस्तक व्यवस्थापक लॉगिन',
+      loginSubtitle: 'पुस्तक ऑर्डर की समीक्षा के लिए पुस्तक व्यवस्थापक ईमेल और पासवर्ड से साइन इन करें।',
+      portalNotConfigured:
+        'पुस्तक व्यवस्थापक पोर्टल कॉन्फ़िगर नहीं है। books.anandsandeshkaryalay.online या /books-admin उपयोग करें।',
+      eyebrow: 'पुस्तक व्यवस्थापक पैनल',
+      pageTitle: 'पुस्तक ऑर्डर',
+      pageDescription: 'फ़िल्टर के साथ पुस्तक ऑर्डर देखें, और PDF या Excel रिपोर्ट डाउनलोड करें।',
+      roleBooksAdmin: 'पुस्तक व्यवस्थापक'
     }
   }
 };

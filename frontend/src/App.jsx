@@ -1,9 +1,10 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import LanguageToggle from './components/LanguageToggle.jsx';
 import { LoadingBlock } from './components/Loader.jsx';
 import { useTranslation } from './i18n/LanguageContext.jsx';
 import { isUserAuthenticated } from './utils/auth.js';
+import { detectAdminSlugFromHost } from './utils/adminPortalHost.js';
 
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
 const FormPage = lazy(() => import('./pages/FormPage.jsx'));
@@ -13,6 +14,8 @@ const BookPaymentPage = lazy(() => import('./pages/BookPaymentPage.jsx'));
 const PaymentPage = lazy(() => import('./pages/PaymentPage.jsx'));
 const SuccessPage = lazy(() => import('./pages/SuccessPage.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
+const BooksAdminPage = lazy(() => import('./pages/BooksAdminPage.jsx'));
+const HostAdminPortal = lazy(() => import('./pages/HostAdminPortal.jsx'));
 const AboutPage = lazy(() => import('./pages/AboutPage.jsx'));
 
 function ProtectedRoute({ children }) {
@@ -25,6 +28,19 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   const { t } = useTranslation();
+  const hostAdminSlug = useMemo(() => detectAdminSlugFromHost(), []);
+
+  if (hostAdminSlug) {
+    return (
+      <>
+        <LanguageToggle />
+        <Suspense fallback={<LoadingBlock label={t('loaders.loadingPage')} />}>
+          <HostAdminPortal slug={hostAdminSlug} />
+        </Suspense>
+      </>
+    );
+  }
+
   return (
     <>
       <LanguageToggle />
@@ -80,7 +96,8 @@ export default function App() {
             </ProtectedRoute>
           )}
         />
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin" element={<AdminPage portalSlug="admin" />} />
+        <Route path="/books-admin" element={<BooksAdminPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </Suspense>

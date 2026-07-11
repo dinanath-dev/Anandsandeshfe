@@ -1,5 +1,5 @@
 import { getUserAuth } from '../utils/auth.js';
-import { adminAuthHeaders, getAdminPortalId } from '../utils/adminAuth.js';
+import { adminAuthHeaders, ADMIN_PORTAL_SLUG, getAdminPortalId, getPortalSlug } from '../utils/adminAuth.js';
 
 const PRODUCTION_API_DIRECT = 'https://api.anandsandeshkaryalay.online/api';
 
@@ -281,9 +281,13 @@ export function getCurrentUser() {
   return request('/auth/me');
 }
 
-export function adminLogin({ email, password }) {
-  const body = { email, password };
-  const portalId = getAdminPortalId();
+export function getAdminPortalMeta(slug) {
+  return request(`${STAFF}/portals/${encodeURIComponent(slug)}`);
+}
+
+export function adminLogin({ email, password }, portalSlug = ADMIN_PORTAL_SLUG) {
+  const body = { email, password, slug: getPortalSlug(portalSlug) };
+  const portalId = getAdminPortalId(portalSlug);
   if (portalId) body.portal_id = portalId;
   return request(`${STAFF}/login`, {
     method: 'POST',
@@ -334,9 +338,9 @@ export function getMagazineSubscriptions(token, filters) {
   });
 }
 
-export function getBookSubscriptions(token, filters) {
+export function getBookSubscriptions(token, filters, portalSlug = ADMIN_PORTAL) {
   return request(`${STAFF}/subscriptions/books${buildFilterQuery(filters)}`, {
-    headers: adminAuthHeaders(token)
+    headers: adminAuthHeaders(token, portalSlug)
   });
 }
 
@@ -360,19 +364,31 @@ export async function downloadSubscriptionsExcel(token, filters = {}) {
   await downloadAdminFile(token, `${STAFF}/subscriptions/export/excel`, filters, `${suffix}-${stamp}.csv`);
 }
 
-export async function downloadBookOrdersPdf(token, filters = {}) {
+export async function downloadBookOrdersPdf(token, filters = {}, portalSlug = ADMIN_PORTAL) {
   const stamp = new Date().toISOString().slice(0, 10);
-  await downloadAdminFile(token, `${STAFF}/subscriptions/books/export/pdf`, filters, `book-orders-${stamp}.pdf`);
+  await downloadAdminFile(
+    token,
+    `${STAFF}/subscriptions/books/export/pdf`,
+    filters,
+    `book-orders-${stamp}.pdf`,
+    portalSlug
+  );
 }
 
-export async function downloadBookOrdersExcel(token, filters = {}) {
+export async function downloadBookOrdersExcel(token, filters = {}, portalSlug = ADMIN_PORTAL) {
   const stamp = new Date().toISOString().slice(0, 10);
-  await downloadAdminFile(token, `${STAFF}/subscriptions/books/export/excel`, filters, `book-orders-${stamp}.csv`);
+  await downloadAdminFile(
+    token,
+    `${STAFF}/subscriptions/books/export/excel`,
+    filters,
+    `book-orders-${stamp}.csv`,
+    portalSlug
+  );
 }
 
-async function downloadAdminFile(token, path, filters, filename) {
+async function downloadAdminFile(token, path, filters, filename, portalSlug = ADMIN_PORTAL) {
   const pathWithQuery = `${path}${buildFilterQuery(filters)}`;
-  const { response } = await apiFetch(pathWithQuery, { headers: adminAuthHeaders(token) });
+  const { response } = await apiFetch(pathWithQuery, { headers: adminAuthHeaders(token, portalSlug) });
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
     if (response.status === 401) {
