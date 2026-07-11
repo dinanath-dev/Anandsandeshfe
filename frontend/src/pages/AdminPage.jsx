@@ -469,11 +469,6 @@ function BookSummaryTables({ summary, t }) {
         <div key={counter.code} className="card overflow-hidden">
           <div className="border-b border-ink/10 bg-brand-surface px-4 py-3">
             <p className="font-black text-ink">{counter.label}</p>
-            <p className="mt-1 text-sm text-muted">
-              {t('admin.booksSummary.briefIntroSold', { count: counter.brief_introduction_qty })}
-              {' · '}
-              {t('admin.booksSummary.bothParichay', { count: counter.both_parichay_count })}
-            </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[480px] border-collapse text-left text-sm">
@@ -507,10 +502,6 @@ function BookSummaryTables({ summary, t }) {
         <div className="card border border-primary/20 bg-primary/5 p-4 text-sm text-ink">
           <p className="font-black">{t('admin.booksSummary.combinedTotals')}</p>
           <p className="mt-1 text-muted">
-            {t('admin.booksSummary.briefIntroSold', { count: summary.totals.brief_introduction_qty })}
-            {' · '}
-            {t('admin.booksSummary.bothParichay', { count: summary.totals.both_parichay_count })}
-            {' · '}
             {t('admin.booksSummary.totalSales')}: {formatSalesRupees(summary.totals.total_sales_paise)}
           </p>
         </div>
