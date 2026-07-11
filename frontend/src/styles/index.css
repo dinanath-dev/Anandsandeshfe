@@ -1825,6 +1825,60 @@ select {
   .label {
     @apply mb-2 block text-sm font-semibold text-ink;
   }
+
+  .admin-modal-form .donation-form-section {
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid rgba(15, 26, 46, 0.1);
+    border-radius: 0.75rem;
+    background: rgba(248, 252, 255, 0.95);
+  }
+
+  .admin-modal-form .donation-form-section-title {
+    margin: 0 0 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #0f1a2e;
+  }
+
+  .admin-modal-form .donation-form-label {
+    @apply label;
+  }
+
+  .admin-modal-form .donation-input,
+  .admin-modal-form select.donation-input {
+    @apply input;
+  }
+
+  .admin-modal-form .donation-input--invalid,
+  .admin-modal-form select.donation-input.donation-input--invalid {
+    @apply border-red-400 focus:border-red-400 focus:ring-red-200;
+  }
+
+  .admin-modal-form .donation-form-hint {
+    @apply mt-1 text-xs text-red-600;
+  }
+
+  .admin-modal-form .donation-form-address-grid {
+    margin-top: 0;
+  }
+
+  .admin-modal-panel {
+    display: flex;
+    max-height: min(92dvh, calc(100vh - 2rem));
+    flex-direction: column;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .admin-modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Toast notifications */

@@ -716,7 +716,23 @@ export const translations = {
       noSubmissions: 'No submissions found.',
       noBookOrders: 'No book orders found.',
       oneYear: 'One year',
-      fiveYear: '5 year'
+      fiveYear: '5 year',
+      manualSubscription: {
+        addButton: 'Add manual subscription',
+        title: 'Add Anand Sandesh subscription',
+        subtitle: 'Record offline payment — no Razorpay autopay. Subscriber number is assigned automatically.',
+        subscriberAuto: 'Subscriber number will be generated automatically when you save.',
+        optional: 'optional',
+        plan: 'Subscription plan',
+        startDate: 'Validity starts from',
+        amount: 'Amount received (₹)',
+        receiptNo: 'Receipt / reference no.',
+        save: 'Save subscription',
+        saving: 'Saving…',
+        saveFailed: 'Could not save subscription.',
+        amountInvalid: 'Enter a valid amount.',
+        success: 'Subscription saved. Subscriber number: {subscriberNo}'
+      }
     },
 
     booksAdmin: {
@@ -1443,7 +1459,23 @@ export const translations = {
       noSubmissions: 'कोई प्रविष्टि नहीं मिली।',
       noBookOrders: 'कोई पुस्तक ऑर्डर नहीं मिला।',
       oneYear: 'एक वर्ष',
-      fiveYear: '5 वर्ष'
+      fiveYear: '5 वर्ष',
+      manualSubscription: {
+        addButton: 'मैन्युअल ग्राहकी जोड़ें',
+        title: 'आनंद संदेश ग्राहकी जोड़ें',
+        subtitle: 'ऑफ़लाइन भुगतान दर्ज करें — Razorpay ऑटोपे नहीं। सदस्य संख्या स्वचालित रूप से दी जाएगी।',
+        subscriberAuto: 'सहेजने पर सदस्य संख्या स्वचालित रूप से बनेगी।',
+        optional: 'वैकल्पिक',
+        plan: 'ग्राहकी योजना',
+        startDate: 'वैधता प्रारंभ',
+        amount: 'प्राप्त राशि (₹)',
+        receiptNo: 'रसीद / संदर्भ संख्या',
+        save: 'ग्राहकी सहेजें',
+        saving: 'सहेजा जा रहा है…',
+        saveFailed: 'ग्राहकी सहेजी नहीं जा सकी।',
+        amountInvalid: 'मान्य राशि दर्ज करें।',
+        success: 'ग्राहकी सहेजी गई। सदस्य संख्या: {subscriberNo}'
+      }
     },
 
     booksAdmin: {

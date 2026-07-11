@@ -333,6 +333,14 @@ function buildFilterQuery(filters = {}) {
   return qs ? `?${qs}` : '';
 }
 
+export function createAdminSubmission(token, body) {
+  return request(`${STAFF}/submissions`, {
+    method: 'POST',
+    headers: { ...adminAuthHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
 export function getMagazineSubscriptions(token, filters) {
   return request(`${STAFF}/subscriptions/magazine${buildFilterQuery(filters)}`, {
     headers: adminAuthHeaders(token)

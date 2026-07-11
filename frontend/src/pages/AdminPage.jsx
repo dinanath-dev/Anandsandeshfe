@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, LogOut, Pencil, RefreshCcw, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, LogOut, Pencil, Plus, RefreshCcw, Users } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
+import AdminAddSubscriptionModal from '../components/AdminAddSubscriptionModal.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import {
@@ -132,6 +133,7 @@ function PaymentFilters({
   counts,
   onChange,
   onApply,
+  onAddManual,
   onDownloadPdf,
   onDownloadExcel,
   onDownloadLabels,
@@ -208,6 +210,15 @@ function PaymentFilters({
         />
       </label>
       <div className="flex flex-wrap gap-2">
+        <button
+          className="btn-primary inline-flex h-[42px] items-center justify-center gap-2"
+          type="button"
+          onClick={onAddManual}
+          disabled={isLoading}
+        >
+          <Plus size={18} aria-hidden />
+          {t('admin.manualSubscription.addButton')}
+        </button>
         <button
           className="btn-secondary inline-flex h-[42px] items-center justify-center gap-2"
           type="button"
@@ -631,6 +642,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isSavingUser, setIsSavingUser] = useState(false);
+  const [showAddSubscription, setShowAddSubscription] = useState(false);
 
   const superAdmin = role === 'super_admin';
   const booksAdminRole = role === 'books_admin';
@@ -1095,6 +1107,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               counts={paymentCounts}
               onChange={updatePaymentFilter}
               onApply={applyPaymentFilters}
+              onAddManual={() => setShowAddSubscription(true)}
               onDownloadPdf={handleDownloadPaymentsPdf}
               onDownloadExcel={handleDownloadPaymentsExcel}
               onDownloadLabels={handleDownloadSubmissionLabels}
@@ -1437,6 +1450,15 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
           onSave={handleSaveUser}
           saving={isSavingUser}
           t={t}
+        />
+      ) : null}
+
+      {showAddSubscription ? (
+        <AdminAddSubscriptionModal
+          open={showAddSubscription}
+          token={token}
+          onClose={() => setShowAddSubscription(false)}
+          onCreated={() => loadSubmissions()}
         />
       ) : null}
     </main>
