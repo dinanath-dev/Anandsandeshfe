@@ -390,11 +390,11 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
   const yearOptions = accountingYearOptions();
 
   return (
-    <div className="card mb-5 space-y-4 p-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="card mb-5 space-y-4 border border-emerald-200/80 bg-gradient-to-br from-emerald-50/90 to-teal-50/70 p-5 shadow-sm">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <label className="block">
-          <span className="label">{t('admin.filters.status')}</span>
-          <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
+          <span className="label text-base font-semibold text-emerald-900">{t('admin.filters.status')}</span>
+          <select className="input text-base" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
             <option value="verified">{t('admin.filterVerified')}</option>
             <option value="pending">{t('admin.filterPending')}</option>
             <option value="">{t('admin.filterAll')}</option>
@@ -402,8 +402,8 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
           </select>
         </label>
         <label className="block">
-          <span className="label">{t('admin.booksSummary.counter')}</span>
-          <select className="input" value={filters.counter} onChange={(e) => onChange('counter', e.target.value)}>
+          <span className="label text-base font-semibold text-emerald-900">{t('admin.booksSummary.counter')}</span>
+          <select className="input text-base" value={filters.counter} onChange={(e) => onChange('counter', e.target.value)}>
             <option value="all">{t('admin.booksSummary.allCounters')}</option>
             {BOOK_PICKUP_COUNTERS.map((counter) => (
               <option key={counter.code} value={counter.code}>
@@ -413,8 +413,8 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
           </select>
         </label>
         <label className="block">
-          <span className="label">{t('admin.filters.accountingYear')}</span>
-          <select className="input" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
+          <span className="label text-base font-semibold text-emerald-900">{t('admin.filters.accountingYear')}</span>
+          <select className="input text-base" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
             {yearOptions.map((year) => (
               <option key={year} value={String(year)}>
@@ -424,8 +424,8 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
           </select>
         </label>
         <label className="block">
-          <span className="label">{t('admin.filters.accountingMonth')}</span>
-          <select className="input" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
+          <span className="label text-base font-semibold text-emerald-900">{t('admin.filters.accountingMonth')}</span>
+          <select className="input text-base" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
             {monthOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -435,18 +435,23 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
           </select>
         </label>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <button className="btn-primary inline-flex items-center gap-2" type="button" onClick={onApply} disabled={isLoading}>
-          {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={16} />}
+      <div className="flex flex-wrap gap-3">
+        <button
+          className="btn-primary inline-flex items-center gap-2 !bg-emerald-600 !text-base hover:!bg-emerald-700 focus:!ring-emerald-500/35"
+          type="button"
+          onClick={onApply}
+          disabled={isLoading}
+        >
+          {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={18} />}
           {t('admin.filters.apply')}
         </button>
         <button
-          className="btn-secondary inline-flex items-center gap-2"
+          className="btn-secondary inline-flex items-center gap-2 !border-emerald-300 !bg-white !text-base !text-emerald-900 hover:!border-emerald-500 hover:!bg-emerald-50"
           type="button"
           onClick={onDownloadPdf}
           disabled={isLoading || isExporting}
         >
-          <Download size={16} />
+          <Download size={18} />
           {t('admin.booksSummary.downloadPdf')}
         </button>
       </div>
@@ -457,40 +462,40 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
 function BookSummaryTables({ summary, t }) {
   if (!summary?.counters?.length) {
     return (
-      <div className="card p-8 text-center text-muted">
+      <div className="card border border-emerald-200/70 bg-emerald-50/80 p-10 text-center text-base font-medium text-emerald-800">
         {t('admin.booksSummary.none')}
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {summary.counters.map((counter) => (
-        <div key={counter.code} className="card overflow-hidden">
-          <div className="border-b border-ink/10 bg-brand-surface px-4 py-3">
-            <p className="font-black text-ink">{counter.label}</p>
+        <div key={counter.code} className="card overflow-hidden border border-emerald-200/70 shadow-md">
+          <div className="border-b border-emerald-200/80 bg-gradient-to-r from-emerald-100 via-emerald-50 to-teal-50 px-5 py-4">
+            <p className="text-lg font-black text-emerald-900 sm:text-xl">{counter.label}</p>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] border-collapse text-left text-sm">
-              <thead className="bg-white text-ink">
+          <div className="overflow-x-auto bg-white/80">
+            <table className="w-full min-w-[480px] border-collapse text-left text-base">
+              <thead className="bg-emerald-100/90 text-emerald-900">
                 <tr>
-                  <th className="px-4 py-3 font-black">{t('admin.booksSummary.bookName')}</th>
-                  <th className="px-4 py-3 font-black">{t('admin.booksSummary.quantity')}</th>
-                  <th className="px-4 py-3 font-black">{t('admin.booksSummary.totalSales')}</th>
+                  <th className="px-5 py-3.5 text-base font-black">{t('admin.booksSummary.bookName')}</th>
+                  <th className="px-5 py-3.5 text-base font-black">{t('admin.booksSummary.quantity')}</th>
+                  <th className="px-5 py-3.5 text-base font-black">{t('admin.booksSummary.totalSales')}</th>
                 </tr>
               </thead>
               <tbody>
                 {counter.books.map((book) => (
-                  <tr key={`${counter.code}-${book.book_name}`} className="border-t border-ink/10">
-                    <td className="px-4 py-3">{book.book_name}</td>
-                    <td className="px-4 py-3">{book.quantity}</td>
-                    <td className="px-4 py-3">{formatSalesRupees(book.total_sales_paise)}</td>
+                  <tr key={`${counter.code}-${book.book_name}`} className="border-t border-emerald-100/80 even:bg-emerald-50/50">
+                    <td className="px-5 py-3.5 text-ink">{book.book_name}</td>
+                    <td className="px-5 py-3.5 font-semibold text-emerald-800">{book.quantity}</td>
+                    <td className="px-5 py-3.5 font-semibold text-emerald-900">{formatSalesRupees(book.total_sales_paise)}</td>
                   </tr>
                 ))}
-                <tr className="border-t border-ink/10 bg-brand-surface/60 font-bold">
-                  <td className="px-4 py-3">{t('admin.booksSummary.grandTotal')}</td>
-                  <td className="px-4 py-3">{counter.total_quantity}</td>
-                  <td className="px-4 py-3">{formatSalesRupees(counter.total_sales_paise)}</td>
+                <tr className="border-t-2 border-emerald-300 bg-emerald-200/60 text-base font-bold text-emerald-950">
+                  <td className="px-5 py-3.5">{t('admin.booksSummary.grandTotal')}</td>
+                  <td className="px-5 py-3.5">{counter.total_quantity}</td>
+                  <td className="px-5 py-3.5">{formatSalesRupees(counter.total_sales_paise)}</td>
                 </tr>
               </tbody>
             </table>
@@ -499,9 +504,9 @@ function BookSummaryTables({ summary, t }) {
       ))}
 
       {summary.counters.length > 1 && summary.totals ? (
-        <div className="card border border-primary/20 bg-primary/5 p-4 text-sm text-ink">
-          <p className="font-black">{t('admin.booksSummary.combinedTotals')}</p>
-          <p className="mt-1 text-muted">
+        <div className="card border-2 border-emerald-300/70 bg-gradient-to-br from-emerald-100 to-teal-50 p-5 text-base text-emerald-950 shadow-md">
+          <p className="text-lg font-black text-emerald-900">{t('admin.booksSummary.combinedTotals')}</p>
+          <p className="mt-2 text-base font-semibold text-emerald-800">
             {t('admin.booksSummary.totalSales')}: {formatSalesRupees(summary.totals.total_sales_paise)}
           </p>
         </div>
@@ -1238,7 +1243,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               </button>
               <button
                 type="button"
-                className={`rounded-lg px-4 py-2 text-sm font-bold ${bookSubTab === 'summary' ? 'bg-primary text-white' : 'bg-white text-muted border border-ink/10'}`}
+                className={`rounded-lg px-4 py-2.5 text-base font-bold ${bookSubTab === 'summary' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-white text-muted border border-emerald-200/80'}`}
                 onClick={() => setBookSubTab('summary')}
               >
                 {t('admin.booksSummary.tabSummary')}
