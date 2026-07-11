@@ -9,6 +9,7 @@ import {
   downloadBookOrdersExcel,
   downloadSubmissionsExcel,
   downloadSubmissionsPdf,
+  downloadSubmissionLabelsPdf,
   getBookSubscriptions,
   getSubmissions,
   listAdminUsers,
@@ -86,6 +87,10 @@ function formatSubscriberNo(item) {
   return '—';
 }
 
+function submissionRowKey(item) {
+  return item.row_uuid || `${item?.subscriber_no}-${item?.created_at}` || String(item?.id ?? '');
+}
+
 function formatSubmissionAddress(item) {
   const line = [
     item.care_of || item.careOf,
@@ -108,7 +113,19 @@ function formatSubmissionAddress(item) {
   return [item.state, item.pin].filter(Boolean).join(' - ') || '-';
 }
 
-function PaymentFilters({ filters, counts, onChange, onApply, onDownloadPdf, onDownloadExcel, isLoading, isExporting, t, locale }) {
+function PaymentFilters({
+  filters,
+  counts,
+  onChange,
+  onApply,
+  onDownloadPdf,
+  onDownloadExcel,
+  onDownloadLabels,
+  isLoading,
+  isExporting,
+  t,
+  locale
+}) {
   const monthOptions = accountingMonthOptions(locale);
   const yearOptions = accountingYearOptions();
 
@@ -174,6 +191,15 @@ function PaymentFilters({ filters, counts, onChange, onApply, onDownloadPdf, onD
         <button
           className="btn-secondary inline-flex h-[42px] items-center gap-2"
           type="button"
+          onClick={onDownloadLabels}
+          disabled={isLoading || isExporting}
+        >
+          <Download size={16} />
+          {t('admin.filters.downloadLabels')}
+        </button>
+        <button
+          className="btn-secondary inline-flex h-[42px] items-center gap-2"
+          type="button"
           onClick={onDownloadPdf}
           disabled={isLoading || isExporting}
         >
@@ -190,6 +216,7 @@ function PaymentFilters({ filters, counts, onChange, onApply, onDownloadPdf, onD
           {t('admin.filters.downloadExcel')}
         </button>
       </div>
+      <p className="text-sm text-muted">{t('admin.filters.labelsHint')}</p>
     </div>
   );
 }
@@ -503,7 +530,9 @@ export default function AdminPage() {
       try {
         const data = await getBookSubscriptions(activeToken, {
           status: filters.status || undefined,
-          search: filters.search || undefined
+          search: filters.search || undefined,
+          month: filters.month,
+          year: filters.year
         });
         setBookRows(data.orders || []);
       } catch (err) {
@@ -586,6 +615,18 @@ export default function AdminPage() {
   function applyPaymentFilters() {
     setPaymentPage(1);
     loadSubmissions();
+  }
+
+  async function handleDownloadSubmissionLabels() {
+    setError('');
+    setIsExporting(true);
+    try {
+      await downloadSubmissionLabelsPdf(token, paymentFilters);
+    } catch (err) {
+      handleAuthError(err);
+    } finally {
+      setIsExporting(false);
+    }
   }
 
   async function handleDownloadPaymentsPdf() {
@@ -739,6 +780,7 @@ export default function AdminPage() {
               onApply={applyPaymentFilters}
               onDownloadPdf={handleDownloadPaymentsPdf}
               onDownloadExcel={handleDownloadPaymentsExcel}
+              onDownloadLabels={handleDownloadSubmissionLabels}
               isLoading={isLoading}
               isExporting={isExporting}
               t={t}
@@ -763,7 +805,7 @@ export default function AdminPage() {
                     {submissions.map((item) => {
                       const status = displayPaymentStatus(item);
                       return (
-                      <tr key={item.row_uuid || `${item.subscriber_no}-${item.created_at}`} className="border-t border-ink/10 align-top">
+                      <tr key={submissionRowKey(item)} className="border-t border-ink/10 align-top">
                         <td className="px-4 py-4 font-semibold tabular-nums text-ink">{formatSubscriberNo(item)}</td>
                         <td className="px-4 py-4">
                           <p className="font-bold text-ink">{item.name || t('admin.notSubmitted')}</p>

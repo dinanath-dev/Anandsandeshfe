@@ -631,7 +631,9 @@ export const translations = {
         accountingMonth: 'Accounting month',
         apply: 'Apply filters',
         downloadPdf: 'Download PDF',
-        downloadExcel: 'Download Excel'
+        downloadExcel: 'Download Excel',
+        downloadLabels: 'Print mailing labels',
+        labelsHint: 'Prints mailing labels for all subscribers matching the month and filters above.',
       },
       books: {
         orderId: 'Order ID',
@@ -1302,7 +1304,9 @@ export const translations = {
         accountingMonth: 'लेखा माह',
         apply: 'फ़िल्टर लागू करें',
         downloadPdf: 'PDF डाउनलोड',
-        downloadExcel: 'Excel डाउनलोड'
+        downloadExcel: 'Excel डाउनलोड',
+        downloadLabels: 'मेलिंग लेबल प्रिंट करें',
+        labelsHint: 'ऊपर चुने माह और फ़िल्टर से मेल खाते सभी सदस्यों के लेबल प्रिंट करता है।',
       },
       books: {
         orderId: 'ऑर्डर ID',

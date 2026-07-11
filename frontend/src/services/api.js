@@ -405,6 +405,16 @@ export async function downloadSubmissionsExcel(token, filters = {}) {
   await downloadAdminFile(token, `${STAFF}/submissions/export/excel`, filters, `subscribers-${stamp}.csv`);
 }
 
+export async function downloadSubmissionLabelsPdf(token, filters = {}) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  await downloadAdminFile(
+    token,
+    `${STAFF}/submissions/export/labels`,
+    filters,
+    `mailing-labels-${stamp}.pdf`
+  );
+}
+
 export function listAdminUsers(token, filters = {}) {
   const params = new URLSearchParams();
   const search = typeof filters === 'string' ? filters : filters.search;
