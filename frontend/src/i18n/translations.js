@@ -759,6 +759,28 @@ export const translations = {
         saveFailed: 'Could not save subscription.',
         amountInvalid: 'Enter a valid amount.',
         success: 'Subscription saved. Subscriber number: {subscriberNo}'
+      },
+      manualBookOrder: {
+        addButton: 'Add manual book sale',
+        title: 'Add counter book sale',
+        subtitle: 'Record cash payment at a sales counter — no online Razorpay checkout.',
+        cashNote: 'Saved as verified counter sale with cash / offline payment.',
+        customer: 'Customer',
+        sale: 'Sale details',
+        books: 'Books',
+        addBook: 'Add book',
+        removeBook: 'Remove',
+        selectBook: 'Select book',
+        bookRequired: 'Select at least one book.',
+        nameRequired: 'Name is required.',
+        quantityInvalid: 'Enter a valid quantity.',
+        qty: 'Qty',
+        saleDate: 'Sale date',
+        estimatedTotal: 'Estimated total: ₹{amount}',
+        save: 'Save book sale',
+        saving: 'Saving…',
+        saveFailed: 'Could not save book sale.',
+        success: 'Book sale saved. Order {orderId}… — ₹{amount}'
       }
     },
 
@@ -1529,6 +1551,28 @@ export const translations = {
         saveFailed: 'ग्राहकी सहेजी नहीं जा सकी।',
         amountInvalid: 'मान्य राशि दर्ज करें।',
         success: 'ग्राहकी सहेजी गई। सदस्य संख्या: {subscriberNo}'
+      },
+      manualBookOrder: {
+        addButton: 'मैन्युअल पुस्तक बिक्री जोड़ें',
+        title: 'काउंटर पुस्तक बिक्री जोड़ें',
+        subtitle: 'बिक्री काउंटर पर नकद भुगतान दर्ज करें — ऑनलाइन Razorpay नहीं।',
+        cashNote: 'सत्यापित काउंटर बिक्री के रूप में नकद / ऑफ़लाइन भुगतान सहेजा जाएगा।',
+        customer: 'ग्राहक',
+        sale: 'बिक्री विवरण',
+        books: 'पुस्तकें',
+        addBook: 'पुस्तक जोड़ें',
+        removeBook: 'हटाएँ',
+        selectBook: 'पुस्तक चुनें',
+        bookRequired: 'कम से कम एक पुस्तक चुनें।',
+        nameRequired: 'नाम आवश्यक है।',
+        quantityInvalid: 'मान्य मात्रा दर्ज करें।',
+        qty: 'मात्रा',
+        saleDate: 'बिक्री तिथि',
+        estimatedTotal: 'अनुमानित कुल: ₹{amount}',
+        save: 'बिक्री सहेजें',
+        saving: 'सहेजा जा रहा है…',
+        saveFailed: 'बिक्री सहेजी नहीं जा सकी।',
+        success: 'बिक्री सहेजी गई। ऑर्डर {orderId}… — ₹{amount}'
       }
     },
 

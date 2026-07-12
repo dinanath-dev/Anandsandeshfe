@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, LogOut, Pencil, Plus, RefreshCcw, Users } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import AdminAddSubscriptionModal from '../components/AdminAddSubscriptionModal.jsx';
+import AdminAddBookOrderModal from '../components/AdminAddBookOrderModal.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import {
@@ -324,7 +325,7 @@ function UserFilters({ filters, onChange, onApply, isLoading, t }) {
   );
 }
 
-function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloadExcel, isLoading, isExporting, t, locale }) {
+function BookOrderFilters({ filters, onChange, onApply, onAddManual, onDownloadPdf, onDownloadExcel, isLoading, isExporting, t, locale }) {
   const monthOptions = accountingMonthOptions(locale);
   const yearOptions = accountingYearOptions();
 
@@ -373,6 +374,10 @@ function BookOrderFilters({ filters, onChange, onApply, onDownloadPdf, onDownloa
         </label>
       </div>
       <div className="flex flex-wrap gap-2">
+        <button className="admin-report-btn-primary h-[42px]" type="button" onClick={onAddManual} disabled={isLoading}>
+          <Plus size={18} aria-hidden />
+          {t('admin.manualBookOrder.addButton')}
+        </button>
         <button className="admin-report-btn-primary" type="button" onClick={onApply} disabled={isLoading}>
           {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={16} />}
           {t('admin.filters.apply')}
@@ -872,6 +877,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   const [isExporting, setIsExporting] = useState(false);
   const [isSavingUser, setIsSavingUser] = useState(false);
   const [showAddSubscription, setShowAddSubscription] = useState(false);
+  const [showAddBookOrder, setShowAddBookOrder] = useState(false);
 
   const superAdmin = role === 'super_admin';
   const booksAdminRole = role === 'books_admin';
@@ -1604,6 +1610,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
             <BookOrderFilters
               filters={bookFilters}
               onChange={updateBookFilter}
+              onAddManual={() => setShowAddBookOrder(true)}
               onApply={() => {
                 setBookPage(1);
                 loadBookOrders(token, bookFilters, { page: 1 });
@@ -1787,6 +1794,16 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
           onSave={handleSaveUser}
           saving={isSavingUser}
           t={t}
+        />
+      ) : null}
+
+      {showAddBookOrder ? (
+        <AdminAddBookOrderModal
+          open={showAddBookOrder}
+          token={token}
+          portalSlug={portalSlug}
+          onClose={() => setShowAddBookOrder(false)}
+          onCreated={() => loadBookOrders()}
         />
       ) : null}
 
