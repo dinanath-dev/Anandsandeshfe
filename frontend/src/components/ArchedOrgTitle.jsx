@@ -1,16 +1,37 @@
-export default function ArchedOrgTitle() {
+import { useTranslation } from '../i18n/LanguageContext.jsx';
+
+export default function ArchedOrgTitle({ compact = false }) {
+  const { t } = useTranslation();
+
   return (
-    <div className="mx-auto mt-2 max-w-[100vw] px-2 text-center sm:px-4">
+    <div
+      className={
+        compact
+          ? 'mx-auto mt-1 w-full max-w-none px-2 text-center sm:px-3'
+          : 'mx-auto mt-2 w-full max-w-none px-2 text-center sm:px-4 lg:px-6'
+      }
+    >
       <h1
-        className="text-balance text-xs font-black uppercase leading-tight tracking-[0.04em] text-[#152d56] sm:text-lg sm:tracking-[0.06em] md:text-xl lg:text-2xl"
+        className={
+          compact
+            ? 'mx-auto max-w-[min(100%,64rem)] text-pretty text-sm font-black uppercase leading-tight tracking-[0.05em] text-[#152d56] sm:text-xl sm:tracking-[0.07em] md:text-2xl'
+            : 'mx-auto max-w-[min(100%,72rem)] text-pretty text-sm font-black uppercase leading-tight tracking-[0.05em] text-[#152d56] sm:text-xl sm:tracking-[0.07em] md:text-2xl lg:text-3xl xl:text-[2.15rem] xl:tracking-[0.08em]'
+        }
         style={{ textShadow: '0 2px 0 #ffffff, 0 4px 8px rgba(15, 23, 42, 0.22)' }}
       >
-        SHRI PARAMHANS ADVAIT MAT PUBLICATION SOCIETY
+        {t('layout.orgTitle')}
       </h1>
-      <address className="not-italic mx-auto mt-3 max-w-xl space-y-0.5 text-sm font-semibold leading-snug text-[#1a4a2e] sm:text-base">
-        <p>Anand Sandesh Karyalay</p>
-        <p>Shri Anandpur Dham</p>
-        <p>Post Office Shri Anandpur Dham, 473331</p>
+      <address
+        className={
+          compact
+            ? 'not-italic mx-auto mt-2 w-full max-w-4xl space-y-0.5 text-sm font-semibold leading-snug text-[#1a4a2e] sm:text-base'
+            : 'not-italic mx-auto mt-3 w-full max-w-4xl space-y-1 text-sm font-semibold leading-snug text-[#1a4a2e] sm:text-base md:text-lg'
+        }
+      >
+        <p className="text-pretty">
+          {t('layout.addressLine1')}, {t('layout.addressLine2')}
+        </p>
+        <p>{t('layout.addressLine3')}</p>
       </address>
     </div>
   );

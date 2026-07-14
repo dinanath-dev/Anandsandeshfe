@@ -9,6 +9,7 @@ const LEGACY_KEY = 'adminToken';
 /** Default slugs for path-based routes (/admin, /books-admin). */
 export const ADMIN_PORTAL_SLUG = 'admin';
 export const BOOKS_PORTAL_SLUG = 'books';
+export const ACCOUNTS_PORTAL_SLUG = 'accounts';
 
 /** @deprecated use ADMIN_PORTAL_SLUG */
 export const ADMIN_PORTAL = ADMIN_PORTAL_SLUG;
@@ -99,6 +100,10 @@ export function isSuperAdmin(portalSlug = ADMIN_PORTAL_SLUG) {
 
 export function isBooksAdminRole(portalSlug = ADMIN_PORTAL_SLUG) {
   return getAdminRole(portalSlug) === 'books_admin';
+}
+
+export function isAccountsAdminRole(portalSlug = ADMIN_PORTAL_SLUG) {
+  return getAdminRole(portalSlug) === 'accounts_admin';
 }
 
 export function saveAdminSession({ token, role, portal_slug }, portalSlug = ADMIN_PORTAL_SLUG) {

@@ -1,5 +1,5 @@
 import { getUserAuth } from '../utils/auth.js';
-import { adminAuthHeaders, ADMIN_PORTAL_SLUG, getAdminPortalId, getPortalSlug } from '../utils/adminAuth.js';
+import { adminAuthHeaders, ACCOUNTS_PORTAL_SLUG, ADMIN_PORTAL_SLUG, getAdminPortalId, getPortalSlug } from '../utils/adminAuth.js';
 
 const PRODUCTION_API_DIRECT = 'https://api.anandsandeshkaryalay.online/api';
 
@@ -285,7 +285,7 @@ export function getAdminPortalMeta(slug) {
   return request(`${STAFF}/portals/${encodeURIComponent(slug)}`);
 }
 
-export function adminLogin({ username, password }, portalSlug = ADMIN_PORTAL_SLUG_SLUG) {
+export function adminLogin({ username, password }, portalSlug = ADMIN_PORTAL_SLUG) {
   const body = { username, password, slug: getPortalSlug(portalSlug) };
   const portalId = getAdminPortalId(portalSlug);
   if (portalId) body.portal_id = portalId;
@@ -294,6 +294,41 @@ export function adminLogin({ username, password }, portalSlug = ADMIN_PORTAL_SLU
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
+}
+
+export function getSettlementRecon(token, filters = {}, portalSlug = ACCOUNTS_PORTAL_SLUG) {
+  const params = new URLSearchParams();
+  if (filters.year) params.set('year', String(filters.year));
+  if (filters.month) params.set('month', String(filters.month));
+  if (filters.day) params.set('day', String(filters.day));
+  const query = params.toString();
+  return request(`${STAFF}/settlements/recon${query ? `?${query}` : ''}`, {
+    headers: adminAuthHeaders(token, portalSlug)
+  });
+}
+
+export function getSettlementTransfers(token, filters = {}, portalSlug = ACCOUNTS_PORTAL_SLUG) {
+  const params = new URLSearchParams();
+  if (filters.year) params.set('year', String(filters.year));
+  if (filters.month) params.set('month', String(filters.month));
+  const query = params.toString();
+  return request(`${STAFF}/settlements/transfers${query ? `?${query}` : ''}`, {
+    headers: adminAuthHeaders(token, portalSlug)
+  });
+}
+
+export async function downloadSettlementDayExcel(token, filters = {}, portalSlug = ACCOUNTS_PORTAL_SLUG) {
+  const day = filters.day != null ? String(filters.day) : '';
+  const dateKey =
+    filters.dateKey ||
+    `${filters.year}-${String(filters.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  await downloadAdminFile(
+    token,
+    `${STAFF}/settlements/recon/export/excel`,
+    { year: filters.year, month: filters.month, day },
+    `settlements-${dateKey}.csv`,
+    portalSlug
+  );
 }
 
 export function getAdminMe(token) {

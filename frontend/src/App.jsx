@@ -15,6 +15,7 @@ const PaymentPage = lazy(() => import('./pages/PaymentPage.jsx'));
 const SuccessPage = lazy(() => import('./pages/SuccessPage.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
 const BooksAdminPage = lazy(() => import('./pages/BooksAdminPage.jsx'));
+const AccountsAdminPage = lazy(() => import('./pages/AccountsAdminPage.jsx'));
 const HostAdminPortal = lazy(() => import('./pages/HostAdminPortal.jsx'));
 const AboutPage = lazy(() => import('./pages/AboutPage.jsx'));
 
@@ -98,6 +99,7 @@ export default function App() {
         />
         <Route path="/admin" element={<AdminPage portalSlug="admin" />} />
         <Route path="/books-admin" element={<BooksAdminPage />} />
+        <Route path="/accounts-admin" element={<AccountsAdminPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </Suspense>

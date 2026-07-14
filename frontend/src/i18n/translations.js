@@ -608,10 +608,10 @@ export const translations = {
       passwordLabel: 'Password',
       loginButton: 'Login',
       logout: 'Log out',
-      eyebrow: 'Admin Panel',
-      pageTitle: 'Administration',
+      eyebrow: 'Admin',
+      pageTitle: 'Subscriptions & Orders',
       pageDescription:
-        'Review Anand Sandesh subscriptions and book orders with filters, and export PDF or Excel reports.',
+        'Manage Anand Sandesh subscriptions and book orders — filter, review, and export PDF or Excel reports.',
       pageDescriptionSuper:
         'Manage payments, view all Anand Sandesh and book subscriptions with filters, export PDF reports, and update user records.',
       roleAdmin: 'Admin',
@@ -657,6 +657,8 @@ export const translations = {
         searchPlaceholderSubscriptions: 'Name, email, mobile, or subscriber #',
         accountingYear: 'Accounting year',
         accountingMonth: 'Accounting month',
+        accountingDay: 'Date (day)',
+        allDays: 'All days',
         apply: 'Apply filters',
         downloadPdf: 'Download PDF',
         downloadExcel: 'Download Excel',
@@ -789,10 +791,47 @@ export const translations = {
       loginSubtitle: 'Sign in with your books admin username and password to review book orders.',
       portalNotConfigured:
         'Books admin portal is not configured. Use books.anandsandeshkaryalay.online or /books-admin.',
-      eyebrow: 'Books Admin Panel',
+      eyebrow: 'Books',
       pageTitle: 'Book Orders',
-      pageDescription: 'Review book orders with filters, and export PDF or Excel reports.',
+      pageDescription: 'Review and export book counter sales — filter by date, counter, and payment method.',
       roleBooksAdmin: 'Books Admin'
+    },
+
+    accountsAdmin: {
+      loginTitle: 'Accounts Login',
+      loginSubtitle: 'Sign in to view daily Razorpay settlement reports.',
+      portalNotConfigured:
+        'Accounts portal is not configured. Use accounts.anandsandeshkaryalay.online or /accounts-admin.',
+      eyebrow: 'Accounts',
+      pageTitle: 'Razorpay Settlements',
+      pageDescription:
+        'Daily settlement reports — payer name, payment details, gross amount, fees, and net credited to your bank.',
+      loading: 'Loading settlements…',
+      loadingDay: 'Loading day details…',
+      dayWiseTitle: 'Daily settlements',
+      date: 'Date',
+      payments: 'Payments',
+      gross: 'Gross',
+      fees: 'Fees',
+      tax: 'Tax',
+      feesTax: 'Fees + tax',
+      net: 'Net settled',
+      utr: 'UTR',
+      type: 'Type',
+      paymentId: 'Payment ID',
+      method: 'Method',
+      source: 'Type',
+      sourceBook: 'Book',
+      sourceSubscription: 'Subscription',
+      sourceOther: 'Other',
+      payerName: 'Name',
+      phone: 'Phone',
+      productDetail: 'Details',
+      monthTotal: 'Month total',
+      dayTotal: 'Day total',
+      none: 'No settlements found for the selected month.',
+      noTransactions: 'No transactions for this day.',
+      downloadExcel: 'Excel'
     }
   },
 
@@ -1400,8 +1439,8 @@ export const translations = {
       passwordLabel: 'पासवर्ड',
       loginButton: 'लॉगिन',
       logout: 'लॉग आउट',
-      eyebrow: 'व्यवस्थापक पैनल',
-      pageTitle: 'प्रशासन',
+      eyebrow: 'व्यवस्थापक',
+      pageTitle: 'सदस्यता और ऑर्डर',
       pageDescription:
         'फ़िल्टर के साथ आनंद संदेश ग्राहकियाँ और पुस्तक ऑर्डर देखें, और PDF या Excel रिपोर्ट डाउनलोड करें।',
       pageDescriptionSuper:
@@ -1449,6 +1488,8 @@ export const translations = {
         searchPlaceholderSubscriptions: 'नाम, ईमेल, मोबाइल या सदस्य संख्या',
         accountingYear: 'लेखा वर्ष',
         accountingMonth: 'लेखा माह',
+        accountingDay: 'तिथि (दिन)',
+        allDays: 'सभी दिन',
         apply: 'फ़िल्टर लागू करें',
         downloadPdf: 'PDF डाउनलोड',
         downloadExcel: 'Excel डाउनलोड',
@@ -1581,10 +1622,47 @@ export const translations = {
       loginSubtitle: 'पुस्तक ऑर्डर की समीक्षा के लिए पुस्तक व्यवस्थापक उपयोगकर्ता नाम और पासवर्ड से साइन इन करें।',
       portalNotConfigured:
         'पुस्तक व्यवस्थापक पोर्टल कॉन्फ़िगर नहीं है। books.anandsandeshkaryalay.online या /books-admin उपयोग करें।',
-      eyebrow: 'पुस्तक व्यवस्थापक पैनल',
+      eyebrow: 'पुस्तक',
       pageTitle: 'पुस्तक ऑर्डर',
-      pageDescription: 'फ़िल्टर के साथ पुस्तक ऑर्डर देखें, और PDF या Excel रिपोर्ट डाउनलोड करें।',
+      pageDescription: 'पुस्तक काउंटर बिक्री देखें और निर्यात करें — तिथि, काउंटर और भुगतान विधि से फ़िल्टर करें।',
       roleBooksAdmin: 'पुस्तक व्यवस्थापक'
+    },
+
+    accountsAdmin: {
+      loginTitle: 'लेखा लॉगिन',
+      loginSubtitle: 'दैनिक Razorpay निपटान रिपोर्ट देखने के लिए साइन इन करें।',
+      portalNotConfigured:
+        'लेखा पोर्टल कॉन्फ़िगर नहीं है। accounts.anandsandeshkaryalay.online या /accounts-admin उपयोग करें।',
+      eyebrow: 'लेखा',
+      pageTitle: 'Razorpay निपटान',
+      pageDescription:
+        'दैनिक निपटान रिपोर्ट — भुगतानकर्ता का नाम, विवरण, सकल राशि, शुल्क और बैंक में जमा शुद्ध राशि।',
+      loading: 'निपटान लोड हो रहे हैं…',
+      loadingDay: 'दिन का विवरण लोड हो रहा है…',
+      dayWiseTitle: 'दैनिक निपटान',
+      date: 'तिथि',
+      payments: 'भुगतान',
+      gross: 'सकल',
+      fees: 'शुल्क',
+      tax: 'कर',
+      feesTax: 'शुल्क + कर',
+      net: 'शुद्ध निपटान',
+      utr: 'UTR',
+      type: 'प्रकार',
+      paymentId: 'भुगतान ID',
+      method: 'विधि',
+      source: 'प्रकार',
+      sourceBook: 'पुस्तक',
+      sourceSubscription: 'सदस्यता',
+      sourceOther: 'अन्य',
+      payerName: 'नाम',
+      phone: 'फ़ोन',
+      productDetail: 'विवरण',
+      monthTotal: 'माह कुल',
+      dayTotal: 'दिन कुल',
+      none: 'चयनित महीने के लिए कोई निपटान नहीं मिला।',
+      noTransactions: 'इस दिन के लिए कोई लेन-देन नहीं।',
+      downloadExcel: 'Excel'
     }
   }
 };

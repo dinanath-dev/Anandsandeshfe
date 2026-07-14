@@ -61,6 +61,7 @@ body {
 
 .donation-header {
   position: relative;
+  width: 100%;
 }
 
 /* Top soft glow */
@@ -118,12 +119,12 @@ body {
     0 12px 40px rgba(13, 45, 127, 0.12),
     0 2px 8px rgba(0, 0, 0, 0.04);
   backdrop-filter: blur(10px);
-  padding: 1.15rem 1rem 1.25rem;
+  padding: 0.9rem 0.85rem 1rem;
 }
 
 @media (min-width: 640px) {
   .donation-form-shell {
-    padding: 1.5rem 1.75rem 1.65rem;
+    padding: 1.1rem 1.25rem 1.2rem;
   }
 }
 
@@ -146,13 +147,13 @@ body {
 .donation-form-section + .donation-form-section,
 .donation-form-section + .donation-form-pair,
 .donation-form-pair + .donation-form-section {
-  margin-top: 1.35rem;
-  padding-top: 1.35rem;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
   border-top: 1px solid rgba(13, 45, 127, 0.1);
 }
 
 .donation-form-section-title {
-  margin: 0 0 1rem;
+  margin: 0 0 0.65rem;
   padding: 0;
   border: none;
   font-size: 0.6875rem;
@@ -173,31 +174,31 @@ body {
 .donation-form-pair {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 0.7rem;
 }
 
 .donation-form-pair + .donation-form-pair {
-  margin-top: 1rem;
+  margin-top: 0.7rem;
 }
 
 .donation-form-section--personal .donation-form-pair + .donation-form-pair {
-  margin-top: 0.875rem;
+  margin-top: 0.6rem;
 }
 
 @media (min-width: 640px) {
   .donation-form-pair:not(.donation-form-pair--single):not(.donation-form-pair--triple):not(.donation-form-pair--name) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem 1.25rem;
+    gap: 0.7rem 1rem;
   }
 
   .donation-form-pair--triple {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem 1.25rem;
+    gap: 0.7rem 1rem;
   }
 
   .donation-form-pair--name {
     grid-template-columns: minmax(5.5rem, 7rem) minmax(0, 1fr) minmax(0, 1fr);
-    gap: 1rem 1.25rem;
+    gap: 0.7rem 1rem;
   }
 }
 
@@ -649,12 +650,12 @@ textarea.donation-input.donation-input--address {
 }
 
 .form-color-theme .donation-form-section .donation-form-pair + .donation-form-pair {
-  margin-top: 0.85rem;
+  margin-top: 0.6rem;
 }
 
 .form-color-theme .donation-form-section + .donation-form-section {
-  margin-top: 0.75rem;
-  padding-top: 1rem;
+  margin-top: 0.55rem;
+  padding-top: 0.75rem;
   border-top: none;
 }
 
@@ -1306,13 +1307,13 @@ textarea.donation-input.donation-input--address {
 
 .profile-detail-grid {
   display: grid;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 @media (min-width: 640px) {
   .profile-detail-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.1rem 1.25rem;
+    gap: 0.85rem 1rem;
   }
 }
 
@@ -1806,16 +1807,24 @@ select {
     @apply mx-auto w-full max-w-6xl;
   }
 
+  .admin-page-shell {
+    @apply px-2 sm:px-4 lg:px-6;
+  }
+
+  .admin-content-wrap {
+    @apply mx-auto w-full max-w-none px-3 pt-1 sm:px-5 md:px-8 lg:px-10 xl:px-12;
+  }
+
   .card {
     @apply rounded-lg border border-black/5 bg-white shadow-soft;
   }
 
   .btn-primary {
-    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-brand-royal focus:outline-none focus:ring-4 focus:ring-brand-royal/35 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-white shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-brand-royal hover:shadow-md active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-brand-royal/35 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-sm;
   }
 
   .btn-secondary {
-    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-ink/10 bg-white px-5 py-3 font-semibold text-ink transition hover:border-primary hover:bg-primary/10 focus:outline-none focus:ring-4 focus:ring-primary/25;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-ink/10 bg-white px-5 py-3 font-semibold text-ink transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary hover:bg-primary/10 active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-primary/25;
   }
 
   .input {
@@ -1882,8 +1891,44 @@ select {
 }
 
 /* Admin reports — emerald theme (matches Book Sales Summary) */
+.admin-toolbar {
+  @apply fixed right-2 top-[max(0.75rem,env(safe-area-inset-top)+0.5rem)] z-[70] flex items-center gap-2 sm:right-5 sm:top-5;
+}
+
+.admin-toolbar__logout {
+  @apply !min-h-10 !px-4 !py-2 text-sm shadow-md;
+}
+
+.admin-page-header {
+  @apply mb-6 flex items-start gap-4 border-b border-emerald-200/80 pb-5;
+}
+
+.admin-page-header__icon {
+  @apply mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-sm;
+}
+
+.admin-page-header__text {
+  @apply min-w-0 flex-1;
+}
+
+.admin-page-header__eyebrow {
+  @apply text-[0.68rem] font-bold uppercase tracking-[0.2em] text-emerald-600;
+}
+
+.admin-page-header__title {
+  @apply mt-1 text-[1.65rem] font-black leading-tight text-emerald-950 sm:text-[1.85rem];
+}
+
+.admin-page-header__desc {
+  @apply mt-2 max-w-3xl text-sm leading-relaxed text-muted;
+}
+
+.admin-page-header__actions {
+  @apply flex shrink-0 flex-wrap items-center gap-2.5 sm:justify-end;
+}
+
 .admin-report-tab {
-  @apply rounded-lg px-4 py-2 text-sm font-bold transition;
+  @apply rounded-lg px-4 py-2 text-sm font-bold transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95;
 }
 
 .admin-report-tab--active {
@@ -1899,15 +1944,66 @@ select {
 }
 
 .admin-report-filters {
-  @apply card mb-5 space-y-4 border border-emerald-200/80 bg-emerald-50/60 p-5 shadow-sm;
+  @apply card mb-5 border border-emerald-200/80 bg-emerald-50/60 p-4 shadow-sm sm:p-5;
+}
+
+.admin-filter-row {
+  @apply grid w-full grid-cols-1 gap-4 sm:grid-cols-3 lg:items-end;
+}
+
+.admin-filter-field {
+  @apply block w-full min-w-0;
+}
+
+.admin-filter-action {
+  @apply flex w-full flex-col lg:w-auto lg:min-w-[11rem];
+}
+
+.admin-filter-action__spacer {
+  @apply mb-2 hidden h-[1.375rem] lg:block;
+}
+
+.admin-books-filters {
+  @apply space-y-4;
+}
+
+.admin-books-filters__fields {
+  @apply grid w-full grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4;
+}
+
+.admin-books-filters__actions {
+  @apply grid w-full grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4;
+}
+
+.admin-books-filters__actions--three {
+  @apply xl:grid-cols-3;
+}
+
+.admin-books-filters__actions--single {
+  @apply sm:grid-cols-1 xl:grid-cols-1 xl:max-w-xs;
+}
+
+.admin-books-filters__actions--half {
+  @apply xl:grid-cols-2;
+}
+
+.admin-books-filters__actions .admin-report-btn-primary,
+.admin-books-filters__actions .admin-report-btn-secondary {
+  @apply w-full min-h-[2.75rem];
 }
 
 .admin-report-label {
   @apply label text-base font-semibold text-emerald-900;
 }
 
+.admin-branded-page .admin-report-card,
+.admin-branded-page .admin-report-filters,
+.admin-branded-page .admin-stat-grid {
+  width: 100%;
+}
+
 .admin-report-card {
-  @apply card overflow-hidden border border-emerald-200/70 bg-emerald-50/40 shadow-md;
+  @apply card w-full overflow-hidden border border-emerald-200/70 bg-emerald-50/40 shadow-md transition-shadow duration-300 hover:shadow-lg;
 }
 
 .admin-report-section-title {
@@ -1922,6 +2018,58 @@ select {
   @apply w-full border-collapse text-left text-sm text-emerald-950;
 }
 
+.admin-settlements-table {
+  @apply w-full;
+  table-layout: auto;
+}
+
+.admin-settlements-table th,
+.admin-settlements-table td {
+  @apply align-middle px-3 py-3 sm:px-4 sm:py-3.5;
+}
+
+.admin-settlements-table .col-expand {
+  @apply w-10 px-2 text-center;
+}
+
+.admin-settlements-table .col-date {
+  @apply whitespace-nowrap text-center;
+}
+
+.admin-settlements-table .col-num {
+  @apply whitespace-nowrap text-center tabular-nums;
+}
+
+.admin-settlements-table .col-utr {
+  @apply text-center font-mono text-xs;
+}
+
+.admin-download-icon-btn {
+  @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500 bg-white p-0 text-emerald-700 shadow-sm transition-all duration-200 hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-900 disabled:cursor-not-allowed disabled:opacity-60;
+  min-height: unset;
+}
+
+.admin-download-icon-btn svg {
+  display: block;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.admin-settlements-table .col-download {
+  @apply w-16 whitespace-nowrap text-center;
+}
+
+.admin-settlements-table td.col-download .admin-download-icon-btn {
+  @apply mx-auto;
+}
+
+.admin-settlements-table thead .col-num,
+.admin-settlements-table thead .col-date,
+.admin-settlements-table thead .col-utr,
+.admin-settlements-table thead .col-download {
+  @apply text-center;
+}
+
 .admin-report-table thead {
   @apply bg-emerald-100 text-emerald-900;
 }
@@ -1931,11 +2079,15 @@ select {
 }
 
 .admin-report-table tbody tr {
-  @apply border-t border-emerald-100/80 align-top bg-white;
+  @apply border-t border-emerald-100/80 align-top bg-white transition-colors duration-150;
 }
 
 .admin-report-table tbody tr:nth-child(even) {
   @apply bg-emerald-50/50;
+}
+
+.admin-report-table tbody tr:hover {
+  @apply bg-emerald-100/70;
 }
 
 .admin-report-table td {
@@ -1974,11 +2126,11 @@ select {
 }
 
 .admin-report-btn-primary {
-  @apply btn-primary inline-flex items-center justify-center gap-2 !border-emerald-700 !bg-emerald-700 !text-white hover:!bg-emerald-800 focus:!ring-emerald-500/35;
+  @apply btn-primary inline-flex items-center justify-center gap-2 !border-emerald-700 !bg-emerald-700 !text-white transition-all duration-200 ease-out hover:-translate-y-0.5 hover:!bg-emerald-800 hover:shadow-lg active:translate-y-0 active:scale-[0.98] focus:!ring-emerald-500/35;
 }
 
 .admin-report-btn-secondary {
-  @apply btn-secondary inline-flex items-center justify-center gap-2 !border-emerald-300 !bg-white !text-emerald-900 hover:!border-emerald-500 hover:!bg-emerald-50;
+  @apply btn-secondary inline-flex items-center justify-center gap-2 !border-emerald-300 !bg-white !text-emerald-900 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:!border-emerald-500 hover:!bg-emerald-50 hover:shadow-md active:translate-y-0 active:scale-[0.98];
 }
 
 .admin-report-pagination {
@@ -1991,6 +2143,63 @@ select {
 
 .admin-login-card .label {
   @apply font-semibold text-emerald-900;
+}
+
+/* Stat cards — accounts / summary tiles */
+.admin-stat-card {
+  @apply rounded-xl border border-emerald-300/80 bg-white px-4 py-4 text-center shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-md;
+}
+
+.admin-stat-grid {
+  @apply admin-rise mb-6 grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-4;
+}
+
+.admin-stat-card__label {
+  @apply text-sm font-semibold uppercase tracking-wide text-emerald-700;
+}
+
+.admin-stat-card__value {
+  @apply mt-1 text-2xl font-bold text-emerald-900;
+}
+
+/* Entrance motion */
+@keyframes admin-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-rise {
+  animation: admin-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-rise {
+    animation: none;
+  }
+
+  .admin-report-tab,
+  .admin-report-btn-primary,
+  .admin-report-btn-secondary,
+  .admin-stat-card,
+  .btn-primary,
+  .btn-secondary {
+    transition: none;
+  }
+
+  .admin-report-tab:hover,
+  .admin-report-btn-primary:hover,
+  .admin-report-btn-secondary:hover,
+  .admin-stat-card:hover,
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    transform: none;
+  }
 }
 
 /* Toast notifications */

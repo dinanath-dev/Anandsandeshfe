@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Alert from '../components/Alert.jsx';
 import { LoadingBlock } from '../components/Loader.jsx';
 import { getAdminPortalMeta } from '../services/api.js';
+import AccountsPage from './AccountsPage.jsx';
 import AdminPage from './AdminPage.jsx';
 
 /**
@@ -46,6 +47,10 @@ export default function HostAdminPortal({ slug }) {
 
   if (!meta) {
     return <LoadingBlock label="Loading portal…" />;
+  }
+
+  if (meta.accounts_only) {
+    return <AccountsPage portalSlug={meta.slug} portalLabel={meta.label} />;
   }
 
   return <AdminPage portalSlug={meta.slug} booksOnly={meta.books_only} portalLabel={meta.label} />;

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, LogOut, Pencil, Plus, RefreshCcw, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, Pencil, Plus, Users } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import AdminAddSubscriptionModal from '../components/AdminAddSubscriptionModal.jsx';
 import AdminAddBookOrderModal from '../components/AdminAddBookOrderModal.jsx';
-import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
-import PageHeader from '../components/PageHeader.jsx';
+import AdminBrandedLayout from '../components/AdminBrandedLayout.jsx';
+import { LoadingBlock } from '../components/Loader.jsx';
 import {
   adminLogin,
   downloadBookOrdersPdf,
@@ -141,7 +141,6 @@ function PaymentFilters({
   filters,
   counts,
   onChange,
-  onApply,
   onAddManual,
   onDownloadPdf,
   onDownloadExcel,
@@ -155,9 +154,9 @@ function PaymentFilters({
   const yearOptions = accountingYearOptions();
 
   return (
-    <div className="admin-report-filters">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="block">
+    <div className="admin-report-filters admin-books-filters">
+      <div className="admin-books-filters__fields">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.audience')}</span>
           <select className="input" value={filters.audience} onChange={(e) => onChange('audience', e.target.value)}>
             <option value="online">{t('admin.filters.audienceOnline')}</option>
@@ -165,7 +164,7 @@ function PaymentFilters({
             <option value="all">{t('admin.filterAll')}</option>
           </select>
         </label>
-        <label className="block">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.status')}</span>
           <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
             <option value="verified">
@@ -180,7 +179,7 @@ function PaymentFilters({
             <option value="failed">{t('admin.filterFailed')}</option>
           </select>
         </label>
-        <label className="block">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.accountingYear')}</span>
           <select className="input" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -191,7 +190,7 @@ function PaymentFilters({
             ))}
           </select>
         </label>
-        <label className="block">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.accountingMonth')}</span>
           <select className="input" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -203,42 +202,22 @@ function PaymentFilters({
           </select>
         </label>
       </div>
-      <label className="block">
+      <label className="admin-filter-field w-full">
         <span className="admin-report-label">{t('admin.filters.search')}</span>
         <input
           className="input"
           value={filters.search}
           onChange={(e) => onChange('search', e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              onApply();
-            }
-          }}
           placeholder={t('admin.filters.searchPlaceholderSubscriptions')}
         />
       </label>
-      <div className="flex flex-wrap gap-2">
-        <button
-          className="admin-report-btn-primary h-[42px]"
-          type="button"
-          onClick={onAddManual}
-          disabled={isLoading}
-        >
+      <div className="admin-books-filters__actions">
+        <button className="admin-report-btn-primary" type="button" onClick={onAddManual} disabled={isLoading}>
           <Plus size={18} aria-hidden />
           {t('admin.manualSubscription.addButton')}
         </button>
         <button
-          className="admin-report-btn-secondary h-[42px]"
-          type="button"
-          onClick={onApply}
-          disabled={isLoading}
-        >
-          {isLoading ? <InlineLoader size={20} /> : <RefreshCcw size={18} aria-hidden />}
-          {isLoading ? t('admin.refreshing') : t('admin.refresh')}
-        </button>
-        <button
-          className="admin-report-btn-secondary h-[42px]"
+          className="admin-report-btn-secondary"
           type="button"
           onClick={onDownloadLabels}
           disabled={isLoading || isExporting}
@@ -247,7 +226,7 @@ function PaymentFilters({
           {t('admin.filters.downloadLabels')}
         </button>
         <button
-          className="admin-report-btn-secondary h-[42px]"
+          className="admin-report-btn-secondary"
           type="button"
           onClick={onDownloadPdf}
           disabled={isLoading || isExporting}
@@ -256,7 +235,7 @@ function PaymentFilters({
           {t('admin.filters.downloadPdf')}
         </button>
         <button
-          className="admin-report-btn-secondary h-[42px]"
+          className="admin-report-btn-secondary"
           type="button"
           onClick={onDownloadExcel}
           disabled={isLoading || isExporting}
@@ -270,10 +249,10 @@ function PaymentFilters({
   );
 }
 
-function UserFilters({ filters, onChange, onApply, isLoading, t }) {
+function UserFilters({ filters, onChange, t }) {
   return (
     <div className="admin-report-filters mb-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <label className="block">
         <span className="admin-report-label">{t('admin.filters.audience')}</span>
         <select className="input" value={filters.audience} onChange={(e) => onChange('audience', e.target.value)}>
@@ -311,28 +290,19 @@ function UserFilters({ filters, onChange, onApply, isLoading, t }) {
           onChange={(e) => onChange('max_subscriber', e.target.value)}
         />
       </label>
-      <button
-        className="admin-report-btn-secondary h-[42px] self-end"
-        type="button"
-        onClick={onApply}
-        disabled={isLoading}
-      >
-        {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={16} />}
-        {t('admin.filters.apply')}
-      </button>
       </div>
     </div>
   );
 }
 
-function BookOrderFilters({ filters, onChange, onApply, onAddManual, onDownloadPdf, onDownloadExcel, isLoading, isExporting, t, locale }) {
+function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDownloadExcel, isLoading, isExporting, t, locale }) {
   const monthOptions = accountingMonthOptions(locale);
   const yearOptions = accountingYearOptions();
 
   return (
-    <div className="admin-report-filters">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="block">
+    <div className="admin-report-filters admin-books-filters">
+      <div className="admin-books-filters__fields">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.status')}</span>
           <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
             <option value="verified">{t('admin.filterVerified')}</option>
@@ -341,7 +311,7 @@ function BookOrderFilters({ filters, onChange, onApply, onAddManual, onDownloadP
             <option value="failed">{t('admin.filterFailed')}</option>
           </select>
         </label>
-        <label className="block">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.search')}</span>
           <input
             className="input"
@@ -350,7 +320,7 @@ function BookOrderFilters({ filters, onChange, onApply, onAddManual, onDownloadP
             placeholder={t('admin.filters.searchPlaceholder')}
           />
         </label>
-        <label className="block">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.accountingYear')}</span>
           <select className="input" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -361,7 +331,7 @@ function BookOrderFilters({ filters, onChange, onApply, onAddManual, onDownloadP
             ))}
           </select>
         </label>
-        <label className="block">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.accountingMonth')}</span>
           <select className="input" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -373,14 +343,10 @@ function BookOrderFilters({ filters, onChange, onApply, onAddManual, onDownloadP
           </select>
         </label>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <button className="admin-report-btn-primary h-[42px]" type="button" onClick={onAddManual} disabled={isLoading}>
+      <div className="admin-books-filters__actions admin-books-filters__actions--three">
+        <button className="admin-report-btn-primary" type="button" onClick={onAddManual} disabled={isLoading}>
           <Plus size={18} aria-hidden />
           {t('admin.manualBookOrder.addButton')}
-        </button>
-        <button className="admin-report-btn-primary" type="button" onClick={onApply} disabled={isLoading}>
-          {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={16} />}
-          {t('admin.filters.apply')}
         </button>
         <button
           className="admin-report-btn-secondary"
@@ -415,14 +381,14 @@ function adminTabClass(isActive) {
   return isActive ? 'admin-report-tab admin-report-tab--active' : 'admin-report-tab admin-report-tab--inactive';
 }
 
-function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoading, isExporting, t, locale }) {
+function BookSummaryFilters({ filters, onChange, onDownloadPdf, isLoading, isExporting, t, locale }) {
   const monthOptions = accountingMonthOptions(locale);
   const yearOptions = accountingYearOptions();
 
   return (
-    <div className="admin-report-filters">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="block">
+    <div className="admin-report-filters admin-books-filters">
+      <div className="admin-books-filters__fields">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.status')}</span>
           <select className="input text-base" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
             <option value="verified">{t('admin.filterVerified')}</option>
@@ -431,7 +397,7 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
             <option value="failed">{t('admin.filterFailed')}</option>
           </select>
         </label>
-        <label className="block">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.booksSummary.counter')}</span>
           <select className="input text-base" value={filters.counter} onChange={(e) => onChange('counter', e.target.value)}>
             <option value="all">{t('admin.booksSummary.allCounters')}</option>
@@ -442,7 +408,7 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
             ))}
           </select>
         </label>
-        <label className="block">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.accountingYear')}</span>
           <select className="input text-base" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -453,7 +419,7 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
             ))}
           </select>
         </label>
-        <label className="block">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.accountingMonth')}</span>
           <select className="input text-base" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -465,11 +431,7 @@ function BookSummaryFilters({ filters, onChange, onApply, onDownloadPdf, isLoadi
           </select>
         </label>
       </div>
-      <div className="flex flex-wrap gap-3">
-        <button className="admin-report-btn-primary !text-base" type="button" onClick={onApply} disabled={isLoading}>
-          {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={18} />}
-          {t('admin.filters.apply')}
-        </button>
+      <div className="admin-books-filters__actions admin-books-filters__actions--single">
         <button
           className="admin-report-btn-secondary !text-base"
           type="button"
@@ -505,7 +467,6 @@ function SubscriptionSummaryFilters({
   filters,
   counts,
   onChange,
-  onApply,
   onDownloadPdf,
   isLoading,
   isExporting,
@@ -519,9 +480,9 @@ function SubscriptionSummaryFilters({
   const allCount = counts.all ?? 0;
 
   return (
-    <div className="admin-report-filters">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="block">
+    <div className="admin-report-filters admin-books-filters">
+      <div className="admin-books-filters__fields">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.audience')}</span>
           <select className="input text-base" value={filters.audience} onChange={(e) => onChange('audience', e.target.value)}>
             <option value="online">{t('admin.filters.audienceOnline')}</option>
@@ -529,7 +490,7 @@ function SubscriptionSummaryFilters({
             <option value="all">{t('admin.filterAll')}</option>
           </select>
         </label>
-        <label className="block">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.subscriptionsSummary.statusFilterLabel')}</span>
           <select className="input text-base" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
             <option value="verified">
@@ -544,7 +505,7 @@ function SubscriptionSummaryFilters({
             <option value="failed">{t('admin.filterFailed')}</option>
           </select>
         </label>
-        <label className="block">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.accountingYear')}</span>
           <select className="input text-base" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -555,7 +516,7 @@ function SubscriptionSummaryFilters({
             ))}
           </select>
         </label>
-        <label className="block">
+        <label className="admin-filter-field">
           <span className="admin-report-label">{t('admin.filters.accountingMonth')}</span>
           <select className="input text-base" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -567,11 +528,7 @@ function SubscriptionSummaryFilters({
           </select>
         </label>
       </div>
-      <div className="flex flex-wrap gap-3">
-        <button className="admin-report-btn-primary !text-base" type="button" onClick={onApply} disabled={isLoading}>
-          {isLoading ? <InlineLoader size={18} /> : <RefreshCcw size={18} />}
-          {t('admin.filters.apply')}
-        </button>
+      <div className="admin-books-filters__actions admin-books-filters__actions--single">
         <button
           className="admin-report-btn-secondary !text-base"
           type="button"
@@ -1041,10 +998,6 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     [token, subscriptionSummaryFilters]
   );
 
-  async function loadUsersNow() {
-    await loadUsers();
-  }
-
   async function handleLogin(event) {
     event.preventDefault();
     setError('');
@@ -1176,11 +1129,6 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     isExporting
   ]);
 
-  function applyPaymentFilters() {
-    setPaymentPage(1);
-    loadSubmissions();
-  }
-
   async function handleDownloadSubmissionLabels() {
     setError('');
     setIsExporting(true);
@@ -1266,18 +1214,17 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
 
   if (!token) {
     return (
-      <main className="page-shell">
-        <section className="content-wrap flex min-h-[calc(100vh-3rem)] items-center justify-center">
-          <form onSubmit={handleLogin} className="admin-login-card sm:p-8">
-            <div className="text-center">
-              <Lock className="mx-auto mb-4 text-emerald-700" size={52} />
-              <h1 className="text-3xl font-black text-emerald-950">
-                {booksOnlyPortal ? t('booksAdmin.loginTitle') : t('admin.loginTitle')}
-              </h1>
-              <p className="mt-2 text-muted">
-                {booksOnlyPortal ? t('booksAdmin.loginSubtitle') : t('admin.loginSubtitle')}
-              </p>
-            </div>
+      <AdminBrandedLayout
+        subtitle={booksOnlyPortal ? t('booksAdmin.pageTitle') : t('admin.pageTitle')}
+        narrow
+      >
+        <form onSubmit={handleLogin} className="admin-login-card admin-rise w-full sm:p-8">
+          <div className="text-center">
+            <Lock className="mx-auto mb-4 text-emerald-700" size={48} />
+            <p className="text-sm text-muted">
+              {booksOnlyPortal ? t('booksAdmin.loginSubtitle') : t('admin.loginSubtitle')}
+            </p>
+          </div>
             {error ? <Alert>{error}</Alert> : null}
             {!isAdminPortalConfigured(portalSlug) ? (
               <Alert>
@@ -1318,42 +1265,27 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               {t('admin.loginButton')}
             </button>
           </form>
-        </section>
-      </main>
+      </AdminBrandedLayout>
     );
   }
 
-  return (
-    <main className="page-shell">
-      {isLoading || isExporting ? <LoadingBlock label={loadingOverlayLabel} /> : null}
-      <section className="content-wrap py-8">
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <PageHeader
-            eyebrow={booksOnlyPortal ? t('booksAdmin.eyebrow') : t('admin.eyebrow')}
-            title={booksOnlyPortal ? t('booksAdmin.pageTitle') : t('admin.pageTitle')}
-            description={
-              booksOnlyPortal
-                ? t('booksAdmin.pageDescription')
-                : superAdmin
-                  ? t('admin.pageDescriptionSuper')
-                  : t('admin.pageDescription')
-            }
-          />
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="admin-report-badge">
-              {superAdmin
-                ? t('admin.roleSuper')
-                : booksAdminRole
-                  ? t('booksAdmin.roleBooksAdmin')
-                  : t('admin.roleAdmin')}
-            </span>
-            <button className="admin-report-btn-secondary" type="button" onClick={handleLogout}>
-              <LogOut size={16} />
-              {t('admin.logout')}
-            </button>
-          </div>
-        </div>
+  const adminSubtitle = booksOnlyPortal ? t('booksAdmin.pageTitle') : t('admin.pageTitle');
 
+  return (
+    <>
+      {isLoading || isExporting ? <LoadingBlock label={loadingOverlayLabel} /> : null}
+      <AdminBrandedLayout
+        subtitle={adminSubtitle}
+        badge={
+          superAdmin
+            ? t('admin.roleSuper')
+            : booksAdminRole
+              ? t('booksAdmin.roleBooksAdmin')
+              : t('admin.roleAdmin')
+        }
+        onLogout={handleLogout}
+        logoutLabel={t('admin.logout')}
+      >
         {showSubscriptionsTab || showUsersTab ? (
           <div className="mb-5 flex flex-wrap gap-2">
             {showSubscriptionsTab ? (
@@ -1418,7 +1350,6 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               filters={paymentFilters}
               counts={paymentCounts}
               onChange={updatePaymentFilter}
-              onApply={applyPaymentFilters}
               onAddManual={() => setShowAddSubscription(true)}
               onDownloadPdf={handleDownloadPaymentsPdf}
               onDownloadExcel={handleDownloadPaymentsExcel}
@@ -1563,7 +1494,6 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                   filters={subscriptionSummaryFilters}
                   counts={paymentCounts}
                   onChange={updateSubscriptionSummaryFilter}
-                  onApply={() => loadSubscriptionSummary(token, subscriptionSummaryFilters)}
                   onDownloadPdf={handleDownloadSubscriptionSummaryPdf}
                   isLoading={isLoading}
                   isExporting={isExporting}
@@ -1611,10 +1541,6 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               filters={bookFilters}
               onChange={updateBookFilter}
               onAddManual={() => setShowAddBookOrder(true)}
-              onApply={() => {
-                setBookPage(1);
-                loadBookOrders(token, bookFilters, { page: 1 });
-              }}
               onDownloadPdf={handleDownloadBookOrdersPdf}
               onDownloadExcel={handleDownloadBookOrdersExcel}
               isLoading={isLoading}
@@ -1706,7 +1632,6 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                 <BookSummaryFilters
                   filters={bookSummaryFilters}
                   onChange={updateBookSummaryFilter}
-                  onApply={() => loadBookSummary(token, bookSummaryFilters)}
                   onDownloadPdf={handleDownloadBookSummaryPdf}
                   isLoading={isLoading}
                   isExporting={isExporting}
@@ -1732,8 +1657,6 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
             <UserFilters
               filters={userFilters}
               onChange={updateUserFilter}
-              onApply={loadUsersNow}
-              isLoading={isLoading}
               t={t}
             />
             <div className="admin-report-card">
@@ -1785,7 +1708,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
             </div>
           </>
         ) : null}
-      </section>
+      </AdminBrandedLayout>
 
       {editingUser ? (
         <UserEditModal
@@ -1815,6 +1738,6 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
           onCreated={() => loadSubmissions()}
         />
       ) : null}
-    </main>
+    </>
   );
 }

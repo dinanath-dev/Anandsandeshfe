@@ -473,20 +473,20 @@ export default function ProfileOverviewPage() {
       {legacyLoading ? <LoadingBlock label={t('loaders.searchingRecords')} /> : null}
       {emailLoading && emailStep === 'otp' ? <LoadingBlock label={t('profile.verifyingOtp')} /> : null}
 
-      <div className="profile-page mx-auto w-full max-w-3xl px-2 pb-10 sm:px-4">
+      <div className="profile-page mx-auto w-full max-w-4xl px-1 pb-4 sm:px-2">
         <div className="profile-card overflow-hidden rounded-2xl border border-[#0d2d7f]/15 bg-white/95 shadow-[0_18px_50px_-22px_rgba(13,45,127,0.4)] backdrop-blur-sm">
-          <div className="profile-card-header border-b border-[#0d2d7f]/10 bg-gradient-to-r from-[#f8faff] via-white to-[#fafcff] px-4 py-4 sm:px-6 sm:py-5">
+          <div className="profile-card-header border-b border-[#0d2d7f]/10 bg-gradient-to-r from-[#f8faff] via-white to-[#fafcff] px-4 py-3 sm:px-6 sm:py-4">
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">{t('profile.cardEyebrow')}</p>
-              <h2 className="mt-1 text-lg font-black text-ink sm:text-xl">{t('profile.cardTitle')}</h2>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
+              <h2 className="mt-0.5 text-lg font-black text-ink sm:text-xl">{t('profile.cardTitle')}</h2>
+              <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-muted">
                 {awaitingClaim ? t('profile.recordFound') : t('profile.bannerMaskedHelp')}
               </p>
             </div>
           </div>
 
           {subscriptionPaid ? (
-            <div className="mx-4 mt-4 flex items-start gap-3 rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 sm:mx-6">
+            <div className="mx-4 mt-3 flex items-start gap-3 rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 sm:mx-6">
               <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-700" size={20} aria-hidden />
               <div className="min-w-0 text-left">
                 <p className="text-sm font-semibold leading-relaxed text-emerald-900">
@@ -653,7 +653,7 @@ export default function ProfileOverviewPage() {
               <LoadingBlock label={t('loaders.loadingDetails')} />
             </div>
           ) : showContactSection && contactDisplay ? (
-            <div className="px-4 py-5 sm:px-6">
+            <div className="px-4 py-4 sm:px-6 sm:py-5">
               <dl className="profile-detail-grid">
                 {contactDisplay.name ? (
                   <ProfileDetail icon={User} label={t('profile.nameLabel')} value={contactDisplay.name} />

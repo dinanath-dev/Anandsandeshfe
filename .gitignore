@@ -1,11 +1,12 @@
 node_modules
 dist
 .env
+.env.example
+.env.local
 
 # Google Cloud service account keys (never commit)
 ssdn-*.json
 *-credentials.json
-.env.local
 *.log
 .DS_Store
 backend/uploads
