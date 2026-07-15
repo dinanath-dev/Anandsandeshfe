@@ -1,4 +1,5 @@
 import { getUserAuth } from '../utils/auth.js';
+import { getGuestBookToken, saveGuestBookToken } from '../utils/guestBookAuth.js';
 import { adminAuthHeaders, ACCOUNTS_PORTAL_SLUG, ADMIN_PORTAL_SLUG, getAdminPortalId, getPortalSlug } from '../utils/adminAuth.js';
 
 const PRODUCTION_API_DIRECT = 'https://api.anandsandeshkaryalay.online/api';
@@ -68,13 +69,18 @@ function staffPathVariants(path) {
 }
 
 /** Merge caller headers with Bearer token; uses Headers so casing / merging matches fetch rules. */
-function withAuthHeaders(headersInit) {
+function withAuthHeaders(headersInit, { guestBookOrderId } = {}) {
   const headers = new Headers(headersInit ?? undefined);
   if (!headers.has('Authorization')) {
     try {
       const token = getUserAuth()?.token;
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
+      } else if (guestBookOrderId) {
+        const guestToken = getGuestBookToken(guestBookOrderId);
+        if (guestToken) {
+          headers.set('Authorization', `Bearer ${guestToken}`);
+        }
       }
     } catch {
       // Ignore local auth parsing issues and continue without auth headers.
@@ -103,6 +109,7 @@ async function fetchWithRetry(url, options, attempts = 3) {
 }
 
 async function apiFetch(path, options = {}) {
+  const { guestBookOrderId, ...fetchOptions } = options;
   const bases = orderApiBases();
   const paths = staffPathVariants(path);
   let lastError;
@@ -116,8 +123,8 @@ async function apiFetch(path, options = {}) {
       lastUrl = url;
       try {
         const response = await fetchWithRetry(url, {
-          ...options,
-          headers: withAuthHeaders(options.headers)
+          ...fetchOptions,
+          headers: withAuthHeaders(fetchOptions.headers, { guestBookOrderId })
         });
         if (isHtmlResponse(response)) {
           sawHtml = true;
@@ -588,33 +595,43 @@ export function getBooks() {
   return request('/books');
 }
 
-export function createBookOrder(body) {
-  return request('/books/orders', {
+export async function createBookOrder(body) {
+  const data = await request('/books/orders', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
+  const orderId = data?.order?.id;
+  const guestToken = data?.guest_token;
+  if (orderId && guestToken) {
+    saveGuestBookToken(orderId, guestToken);
+  }
+  return data;
 }
 
 export function getBookOrder(orderId) {
-  return request(`/books/orders/${orderId}`);
+  return request(`/books/orders/${orderId}`, {
+    guestBookOrderId: orderId
+  });
 }
 
-/** Razorpay one-time order (books or legacy). Auth: Bearer user JWT. */
+/** Razorpay one-time order (books or legacy). Auth: Bearer user JWT or guest_book token. */
 export function createOrder(body) {
   return request('/payment/create-order', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
+    guestBookOrderId: body?.book_order_id
   });
 }
 
-/** Verify one-time payment after Razorpay modal. Auth: Bearer user JWT. */
+/** Verify one-time payment after Razorpay modal. Auth: Bearer user JWT or guest_book token. */
 export function verifyPayment(body) {
   return request('/payment/verify-payment', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
+    guestBookOrderId: body?.book_order_id
   });
 }
 

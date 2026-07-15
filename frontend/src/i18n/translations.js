@@ -69,6 +69,7 @@ export const translations = {
       tabOtp: 'Email OTP',
       tabPassword: 'Password',
       backToSignIn: '← Back to sign in',
+      backHome: 'Back to home',
       labelFullName: 'Full name',
       placeholderFullName: 'Enter your full name',
       labelEmail: 'Email address',
@@ -231,6 +232,7 @@ export const translations = {
     books: {
       subtitle: 'Buy spiritual books',
       backToProfile: 'Back to profile',
+      backHome: 'Back to home',
       fulfillmentHeading: 'Collect books at counter',
       counterSale: 'Counter sale',
       homeDelivery: 'Home delivery',
@@ -269,6 +271,8 @@ export const translations = {
       payableTotal: 'Total payable',
       weight: 'Weight',
       quantity: 'Qty',
+      increaseQty: 'Increase quantity',
+      decreaseQty: 'Decrease quantity',
       cartSummary: 'Your selection',
       totalLabel: 'Total',
       deliveryDetails: 'Delivery details',
@@ -539,7 +543,115 @@ export const translations = {
         'Your payment is completed at Razorpay. We are confirming it with the server and your subscription will reflect shortly.',
       submissionReceivedDesc:
         'Your details have been saved with pending status. An administrator may review your submission and uploaded document.',
-      submitAnother: 'Submit another'
+      bookPaymentSuccessful: 'Book order paid',
+      bookPaymentReceived: 'Book payment received',
+      bookPaymentSuccessfulDesc:
+        'Your book order payment was verified. Keep your order confirmation for counter pickup or delivery.',
+      bookPaymentReceivedDesc:
+        'Your book payment completed at Razorpay. We are confirming it with the server — it will reflect shortly.',
+      submitAnother: 'Submit another',
+      backHome: 'Back to home'
+    },
+
+    landing: {
+      brandAria: 'Anand Sandesh Karyalay home',
+      brandName: 'Anand Sandesh',
+      brandTag: 'Karyalay',
+      navAria: 'Landing page sections',
+      menuOpen: 'Open menu',
+      menuClose: 'Close menu',
+      navHow: 'How it works',
+      navAbout: 'About',
+      navFaq: 'FAQ',
+      navContact: 'Contact',
+      navLogin: 'Login',
+      navProfile: 'My profile',
+      heroEyebrow: 'Official portal — Shri Anandpur Dham',
+      heroTitle: 'Spiritual literature, delivered with care',
+      heroLead:
+        'Subscribe to Anand Sandesh magazine or buy books online from Anand Sandesh Karyalay — published by Shri Paramhans Advait Mat Publication Society.',
+      heroBadge: 'Hindi & English editions',
+      benefit1: 'Monthly Anand Sandesh magazine subscription online',
+      benefit2: 'Buy spiritual books without creating an account',
+      benefit3: 'Secure payment and delivery across India',
+      ctaLogin: 'Login',
+      ctaProfile: 'Go to profile',
+      ctaBuyBooks: 'Buy books',
+      ctaSubscribe: 'Subscribe to Anand Sandesh',
+      howHeading: 'How it works',
+      howLead: 'Three simple steps — magazine subscription or guest book order.',
+      how: {
+        step1: {
+          title: 'Choose your path',
+          body: 'Login to subscribe to the magazine, or open Buy books to order literature as a guest.'
+        },
+        step2: {
+          title: 'Share your details',
+          body: 'Enter contact and address (or pick a sales counter), then review your order summary.'
+        },
+        step3: {
+          title: 'Pay securely',
+          body: 'Complete payment online. Collect at counter or receive home delivery as selected.'
+        }
+      },
+      aboutHeading: 'About Anand Sandesh Karyalay',
+      aboutBody:
+        'Anand Sandesh Karyalay at Shri Anandpur Dham publishes the beloved monthly Anand Sandesh magazine in Hindi and English, bringing satsang, devotion, and Indian spiritual philosophy to readers across India and abroad.',
+      aboutBody2:
+        'Alongside the magazine, the Publication Society offers books and literature on spirituality, meditation, and the teachings of Shri Paramhans Advait Mat — available for counter collection or home delivery.',
+      audienceHeading: 'Built for readers and seekers',
+      audienceLead: 'One official portal for magazine subscribers and book orders.',
+      audience: {
+        magazine: {
+          title: 'Magazine',
+          subtitle: 'Anand Sandesh monthly',
+          body: 'Yearly and multi-year subscriptions in Hindi and English, managed from your account.'
+        },
+        books: {
+          title: 'Books',
+          subtitle: 'Guest checkout available',
+          body: 'Order spiritual titles for counter pickup or home delivery — no login required.'
+        },
+        community: {
+          title: 'Community',
+          subtitle: 'From Shri Anandpur Dham',
+          body: 'Authentic literature from Shri Paramhans Advait Mat Publication Society for families and satsang.'
+        }
+      },
+      faqHeading: 'Frequently asked questions',
+      faqLead: 'Quick answers about subscriptions, book orders, and this official website.',
+      faq: {
+        subscribe: {
+          q: 'How do I subscribe to the magazine?',
+          a: 'Create an account (Login), complete your subscriber details on the form, and pay securely online for a yearly or multi-year Anand Sandesh subscription.'
+        },
+        guestBooks: {
+          q: 'Can I buy books without an account?',
+          a: 'Yes. Use Buy books from this page — choose counter sale or home delivery, enter your details, and pay online. No login is required for book orders.'
+        },
+        fulfillment: {
+          q: 'What is counter sale vs home delivery?',
+          a: 'Counter sale lets you collect books at a Publication Society sales counter after payment. Home delivery ships books to your postal address at the home-delivery rate.'
+        },
+        official: {
+          q: 'Is this the official website?',
+          a: 'Yes. anandsandeshkaryalay.online is the official online portal of Anand Sandesh Karyalay, Shri Anandpur Dham. Sites with a similar name are not affiliated with the Publication Society.'
+        },
+        location: {
+          q: 'Where is Anand Sandesh Karyalay located?',
+          a: 'Anand Sandesh Karyalay, Shri Anandpur Dham, Post Office Shri Anandpur — 473331, Madhya Pradesh, India.'
+        }
+      },
+      contactHeading: 'Contact & address',
+      contactNote:
+        'For subscription or book enquiries, visit Anand Sandesh Karyalay at the address above, or use this website to subscribe and order online.',
+      bandTitle: 'Ready to order books or subscribe?',
+      bandLead: 'Use the official Anand Sandesh Karyalay portal — secure online payment for magazine and books.',
+      footerBlurb:
+        'Official online portal of Anand Sandesh Karyalay, Shri Anandpur Dham — magazine subscription and book orders.',
+      footerExplore: 'Explore',
+      footerActions: 'Actions',
+      footerCopy: '© Anand Sandesh Karyalay · Shri Anandpur Dham · 473331'
     },
 
     seo: {
@@ -593,7 +705,7 @@ export const translations = {
       officialSiteHeading: 'Official website only',
       officialSiteBody:
         'anandsandeshkaryalay.online is the official online portal of Anand Sandesh Karyalay, Shri Anandpur Dham — for magazine subscription, book orders, and delivery. Other websites using a similar name are not affiliated with Shri Paramhans Advait Mat Publication Society.',
-      backHome: 'Back to subscription portal',
+      backHome: 'Back to home',
       footerLink: 'About Anand Sandesh'
     },
 
@@ -892,6 +1004,7 @@ export const translations = {
       tabOtp: 'ईमेल ओटीपी',
       tabPassword: 'पासवर्ड',
       backToSignIn: '← साइन इन पर वापस जाएँ',
+      backHome: 'होम पर वापस जाएँ',
       labelFullName: 'पूरा नाम',
       placeholderFullName: 'अपना पूरा नाम दर्ज करें',
       labelEmail: 'ईमेल पता',
@@ -1056,6 +1169,7 @@ export const translations = {
     books: {
       subtitle: 'आध्यात्मिक पुस्तकें खरीदें',
       backToProfile: 'प्रोफ़ाइल पर वापस',
+      backHome: 'होम पर वापस जाएँ',
       fulfillmentHeading: 'श्री आनंदपुर धाम पर काउंटर से लें',
       counterSale: 'काउंटर मूल्य',
       homeDelivery: 'घर पर डिलीवरी',
@@ -1094,6 +1208,8 @@ export const translations = {
       payableTotal: 'कुल देय',
       weight: 'वज़न',
       quantity: 'मात्रा',
+      increaseQty: 'मात्रा बढ़ाएँ',
+      decreaseQty: 'मात्रा घटाएँ',
       cartSummary: 'आपका चयन',
       totalLabel: 'कुल',
       deliveryDetails: 'डिलीवरी विवरण',
@@ -1370,7 +1486,115 @@ export const translations = {
         'आपका भुगतान Razorpay पर पूरा हो गया है। हम इसे सर्वर से पुष्ट कर रहे हैं और आपकी ग्राहकी शीघ्र ही दिखाई देगी।',
       submissionReceivedDesc:
         'आपका विवरण लंबित स्थिति के साथ सहेज लिया गया है। एक प्रशासक आपकी प्रविष्टि और अपलोड किए गए दस्तावेज़ की समीक्षा कर सकता है।',
-      submitAnother: 'एक और जमा करें'
+      bookPaymentSuccessful: 'पुस्तक ऑर्डर का भुगतान हो गया',
+      bookPaymentReceived: 'पुस्तक भुगतान प्राप्त हुआ',
+      bookPaymentSuccessfulDesc:
+        'आपके पुस्तक ऑर्डर का भुगतान सत्यापित हो गया है। काउंटर पिकअप या डिलीवरी के लिए पुष्टि संभालकर रखें।',
+      bookPaymentReceivedDesc:
+        'आपका पुस्तक भुगतान Razorpay पर पूरा हो गया है। हम इसे सर्वर से पुष्ट कर रहे हैं — शीघ्र ही दिखाई देगा।',
+      submitAnother: 'एक और जमा करें',
+      backHome: 'होम पर वापस जाएँ'
+    },
+
+    landing: {
+      brandAria: 'आनंद संदेश कार्यालय होम',
+      brandName: 'आनंद संदेश',
+      brandTag: 'कार्यालय',
+      navAria: 'मुखपृष्ठ अनुभाग',
+      menuOpen: 'मेनू खोलें',
+      menuClose: 'मेनू बंद करें',
+      navHow: 'कैसे काम करता है',
+      navAbout: 'परिचय',
+      navFaq: 'प्रश्न',
+      navContact: 'संपर्क',
+      navLogin: 'लॉगिन',
+      navProfile: 'मेरी प्रोफ़ाइल',
+      heroEyebrow: 'आधिकारिक पोर्टल — श्री आनंदपुर धाम',
+      heroTitle: 'आध्यात्मिक साहित्य, सावधानी से आपके पास',
+      heroLead:
+        'आनंद संदेश कार्यालय से मासिक पत्रिका की ग्राहकी लें या ऑनलाइन पुस्तकें खरीदें — श्री परमहंस अद्वैत मत प्रकाशन सोसायटी द्वारा प्रकाशित।',
+      heroBadge: 'हिन्दी और अंग्रेज़ी संस्करण',
+      benefit1: 'मासिक आनंद संदेश पत्रिका की ऑनलाइन ग्राहकी',
+      benefit2: 'बिना खाता बनाए आध्यात्मिक पुस्तकें खरीदें',
+      benefit3: 'सुरक्षित भुगतान और भारत में डिलीवरी',
+      ctaLogin: 'लॉगिन',
+      ctaProfile: 'प्रोफ़ाइल पर जाएँ',
+      ctaBuyBooks: 'पुस्तकें खरीदें',
+      ctaSubscribe: 'आनंद संदेश की ग्राहकी लें',
+      howHeading: 'कैसे काम करता है',
+      howLead: 'तीन आसान चरण — पत्रिका ग्राहकी या अतिथि पुस्तक ऑर्डर।',
+      how: {
+        step1: {
+          title: 'अपना मार्ग चुनें',
+          body: 'पत्रिका के लिए लॉगिन करें, या अतिथि के रूप में पुस्तकें खरीदने के लिए Buy books खोलें।'
+        },
+        step2: {
+          title: 'अपना विवरण दें',
+          body: 'संपर्क और पता भरें (या बिक्री काउंटर चुनें), फिर ऑर्डर सारांश देखें।'
+        },
+        step3: {
+          title: 'सुरक्षित भुगतान करें',
+          body: 'ऑनलाइन भुगतान पूरा करें। चयन के अनुसार काउंटर से लें या घर डिलीवरी पाएँ।'
+        }
+      },
+      aboutHeading: 'आनंद संदेश कार्यालय के बारे में',
+      aboutBody:
+        'श्री आनंदपुर धाम स्थित आनंद संदेश कार्यालय हिन्दी और अंग्रेज़ी में प्रिय मासिक पत्रिका आनंद संदेश प्रकाशित करता है — भारत और विदेश के पाठकों तक सत्संग, भक्ति और भारतीय आध्यात्मिक दर्शन पहुँचाते हुए।',
+      aboutBody2:
+        'पत्रिका के साथ प्रकाशन सोसायटी आध्यात्म, ध्यान और श्री परमहंस अद्वैत मत की शिक्षाओं पर पुस्तकें भी प्रदान करती है — काउंटर से लेने या घर डिलीवरी के लिए उपलब्ध।',
+      audienceHeading: 'पाठकों और साधकों के लिए',
+      audienceLead: 'पत्रिका ग्राहकी और पुस्तक ऑर्डर — एक आधिकारिक पोर्टल।',
+      audience: {
+        magazine: {
+          title: 'पत्रिका',
+          subtitle: 'मासिक आनंद संदेश',
+          body: 'हिन्दी और अंग्रेज़ी में वार्षिक व बहुवर्षीय ग्राहकी — अपने खाते से प्रबंधन।'
+        },
+        books: {
+          title: 'पुस्तकें',
+          subtitle: 'बिना लॉगिन भी',
+          body: 'काउंटर पिकअप या घर डिलीवरी के लिए आध्यात्मिक पुस्तकें ऑर्डर करें — खाता आवश्यक नहीं।'
+        },
+        community: {
+          title: 'समाज',
+          subtitle: 'श्री आनंदपुर धाम से',
+          body: 'परिवारों और सत्संग के लिए श्री परमहंस अद्वैत मत प्रकाशन सोसायटी का प्रामाणिक साहित्य।'
+        }
+      },
+      faqHeading: 'अक्सर पूछे जाने वाले प्रश्न',
+      faqLead: 'ग्राहकी, पुस्तक ऑर्डर और इस आधिकारिक वेबसाइट के बारे में संक्षिप्त उत्तर।',
+      faq: {
+        subscribe: {
+          q: 'पत्रिका की ग्राहकी कैसे लूँ?',
+          a: 'खाता बनाएँ (लॉगिन), फ़ॉर्म पर अपना सदस्य विवरण भरें, और आनंद संदेश की वार्षिक या बहुवर्षीय ग्राहकी के लिए सुरक्षित ऑनलाइन भुगतान करें।'
+        },
+        guestBooks: {
+          q: 'क्या बिना खाते के पुस्तकें खरीद सकते हैं?',
+          a: 'हाँ। इस पृष्ठ से “पुस्तकें खरीदें” चुनें — काउंटर या घर डिलीवरी चुनें, अपना विवरण भरें, और ऑनलाइन भुगतान करें। पुस्तक ऑर्डर के लिए लॉगिन आवश्यक नहीं है।'
+        },
+        fulfillment: {
+          q: 'काउंटर बिक्री और घर डिलीवरी में क्या अंतर है?',
+          a: 'काउंटर बिक्री में भुगतान के बाद प्रकाशन सोसायटी के बिक्री काउंटर से पुस्तकें लें। घर डिलीवरी में पुस्तकें आपके डाक पते पर घर-पहुँच दर पर भेजी जाती हैं।'
+        },
+        official: {
+          q: 'क्या यह आधिकारिक वेबसाइट है?',
+          a: 'हाँ। anandsandeshkaryalay.online आनंद संदेश कार्यालय, श्री आनंदपुर धाम का आधिकारिक ऑनलाइन पोर्टल है। समान नाम वाली अन्य साइटें प्रकाशन सोसायटी से संबद्ध नहीं हैं।'
+        },
+        location: {
+          q: 'आनंद संदेश कार्यालय कहाँ है?',
+          a: 'आनंद संदेश कार्यालय, श्री आनंदपुर धाम, पोस्ट ऑफिस श्री आनंदपुर — 473331, मध्य प्रदेश, भारत।'
+        }
+      },
+      contactHeading: 'संपर्क और पता',
+      contactNote:
+        'ग्राहकी या पुस्तक संबंधी जानकारी के लिए उपरोक्त पते पर आनंद संदेश कार्यालय आएँ, या इस वेबसाइट से ऑनलाइन ग्राहकी और ऑर्डर करें।',
+      bandTitle: 'पुस्तकें ऑर्डर करने या ग्राहकी लेने के लिए तैयार?',
+      bandLead: 'आधिकारिक आनंद संदेश कार्यालय पोर्टल का उपयोग करें — पत्रिका और पुस्तकों के लिए सुरक्षित ऑनलाइन भुगतान।',
+      footerBlurb:
+        'आनंद संदेश कार्यालय, श्री आनंदपुर धाम का आधिकारिक ऑनलाइन पोर्टल — पत्रिका ग्राहकी और पुस्तक ऑर्डर।',
+      footerExplore: 'देखें',
+      footerActions: 'कार्य',
+      footerCopy: '© आनंद संदेश कार्यालय · श्री आनंदपुर धाम · 473331'
     },
 
     seo: {
@@ -1424,7 +1648,7 @@ export const translations = {
       officialSiteHeading: 'केवल आधिकारिक वेबसाइट',
       officialSiteBody:
         'anandsandeshkaryalay.online आनंद संदेश कार्यालय, श्री आनंदपुर धाम की आधिकारिक ऑनलाइन साइट है — पत्रिका ग्राहकी, पुस्तक ऑर्डर और डिलीवरी के लिए। समान नाम वाली अन्य वेबसाइटें श्री परमहंस अद्वैत मत प्रकाशन सोसायटी से संबद्ध नहीं हैं।',
-      backHome: 'ग्राहकी पोर्टल पर वापस जाएँ',
+      backHome: 'होम पर वापस जाएँ',
       footerLink: 'आनंद संदेश के बारे में'
     },
 

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import BookOrderStepper from '../components/BookOrderStepper.jsx';
@@ -8,6 +8,7 @@ import Alert from '../components/Alert.jsx';
 import UpiPaymentHelp from '../components/UpiPaymentHelp.jsx';
 import { createOrder, getBookOrder, getCurrentUser, verifyPayment } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
+import { clearGuestBookToken, getGuestBookToken, saveGuestBookToken } from '../utils/guestBookAuth.js';
 import {
   clearBookOrderDraft,
   draftFromBookOrder,
@@ -29,6 +30,13 @@ export default function BookPaymentPage() {
   const bookName = state?.bookName;
   const orderItems = state?.orderItems;
   const totalPaise = state?.totalPaise;
+  const guestToken = state?.guestToken;
+
+  useEffect(() => {
+    if (bookOrderId && guestToken) {
+      saveGuestBookToken(bookOrderId, guestToken);
+    }
+  }, [bookOrderId, guestToken]);
 
   if (!bookOrderId) {
     return <Navigate to="/books" replace />;
@@ -49,6 +57,17 @@ function formatLineAmount(paise) {
   const n = Number(paise);
   if (!Number.isFinite(n) || n <= 0) return '';
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(n / 100);
+}
+
+function resolvePrefill(auth, bookDraft) {
+  const form = bookDraft?.form || loadBookOrderDraft()?.form || {};
+  const user = auth?.user || {};
+  const nameFromForm = [form.title, form.firstName, form.lastName].filter(Boolean).join(' ').trim();
+  return {
+    name: nameFromForm || String(user.fullName || user.name || '').trim(),
+    email: String(form.email || user.email || '').trim(),
+    contact: String(form.mobile || user.mobile || '').trim()
+  };
 }
 
 function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, bookDraft }) {
@@ -91,7 +110,8 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
     setPaymentError('');
 
     const auth = getUserAuth();
-    if (!auth?.token) {
+    const guestToken = getGuestBookToken(bookOrderId);
+    if (!auth?.token && !guestToken) {
       setError(t('payment.errors.notSignedIn'));
       return;
     }
@@ -106,12 +126,14 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
 
     setBusy(true);
     try {
-      await getCurrentUser();
+      if (auth?.token) {
+        await getCurrentUser();
+      }
       const orderData = await createOrder({ book_order_id: bookOrderId });
       const orderId = orderData?.order_id;
       if (!orderId) throw new Error(t('payment.errors.couldNotStart'));
 
-      const user = auth.user || {};
+      const prefill = resolvePrefill(auth, bookDraft);
       checkoutOpenRef.current = true;
 
       const rzp = new window.Razorpay({
@@ -121,11 +143,7 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
         order_id: orderId,
         name: 'Anand Sandesh',
         description: bookName || t('books.oneTimePayment'),
-        prefill: {
-          name: String(user.name || '').trim(),
-          email: String(user.email || '').trim(),
-          contact: String(user.mobile || '').trim()
-        },
+        prefill,
         theme: { color: '#2563eb' },
         handler: async function handler(response) {
           releaseCheckout();
@@ -137,6 +155,7 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
               book_order_id: bookOrderId
             });
             clearBookOrderDraft();
+            clearGuestBookToken(bookOrderId);
             navigate('/success', { state: { paymentVerified: true, bookOrder: true } });
           } catch (err) {
             navigate('/success', {
@@ -172,7 +191,7 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
       releaseCheckout();
       setError(err.message || t('payment.errors.couldNotStartShort'));
     }
-  }, [bookOrderId, bookName, busy, keyId, navigate, releaseCheckout, t]);
+  }, [bookDraft, bookOrderId, bookName, busy, keyId, navigate, releaseCheckout, t]);
 
   const items = Array.isArray(orderItems) ? orderItems : [];
   const amountDisplay = formatInr(totalPaise);
@@ -180,21 +199,21 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
   return (
     <DonationLayout subtitle={t('books.paymentSubtitle')}>
       {busy ? <LoadingBlock label={t('loaders.startingCheckout')} /> : null}
-      <div className="book-order-shell mx-auto max-w-lg px-2 py-4 sm:px-4">
+      <div className="book-order-shell">
         <BookOrderStepper currentStep={3} t={t} />
-        <div className="rounded-lg border border-[#0d2d7f]/28 bg-white/90 px-5 py-8 text-center shadow-md backdrop-blur-sm">
-          <BookOpen className="mx-auto mb-4 text-primary" size={48} />
-          <h2 className="text-xl font-black text-[#152a48] sm:text-2xl">{t('books.paymentHeading')}</h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted">{t('books.paymentSummary')}</p>
+        <div className="book-order-card text-center">
+          <BookOpen className="mx-auto mb-3 text-primary" size={40} />
+          <h2 className="text-xl font-black text-ink sm:text-2xl">{t('books.paymentHeading')}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted">{t('books.paymentSummary')}</p>
           <UpiPaymentHelp />
           {items.length > 0 ? (
-            <div className="mt-4 rounded-xl border border-[#0d2d7f]/12 bg-[#f8faff] px-4 py-3 text-left">
+            <div className="mt-4 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] px-4 py-3 text-left">
               <p className="text-xs font-bold uppercase tracking-wide text-primary">{t('books.orderItems')}</p>
               <ul className="mt-2 space-y-2 text-sm text-ink">
                 {items.map((item) => (
                   <li
                     key={item.book_id || `${item.book_name}-${item.quantity}`}
-                    className="rounded-lg border border-[#0d2d7f]/10 bg-white px-3 py-2"
+                    className="rounded-lg border border-[var(--surface-border)] bg-white/50 px-3 py-2"
                   >
                     <div className="flex justify-between gap-3 font-semibold">
                       <span className="min-w-0">

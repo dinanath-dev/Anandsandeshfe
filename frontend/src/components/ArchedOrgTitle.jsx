@@ -14,10 +14,10 @@ export default function ArchedOrgTitle({ compact = false }) {
       <h1
         className={
           compact
-            ? 'mx-auto max-w-[min(100%,64rem)] text-pretty text-sm font-black uppercase leading-tight tracking-[0.05em] text-[#152d56] sm:text-xl sm:tracking-[0.07em] md:text-2xl'
-            : 'mx-auto max-w-[min(100%,72rem)] text-pretty text-sm font-black uppercase leading-tight tracking-[0.05em] text-[#152d56] sm:text-xl sm:tracking-[0.07em] md:text-2xl lg:text-3xl xl:text-[2.15rem] xl:tracking-[0.08em]'
+            ? 'mx-auto max-w-[min(100%,64rem)] text-pretty text-sm font-black uppercase leading-tight tracking-[0.05em] text-[#1a301a] sm:text-xl sm:tracking-[0.07em] md:text-2xl'
+            : 'mx-auto max-w-[min(100%,72rem)] text-pretty text-sm font-black uppercase leading-tight tracking-[0.05em] text-[#1a301a] sm:text-xl sm:tracking-[0.07em] md:text-2xl lg:text-3xl xl:text-[2.15rem] xl:tracking-[0.08em]'
         }
-        style={{ textShadow: '0 2px 0 #ffffff, 0 4px 8px rgba(15, 23, 42, 0.22)' }}
+        style={{ textShadow: '0 1px 0 #ffffff, 0 2px 6px rgba(26, 48, 26, 0.12)' }}
       >
         {t('layout.orgTitle')}
       </h1>

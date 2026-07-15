@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, CheckCircle2, ChevronRight, Eye, EyeOff, Mail } from 'lucide-react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import {
   getCurrentUser,
   loginWithPassword,
@@ -13,21 +13,7 @@ import { useSeo } from '../utils/seo.js';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import OtpInboxHint from '../components/OtpInboxHint.jsx';
 import { useToast } from '../components/ToastProvider.jsx';
-import PublicSeoIntro from '../components/PublicSeoIntro.jsx';
-import SubscriptionHeroVisual from '../components/SubscriptionHeroVisual.jsx';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
-
-function AuthHeroVisual({ compact = false }) {
-  return (
-    <SubscriptionHeroVisual
-      className={
-        compact
-          ? 'mx-auto max-h-[min(34vh,14rem)] max-w-[min(100%,18rem)]'
-          : 'mx-auto max-h-[min(42vh,22rem)] max-w-[min(100%,24rem)]'
-      }
-    />
-  );
-}
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
@@ -41,10 +27,10 @@ function buildMaskedEmail(email) {
 
 export default function AuthPage() {
   useSeo({
-    title: 'Official Anand Sandesh Karyalay | Subscribe Online — Shri Anandpur Dham',
+    title: 'Login — Anand Sandesh Karyalay | Shri Anandpur Dham',
     description:
-      'Official Anand Sandesh (anand sandesh) magazine subscription — Anand Sandesh Karyalay, Shri Anandpur Dham, 473331. Monthly Hindi & English. Subscribe at anandsandeshkaryalay.online.',
-    canonical: 'https://anandsandeshkaryalay.online/'
+      'Sign in or create an account to subscribe to Anand Sandesh magazine online. Official Anand Sandesh Karyalay, Shri Anandpur Dham, 473331.',
+    canonical: 'https://anandsandeshkaryalay.online/login'
   });
 
   const { t } = useTranslation();
@@ -464,29 +450,21 @@ export default function AuthPage() {
     <main className="auth-page min-h-screen overflow-x-hidden px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 lg:px-8">
       {isLoggingIn ? <LoadingBlock label={t('loaders.signingIn')} /> : null}
       {isVerifyingOtp ? <LoadingBlock label={t('auth.verifying')} /> : null}
-      <div className="auth-grid mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-7xl flex-col items-stretch overflow-x-hidden rounded-2xl border border-white/20 bg-white/10 shadow-[0_32px_120px_rgba(6,13,26,0.45)] backdrop-blur-2xl sm:min-h-[calc(100vh-2.5rem)] sm:rounded-[2rem] md:min-h-[calc(100dvh-2.5rem)] md:flex-row">
-        <section className="auth-hero relative hidden flex-1 flex-col justify-between overflow-hidden px-6 py-8 text-[#0d2d7f] md:flex lg:px-8 lg:py-10 xl:px-12">
-          <div className="auth-hero-glow" aria-hidden />
-          <div className="relative z-[1] max-w-xl">
-            <PublicSeoIntro variant="hero" />
-          </div>
-
-          <div className="relative z-[1] my-6 flex flex-1 flex-col items-center justify-center lg:my-4">
-            <AuthHeroVisual />
-          </div>
-        </section>
-
-        <section className="relative flex w-full items-center justify-center px-4 py-6 sm:px-8 sm:py-10 md:w-[min(100%,28rem)] md:max-w-[28rem] md:shrink-0 md:px-8 lg:w-[min(100%,30rem)] lg:max-w-[30rem] lg:px-10 xl:px-12">
+      <div className="mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-lg items-center justify-center sm:min-h-[calc(100vh-2.5rem)]">
+        <section className="relative w-full px-1 py-4 sm:px-2 sm:py-8">
           <div className="auth-card-shape auth-card-shape-one" aria-hidden />
           <div className="auth-card-shape auth-card-shape-two" aria-hidden />
 
-          <div className="relative z-[1] w-full max-w-xl">
-            <div className="mb-6 space-y-5 md:hidden">
-              <PublicSeoIntro variant="heroCompact" />
-              <AuthHeroVisual compact />
-            </div>
-
+          <div className="relative z-[1] w-full">
             <div className="rounded-[2rem] border border-white/25 bg-white/15 p-5 shadow-[0_18px_50px_rgba(6,13,26,0.28)] ring-1 ring-white/15 backdrop-blur-xl sm:p-7">
+              <p className="mb-4">
+                <Link
+                  to="/"
+                  className="text-sm font-semibold text-primary transition hover:text-slate-900"
+                >
+                  ← {t('auth.backHome')}
+                </Link>
+              </p>
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-600">{t('auth.welcomeEyebrow')}</p>

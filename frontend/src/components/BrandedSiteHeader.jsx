@@ -20,25 +20,11 @@ export default function BrandedSiteHeader({ subtitle, compact = false }) {
             : 'donation-mantra relative z-[2] mx-auto flex w-full max-w-none items-center justify-center gap-3 font-devanagari text-xl font-bold sm:gap-4 sm:text-2xl md:text-3xl lg:text-[2rem]'
         }
       >
-        <span
-          className={
-            compact
-              ? 'donation-mantra-flor select-none text-lg sm:text-xl md:text-2xl'
-              : 'donation-mantra-flor select-none text-lg sm:text-xl md:text-2xl'
-          }
-          aria-hidden
-        >
+        <span className="donation-mantra-flor select-none text-lg sm:text-xl md:text-2xl" aria-hidden>
           ✿
         </span>
         <span>{t('layout.mantra')}</span>
-        <span
-          className={
-            compact
-              ? 'donation-mantra-flor select-none text-lg sm:text-xl md:text-2xl'
-              : 'donation-mantra-flor select-none text-lg sm:text-xl md:text-2xl'
-          }
-          aria-hidden
-        >
+        <span className="donation-mantra-flor select-none text-lg sm:text-xl md:text-2xl" aria-hidden>
           ✿
         </span>
       </p>
@@ -78,7 +64,7 @@ export default function BrandedSiteHeader({ subtitle, compact = false }) {
         <h2
           className={
             compact
-              ? 'donation-subtitle relative z-[2] mx-auto mt-1.5 max-w-3xl px-2 text-base font-bold text-ink/95 sm:mt-2 sm:text-xl'
+              ? 'donation-subtitle relative z-[2] mx-auto mt-1.5 max-w-4xl px-2 text-base font-bold text-ink/95 sm:mt-2 sm:text-xl'
               : 'donation-subtitle relative z-[2] mx-auto mt-2 w-full max-w-3xl px-2 text-base font-bold text-ink/95 sm:mt-3 sm:text-xl lg:text-2xl'
           }
         >

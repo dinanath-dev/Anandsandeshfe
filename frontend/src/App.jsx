@@ -1,11 +1,12 @@
 import { lazy, Suspense, useMemo } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import LanguageToggle from './components/LanguageToggle.jsx';
 import { LoadingBlock } from './components/Loader.jsx';
 import { useTranslation } from './i18n/LanguageContext.jsx';
 import { isUserAuthenticated } from './utils/auth.js';
 import { detectAdminSlugFromHost } from './utils/adminPortalHost.js';
 
+const LandingPage = lazy(() => import('./pages/LandingPage.jsx'));
 const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
 const FormPage = lazy(() => import('./pages/FormPage.jsx'));
 const ProfileOverviewPage = lazy(() => import('./pages/ProfileOverviewPage.jsx'));
@@ -21,7 +22,7 @@ const AboutPage = lazy(() => import('./pages/AboutPage.jsx'));
 
 function ProtectedRoute({ children }) {
   if (!isUserAuthenticated()) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;
@@ -29,7 +30,9 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
   const hostAdminSlug = useMemo(() => detectAdminSlugFromHost(), []);
+  const showFloatingLangToggle = pathname !== '/';
 
   if (hostAdminSlug) {
     return (
@@ -44,10 +47,11 @@ export default function App() {
 
   return (
     <>
-      <LanguageToggle />
+      {showFloatingLangToggle ? <LanguageToggle /> : null}
       <Suspense fallback={<LoadingBlock label={t('loaders.loadingPage')} />}>
         <Routes>
-        <Route path="/" element={<AuthPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<AuthPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route
           path="/profile"
@@ -65,22 +69,8 @@ export default function App() {
             </ProtectedRoute>
           )}
         />
-        <Route
-          path="/books"
-          element={(
-            <ProtectedRoute>
-              <BookFormPage />
-            </ProtectedRoute>
-          )}
-        />
-        <Route
-          path="/books/payment"
-          element={(
-            <ProtectedRoute>
-              <BookPaymentPage />
-            </ProtectedRoute>
-          )}
-        />
+        <Route path="/books" element={<BookFormPage />} />
+        <Route path="/books/payment" element={<BookPaymentPage />} />
         <Route
           path="/payment"
           element={(
@@ -89,14 +79,7 @@ export default function App() {
             </ProtectedRoute>
           )}
         />
-        <Route
-          path="/success"
-          element={(
-            <ProtectedRoute>
-              <SuccessPage />
-            </ProtectedRoute>
-          )}
-        />
+        <Route path="/success" element={<SuccessPage />} />
         <Route path="/admin" element={<AdminPage portalSlug="admin" />} />
         <Route path="/books-admin" element={<BooksAdminPage />} />
         <Route path="/accounts-admin" element={<AccountsAdminPage />} />

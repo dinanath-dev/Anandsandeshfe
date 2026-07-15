@@ -19,7 +19,8 @@ import { validateNationalMobile, applyCountryToForm } from '../utils/mobileNumbe
 import { sanitizeFormField, validateIndianFormFields, maxLengthForField } from '../utils/formFieldValidation.js';
 import { joinFullName, namesFromSubmission, splitFullName } from '../utils/personName.js';
 import { createBookOrder, getBooks, getCurrentUser, getMyFormSubmission } from '../services/api.js';
-import { getUserAuth } from '../utils/auth.js';
+import { getUserAuth, isUserAuthenticated } from '../utils/auth.js';
+import { clearGuestBookToken, saveGuestBookToken } from '../utils/guestBookAuth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
 import {
@@ -100,6 +101,12 @@ function buildOrderName(form) {
   return [form.title.trim(), nameOnly].filter(Boolean).join(' ');
 }
 
+function normalizeCartQty(value) {
+  const parsed = Number.parseInt(String(value), 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return 1;
+  return Math.min(10, parsed);
+}
+
 export default function BookFormPage() {
   useSeo({
     title: 'Buy Books — Anand Sandesh Karyalay',
@@ -122,15 +129,16 @@ export default function BookFormPage() {
   const [loadError, setLoadError] = useState('');
   const profileContactRef = useRef({ title: '', firstName: '', lastName: '', mobile: '' });
 
+  const signedIn = isUserAuthenticated();
   const isHomeDelivery = fulfillmentMode === 'home_delivery';
   const isCounterSale = fulfillmentMode === 'counter_sale';
 
   const selectedLines = useMemo(() => {
     return books
-      .filter((b) => cart[b.id] > 0)
+      .filter((b) => Object.prototype.hasOwnProperty.call(cart, b.id))
       .map((b) => ({
         book: b,
-        quantity: cart[b.id]
+        quantity: normalizeCartQty(cart[b.id])
       }));
   }, [books, cart]);
 
@@ -153,10 +161,11 @@ export default function BookFormPage() {
     let cancelled = false;
     (async () => {
       try {
+        const authed = isUserAuthenticated();
         const [booksData, userData, submissionData] = await Promise.all([
           getBooks(),
-          getCurrentUser().catch(() => null),
-          getMyFormSubmission().catch(() => null)
+          authed ? getCurrentUser().catch(() => null) : Promise.resolve(null),
+          authed ? getMyFormSubmission().catch(() => null) : Promise.resolve(null)
         ]);
         if (cancelled) return;
         setBooks(booksData?.books || []);
@@ -177,6 +186,8 @@ export default function BookFormPage() {
           }
           return;
         }
+
+        if (!authed) return;
 
         const auth = getUserAuth();
         const user = userData?.user || auth?.user || {};
@@ -257,7 +268,7 @@ export default function BookFormPage() {
   function toggleBook(bookId) {
     setCart((prev) => {
       const next = { ...prev };
-      if (next[bookId]) delete next[bookId];
+      if (Object.prototype.hasOwnProperty.call(next, bookId)) delete next[bookId];
       else next[bookId] = 1;
       return next;
     });
@@ -265,8 +276,53 @@ export default function BookFormPage() {
   }
 
   function updateBookQuantity(bookId, rawValue) {
-    const qty = Math.max(1, Math.min(10, Number(rawValue) || 1));
-    setCart((prev) => ({ ...prev, [bookId]: qty }));
+    setCart((prev) => {
+      const previous = String(prev[bookId] ?? '');
+
+      if (rawValue === '') {
+        return { ...prev, [bookId]: '' };
+      }
+
+      let digits = String(rawValue).replace(/\D/g, '');
+      if (digits === '') {
+        return { ...prev, [bookId]: '' };
+      }
+
+      // Typing over a single digit without selecting often appends ("1"+"2"="12").
+      // Treat that as replacing with the new digit.
+      if (previous.length === 1 && digits.length === 2 && digits.startsWith(previous)) {
+        digits = digits.slice(-1);
+      }
+
+      let parsed = Number.parseInt(digits, 10);
+      if (!Number.isFinite(parsed)) return prev;
+
+      if (parsed > 10) {
+        parsed = Number.parseInt(digits.slice(-1), 10);
+        if (!Number.isFinite(parsed) || parsed < 1) parsed = 10;
+      }
+
+      if (parsed < 1) {
+        return { ...prev, [bookId]: '' };
+      }
+
+      return { ...prev, [bookId]: Math.min(10, parsed) };
+    });
+  }
+
+  function bumpBookQuantity(bookId, delta) {
+    setCart((prev) => {
+      if (!Object.prototype.hasOwnProperty.call(prev, bookId)) return prev;
+      const next = normalizeCartQty(prev[bookId]) + delta;
+      return { ...prev, [bookId]: Math.max(1, Math.min(10, next)) };
+    });
+  }
+
+  function commitBookQuantity(bookId) {
+    setCart((prev) => {
+      if (!Object.prototype.hasOwnProperty.call(prev, bookId)) return prev;
+      return { ...prev, [bookId]: normalizeCartQty(prev[bookId]) };
+    });
   }
 
   function validateStep2() {
@@ -341,6 +397,12 @@ export default function BookFormPage() {
       const orderId = data?.order?.id;
       if (!orderId) throw new Error(t('books.errors.orderFailed'));
 
+      if (data.guest_token) {
+        saveGuestBookToken(orderId, data.guest_token);
+      } else {
+        clearGuestBookToken(orderId);
+      }
+
       const draft = {
         form: { ...form },
         cart: { ...cart },
@@ -357,6 +419,7 @@ export default function BookFormPage() {
           fulfillmentMode: data.order.fulfillment_mode || fulfillmentMode,
           orderItems: data.order.order_items || items,
           totalPaise: data.order.total_amount_paise,
+          guestToken: data.guest_token || null,
           bookDraft: draft
         }
       });
@@ -377,10 +440,13 @@ export default function BookFormPage() {
 
   return (
     <DonationLayout subtitle={t('books.subtitle')}>
-      <div className="book-order-shell mx-auto max-w-3xl px-2 py-4 sm:px-4">
-        <div>
-          <Link to="/profile" className="text-sm font-semibold text-primary hover:underline">
-            ← {t('books.backToProfile')}
+      <div className="book-order-shell">
+        <div className="book-order-topbar">
+          <Link
+            to={signedIn ? '/profile' : '/'}
+            className="text-sm font-semibold text-primary hover:underline"
+          >
+            ← {signedIn ? t('books.backToProfile') : t('books.backHome')}
           </Link>
         </div>
 
@@ -392,16 +458,6 @@ export default function BookFormPage() {
           <div className="book-order-card">
             <h3 className="book-order-section-title">{t('books.fulfillmentHeading')}</h3>
             <div className="book-order-fulfillment" role="radiogroup" aria-label={t('books.fulfillmentHeading')}>
-              <button
-                type="button"
-                className={`book-order-mode-card book-order-mode-card--featured ${fulfillmentMode === 'counter_sale' ? 'is-selected' : ''}`}
-                onClick={() => selectFulfillmentMode('counter_sale')}
-                aria-pressed={fulfillmentMode === 'counter_sale'}
-              >
-                <span className="book-order-mode-card-title">{t('books.counterSale')}</span>
-                <span className="book-order-mode-card-help">{t('books.counterSaleHelp')}</span>
-              </button>
-
               {fulfillmentMode === 'home_delivery' ? (
                 <div className="book-order-mode-secondary">
                   <button
@@ -422,13 +478,24 @@ export default function BookFormPage() {
                   </button>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  className="book-order-mode-alt-link"
-                  onClick={() => selectFulfillmentMode('home_delivery')}
-                >
-                  {t('books.homeDeliveryInstead')}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="book-order-mode-card book-order-mode-card--featured is-selected"
+                    onClick={() => selectFulfillmentMode('counter_sale')}
+                    aria-pressed
+                  >
+                    <span className="book-order-mode-card-title">{t('books.counterSale')}</span>
+                    <span className="book-order-mode-card-help">{t('books.counterSaleHelp')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="book-order-mode-alt-link"
+                    onClick={() => selectFulfillmentMode('home_delivery')}
+                  >
+                    {t('books.homeDeliveryInstead')}
+                  </button>
+                </>
               )}
             </div>
             {errors.fulfillmentMode ? (
@@ -446,8 +513,9 @@ export default function BookFormPage() {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleStep2Submit} className="donation-form book-order-form" noValidate>
-            <section className="book-order-card">
+          <form onSubmit={handleStep2Submit} className="donation-form book-order-form book-order-form--split" noValidate>
+            <div className="book-order-form__catalog">
+            <section className="book-order-card book-order-card--panel">
               <p className="book-order-selected-mode">
                 {t('books.selectedModeLabel')}: {fulfillmentLabel(fulfillmentMode, t)}
               </p>
@@ -483,7 +551,7 @@ export default function BookFormPage() {
                       </thead>
                       <tbody>
                         {filteredBooks.map((b) => {
-                          const selected = cart[b.id] > 0;
+                          const selected = Object.prototype.hasOwnProperty.call(cart, b.id);
                           const unitPrice = bookUnitPrice(b, fulfillmentMode);
                           return (
                             <tr key={b.id} className={selected ? 'is-selected' : ''}>
@@ -505,15 +573,45 @@ export default function BookFormPage() {
                                     aria-label={`${b.name}`}
                                   />
                                   {selected ? (
-                                    <input
-                                      type="number"
-                                      min={1}
-                                      max={10}
-                                      className="donation-input !w-14 !min-w-0 !rounded-lg !py-1 !text-center !text-sm"
-                                      value={cart[b.id]}
-                                      onChange={(e) => updateBookQuantity(b.id, e.target.value)}
-                                      aria-label={t('books.quantity')}
-                                    />
+                                    <div className="book-order-qty">
+                                      <button
+                                        type="button"
+                                        className="book-order-qty__btn"
+                                        onClick={() => bumpBookQuantity(b.id, -1)}
+                                        aria-label={t('books.decreaseQty')}
+                                      >
+                                        −
+                                      </button>
+                                      <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        maxLength={2}
+                                        className="donation-input book-order-qty__input"
+                                        value={cart[b.id] === '' ? '' : String(cart[b.id])}
+                                        onFocus={(e) => e.target.select()}
+                                        onChange={(e) => updateBookQuantity(b.id, e.target.value)}
+                                        onBlur={() => commitBookQuantity(b.id)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'ArrowUp') {
+                                            e.preventDefault();
+                                            bumpBookQuantity(b.id, 1);
+                                          } else if (e.key === 'ArrowDown') {
+                                            e.preventDefault();
+                                            bumpBookQuantity(b.id, -1);
+                                          }
+                                        }}
+                                        aria-label={t('books.quantity')}
+                                      />
+                                      <button
+                                        type="button"
+                                        className="book-order-qty__btn"
+                                        onClick={() => bumpBookQuantity(b.id, 1)}
+                                        aria-label={t('books.increaseQty')}
+                                      >
+                                        +
+                                      </button>
+                                    </div>
                                   ) : null}
                                 </div>
                               </td>
@@ -558,13 +656,15 @@ export default function BookFormPage() {
                 </div>
               </section>
             ) : null}
+            </div>
 
-            <section className="book-order-card">
+            <div className="book-order-form__details">
+            <section className="book-order-card book-order-card--panel">
               <h3 className="book-order-section-title">
                 {isHomeDelivery ? t('books.deliveryDetails') : t('books.contactDetails')}
               </h3>
 
-              <DonationFormPair className="donation-form-pair--name">
+              <DonationFormPair className="donation-form-pair--narrow">
                 <DonationFormRow
                   label={t('form.labels.title')}
                   optional={t('common.optional')}
@@ -578,7 +678,9 @@ export default function BookFormPage() {
                     invalid={Boolean(errors.title)}
                   />
                 </DonationFormRow>
+              </DonationFormPair>
 
+              <DonationFormPair className="donation-form-pair--single">
                 <DonationFormRow
                   label={t('form.labels.firstName')}
                   required
@@ -595,7 +697,9 @@ export default function BookFormPage() {
                     readOnly={isCounterSale && Boolean(form.firstName.trim())}
                   />
                 </DonationFormRow>
+              </DonationFormPair>
 
+              <DonationFormPair className="donation-form-pair--single">
                 <DonationFormRow
                   label={t('form.labels.lastName')}
                   required
@@ -646,7 +750,15 @@ export default function BookFormPage() {
                   />
                 </DonationFormRow>
                 <DonationFormRow label={t('form.labels.email')} required error={errors.email} labelFor="bf-email">
-                  <input id="bf-email" type="email" className={inputClass('email', errors)} value={form.email} readOnly />
+                  <input
+                    id="bf-email"
+                    type="email"
+                    className={inputClass('email', errors)}
+                    value={form.email}
+                    readOnly={signedIn}
+                    onChange={signedIn ? undefined : (e) => updateField('email', e.target.value)}
+                    autoComplete="email"
+                  />
                 </DonationFormRow>
               </DonationFormPair>
 
@@ -694,10 +806,15 @@ export default function BookFormPage() {
                 </>
               )}
             </section>
+            </div>
 
-            {errors.submit ? <Alert>{errors.submit}</Alert> : null}
+            {errors.submit ? (
+              <div className="book-order-form__alert">
+                <Alert>{errors.submit}</Alert>
+              </div>
+            ) : null}
 
-            <div className="book-order-nav-actions">
+            <div className="book-order-nav-actions book-order-form__actions">
               <button
                 type="button"
                 className="btn-secondary inline-flex min-h-11 items-center gap-2 px-6 py-2.5 text-sm font-semibold"

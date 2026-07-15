@@ -408,7 +408,7 @@ export default function FormPage() {
   return (
     <DonationLayout subtitle={t('form.subtitle')}>
       {isSubmitting ? <LoadingBlock label={t('loaders.savingForm')} /> : null}
-      <div className="donation-form-shell mx-auto w-full max-w-5xl">
+      <div className="donation-form-shell mx-auto w-full">
         {!submissionLoaded ? (
           <LoadingBlock label={t('loaders.loadingSubmission')} />
         ) : submissionSnapshot?.payment_status === 'verified' ? (

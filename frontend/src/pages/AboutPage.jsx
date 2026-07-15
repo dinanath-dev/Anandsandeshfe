@@ -101,7 +101,7 @@ export default function AboutPage() {
             {t('about.subscribeHeading')}
           </h2>
           <p className="mt-3 text-sm leading-7 text-muted sm:text-base">{t('about.subscribeBody')}</p>
-          <Link to="/" className="btn-primary mt-5">
+          <Link to="/login" className="btn-primary mt-5">
             {t('about.subscribeCta')}
           </Link>
         </section>

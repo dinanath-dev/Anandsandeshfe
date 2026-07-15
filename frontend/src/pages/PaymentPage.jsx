@@ -84,7 +84,7 @@ export default function PaymentPage() {
   const subscriptionType = state?.subscriptionType;
 
   if (!submissionId || !subscriptionType) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return (
