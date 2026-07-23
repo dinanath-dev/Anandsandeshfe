@@ -2,7 +2,7 @@ import ArchedOrgTitle from './ArchedOrgTitle.jsx';
 import anandpurLogo from '../assets/Shri_AnandpurDham_Logo.png';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 
-export default function BrandedSiteHeader({ subtitle, compact = false }) {
+export default function BrandedSiteHeader({ subtitle, compact = false, hideLogo = false }) {
   const { t } = useTranslation();
 
   return (
@@ -39,33 +39,35 @@ export default function BrandedSiteHeader({ subtitle, compact = false }) {
         <ArchedOrgTitle compact={compact} />
       </div>
 
-      <figure
-        className={
-          compact
-            ? 'donation-seal relative z-[2] mx-auto -mt-1 flex justify-center sm:-mt-0.5'
-            : 'donation-seal relative z-[2] mx-auto -mt-1 flex justify-center sm:-mt-0.5'
-        }
-      >
-        <img
-          src={anandpurLogo}
-          alt={t('layout.logoAlt')}
+      {!hideLogo ? (
+        <figure
           className={
             compact
-              ? 'h-auto w-[min(72vw,9.5rem)] object-contain drop-shadow-[0_6px_20px_rgba(15,80,40,0.2)] sm:w-[min(55vw,11rem)]'
-              : 'h-auto w-[min(92vw,11rem)] object-contain drop-shadow-[0_6px_20px_rgba(15,80,40,0.2)] sm:w-[min(88vw,13.5rem)] lg:w-[min(88vw,15rem)]'
+              ? 'donation-seal relative z-[2] mx-auto -mt-1 flex justify-center sm:-mt-0.5'
+              : 'donation-seal relative z-[2] mx-auto -mt-1 flex justify-center sm:-mt-0.5'
           }
-          width={400}
-          height={400}
-          decoding="async"
-        />
-      </figure>
+        >
+          <img
+            src={anandpurLogo}
+            alt={t('layout.logoAlt')}
+            className={
+              compact
+                ? 'h-auto w-[min(72vw,9.5rem)] object-contain drop-shadow-[0_6px_20px_rgba(15,80,40,0.2)] sm:w-[min(55vw,11rem)]'
+                : 'h-auto w-[min(92vw,11rem)] object-contain drop-shadow-[0_6px_20px_rgba(15,80,40,0.2)] sm:w-[min(88vw,13.5rem)] lg:w-[min(88vw,15rem)]'
+            }
+            width={400}
+            height={400}
+            decoding="async"
+          />
+        </figure>
+      ) : null}
 
       {subtitle ? (
         <h2
           className={
             compact
-              ? 'donation-subtitle relative z-[2] mx-auto mt-1.5 max-w-4xl px-2 text-base font-bold text-ink/95 sm:mt-2 sm:text-xl'
-              : 'donation-subtitle relative z-[2] mx-auto mt-2 w-full max-w-3xl px-2 text-base font-bold text-ink/95 sm:mt-3 sm:text-xl lg:text-2xl'
+              ? `donation-subtitle relative z-[2] mx-auto max-w-4xl px-2 text-base font-bold text-ink/95 sm:text-xl ${hideLogo ? 'mt-2 sm:mt-3' : 'mt-1.5 sm:mt-2'}`
+              : `donation-subtitle relative z-[2] mx-auto w-full max-w-3xl px-2 text-base font-bold text-ink/95 sm:text-xl lg:text-2xl ${hideLogo ? 'mt-2 sm:mt-3' : 'mt-2 sm:mt-3'}`
           }
         >
           {subtitle}

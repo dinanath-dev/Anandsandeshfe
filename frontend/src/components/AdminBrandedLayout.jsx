@@ -14,7 +14,7 @@ export default function AdminBrandedLayout({
       {onLogout ? (
         <AdminToolbar badge={badge} onLogout={onLogout} logoutLabel={logoutLabel} />
       ) : null}
-      <BrandedSiteHeader subtitle={subtitle} />
+      <BrandedSiteHeader subtitle={subtitle} hideLogo />
       <div
         className={
           narrow

@@ -742,8 +742,9 @@ export const translations = {
         showing: 'Showing {from}–{to} of {total}'
       },
       tabs: {
-        subscriptions: 'Subscriptions',
+        subscriptions: 'Subscriber',
         bookOrders: 'Books Order',
+        settlements: 'Settlements',
         users: 'Users',
         magazine: 'Anand Sandesh',
         books: 'Book orders'
@@ -798,8 +799,8 @@ export const translations = {
         none: 'No counter sales found for the selected month and filters.'
       },
       subscriptionsSummary: {
-        tabList: 'Subscriptions',
-        tabSummary: 'Summary',
+        tabList: 'Subscriber',
+        tabSummary: "Subscriber's Summary",
         statusFilterLabel: 'Payment status (subscribers)',
         verifiedSubscribers: 'Verified — {count} subscribers',
         pendingSubscribers: 'Pending — {count} subscribers',
@@ -1685,8 +1686,9 @@ export const translations = {
         showing: '{total} में से {from}–{to} दिखा रहे हैं'
       },
       tabs: {
-        subscriptions: 'ग्राहकियाँ',
+        subscriptions: 'सदस्य',
         bookOrders: 'पुस्तक ऑर्डर',
+        settlements: 'निपटान',
         users: 'उपयोगकर्ता',
         magazine: 'आनंद संदेश',
         books: 'पुस्तक ऑर्डर'
@@ -1741,8 +1743,8 @@ export const translations = {
         none: 'चयनित महीने और फ़िल्टर के लिए कोई काउंटर बिक्री नहीं मिली।'
       },
       subscriptionsSummary: {
-        tabList: 'सदस्यता',
-        tabSummary: 'सारांश',
+        tabList: 'सदस्य',
+        tabSummary: 'सदस्य सारांश',
         statusFilterLabel: 'भुगतान स्थिति (सदस्य)',
         verifiedSubscribers: 'सत्यापित — {count} सदस्य',
         pendingSubscribers: 'लंबित — {count} सदस्य',

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, Pencil, Plus, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, Pencil, Plus, Users, Wallet } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import AdminAddSubscriptionModal from '../components/AdminAddSubscriptionModal.jsx';
 import AdminAddBookOrderModal from '../components/AdminAddBookOrderModal.jsx';
 import AdminBrandedLayout from '../components/AdminBrandedLayout.jsx';
+import AdminSettlementsPanel from '../components/AdminSettlementsPanel.jsx';
 import { LoadingBlock } from '../components/Loader.jsx';
 import {
   adminLogin,
@@ -841,6 +842,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   const booksOnlyView = booksOnlyPortal || booksAdminRole;
   const showSubscriptionsTab = !booksOnlyView;
   const showUsersTab = superAdmin && !booksOnlyView;
+  const showSettlementsTab = !booksOnlyView;
 
   const tabHasCachedData =
     (activeTab === 'subscriptions' && subscriptionSubTab === 'list' && submissions.length > 0) ||
@@ -1075,7 +1077,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   }
 
   useEffect(() => {
-    if (booksOnlyView && activeTab === 'subscriptions') {
+    if (booksOnlyView && (activeTab === 'subscriptions' || activeTab === 'settlements')) {
       setActiveTab('bookOrders');
     }
   }, [booksOnlyView, activeTab]);
@@ -1286,8 +1288,8 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
         onLogout={handleLogout}
         logoutLabel={t('admin.logout')}
       >
-        {showSubscriptionsTab || showUsersTab ? (
-          <div className="mb-5 flex flex-wrap gap-2">
+        {showSubscriptionsTab || showUsersTab || showSettlementsTab ? (
+          <div className="admin-report-tabs">
             {showSubscriptionsTab ? (
               <button
                 type="button"
@@ -1304,6 +1306,16 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                 onClick={() => setActiveTab('bookOrders')}
               >
                 {t('admin.tabs.bookOrders')}
+              </button>
+            ) : null}
+            {showSettlementsTab ? (
+              <button
+                type="button"
+                className={`inline-flex items-center gap-1 ${adminTabClass(activeTab === 'settlements')}`}
+                onClick={() => setActiveTab('settlements')}
+              >
+                <Wallet size={15} />
+                {t('admin.tabs.settlements')}
               </button>
             ) : null}
             {showUsersTab ? (
@@ -1642,6 +1654,14 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               </>
             )}
           </>
+        ) : null}
+
+        {activeTab === 'settlements' && showSettlementsTab ? (
+          <AdminSettlementsPanel
+            token={token}
+            portalSlug={portalSlug}
+            onAuthError={handleAuthError}
+          />
         ) : null}
 
         {activeTab === 'users' && showUsersTab ? (
