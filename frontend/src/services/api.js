@@ -429,6 +429,52 @@ export function getBookOrdersSummary(token, filters = {}, portalSlug = ADMIN_POR
   });
 }
 
+function buildInventoryQuery(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters?.counter != null && String(filters.counter).trim() !== '' && filters.counter !== 'all') {
+    params.set('counter', String(filters.counter));
+  }
+  if (filters?.search != null && String(filters.search).trim() !== '') {
+    params.set('search', String(filters.search).trim());
+  }
+  if (filters?.lowStock) params.set('lowStock', 'true');
+  const query = params.toString();
+  return query ? `?${query}` : '';
+}
+
+export function getBookInventory(token, filters = {}, portalSlug = ADMIN_PORTAL_SLUG) {
+  return request(`${STAFF}/books/inventory${buildInventoryQuery(filters)}`, {
+    headers: adminAuthHeaders(token, portalSlug)
+  });
+}
+
+export function setBookInventory(token, body, portalSlug = ADMIN_PORTAL_SLUG) {
+  return request(`${STAFF}/books/inventory`, {
+    method: 'PUT',
+    headers: { ...adminAuthHeaders(token, portalSlug), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+export function adjustBookInventory(token, body, portalSlug = ADMIN_PORTAL_SLUG) {
+  return request(`${STAFF}/books/inventory/adjust`, {
+    method: 'POST',
+    headers: { ...adminAuthHeaders(token, portalSlug), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+export function getBookInventoryMovements(token, filters = {}, portalSlug = ADMIN_PORTAL_SLUG) {
+  const params = new URLSearchParams();
+  if (filters?.book_id) params.set('book_id', String(filters.book_id));
+  if (filters?.counter && filters.counter !== 'all') params.set('counter', String(filters.counter));
+  if (filters?.limit) params.set('limit', String(filters.limit));
+  const query = params.toString();
+  return request(`${STAFF}/books/inventory/movements${query ? `?${query}` : ''}`, {
+    headers: adminAuthHeaders(token, portalSlug)
+  });
+}
+
 export function getSubscriptionFilterMeta(token) {
   return request(`${STAFF}/subscriptions/meta`, {
     headers: adminAuthHeaders(token)

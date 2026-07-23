@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { BookOpen, ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, Pencil, Plus, UserRound, Users, Wallet } from 'lucide-react';
+import { BookOpen, Boxes, ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, Pencil, Plus, UserRound, Users, Wallet } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import AdminAddSubscriptionModal from '../components/AdminAddSubscriptionModal.jsx';
 import AdminAddBookOrderModal from '../components/AdminAddBookOrderModal.jsx';
 import AdminBrandedLayout from '../components/AdminBrandedLayout.jsx';
 import AdminSettlementsPanel from '../components/AdminSettlementsPanel.jsx';
+import BookInventoryPanel from '../components/BookInventoryPanel.jsx';
 import { LoadingBlock } from '../components/Loader.jsx';
 import {
   adminLogin,
@@ -849,6 +850,10 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   const showSubscriptionsTab = !booksOnlyView;
   const showUsersTab = superAdmin && !booksOnlyView;
   const showSettlementsTab = !booksOnlyView;
+  // Book orders + Inventory are available to every admin role that reaches this page
+  // (all are books-capable via requireBooksAdmin), including books-only portals.
+  const showBookOrdersTab = true;
+  const showInventoryTab = true;
 
   const tabHasCachedData =
     (activeTab === 'subscriptions' && subscriptionSubTab === 'list' && submissions.length > 0) ||
@@ -1304,7 +1309,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
         onLogout={handleLogout}
         logoutLabel={t('admin.logout')}
       >
-        {showSubscriptionsTab || showUsersTab || showSettlementsTab ? (
+        {showSubscriptionsTab || showUsersTab || showSettlementsTab || showBookOrdersTab || showInventoryTab ? (
           <div className="admin-report-tabs">
             {showSubscriptionsTab ? (
               <button
@@ -1316,7 +1321,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                 {t('admin.tabs.subscriptions')}
               </button>
             ) : null}
-            {!booksOnlyPortal ? (
+            {showBookOrdersTab ? (
               <button
                 type="button"
                 className={adminTabClass(activeTab === 'bookOrders')}
@@ -1324,6 +1329,16 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               >
                 <BookOpen size={16} strokeWidth={2.25} aria-hidden />
                 {t('admin.tabs.bookOrders')}
+              </button>
+            ) : null}
+            {showInventoryTab ? (
+              <button
+                type="button"
+                className={adminTabClass(activeTab === 'inventory')}
+                onClick={() => setActiveTab('inventory')}
+              >
+                <Boxes size={16} strokeWidth={2.25} aria-hidden />
+                {t('admin.inventory.tab')}
               </button>
             ) : null}
             {showSettlementsTab ? (
@@ -1672,6 +1687,17 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               </>
             )}
           </>
+        ) : null}
+
+        {activeTab === 'inventory' && showInventoryTab ? (
+          <BookInventoryPanel
+            token={token}
+            portalSlug={portalSlug}
+            t={t}
+            locale={locale}
+            toast={toast}
+            onAuthError={handleAuthError}
+          />
         ) : null}
 
         {activeTab === 'settlements' && showSettlementsTab ? (
