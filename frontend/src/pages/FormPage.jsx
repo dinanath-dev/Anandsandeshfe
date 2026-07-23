@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { CheckCircle2, CreditCard } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
-import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
+import { LoadingBlock } from '../components/Loader.jsx';
+import StatefulButton from '../components/StatefulButton.jsx';
 import DonationFormRow from '../components/DonationFormRow.jsx';
 import DonationFormPair from '../components/DonationFormPair.jsx';
 import PersonTitleSelect from '../components/PersonTitleSelect.jsx';
@@ -21,6 +22,7 @@ import { sanitizeFormField, validateIndianFormFields, maxLengthForField } from '
 import { getCurrentUser, getMyFormSubmission, submitUserForm } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useToast, friendlyError } from '../components/ToastProvider.jsx';
 import { useSeo } from '../utils/seo.js';
 import {
   calculateSubscriptionTotals,
@@ -166,6 +168,7 @@ export default function FormPage() {
   });
 
   const { t } = useTranslation();
+  const toast = useToast();
   const SUBSCRIPTION_LABELS = useMemo(
     () => ({ yearly: t('form.oneYear'), five_year: t('form.fiveYear') }),
     [t]
@@ -395,11 +398,14 @@ export default function FormPage() {
       }
       if (alreadyVerified) {
         setSaveInfo(t('form.saveSuccess'));
+        toast.success(t('form.saveSuccess'));
         return;
       }
       navigate('/payment', { state: { submissionId, subscriptionType: form.subscription } });
     } catch (err) {
-      setApiError(err.message);
+      const message = friendlyError(err, t('form.errors.couldNotSave'));
+      setApiError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -407,7 +413,6 @@ export default function FormPage() {
 
   return (
     <DonationLayout subtitle={t('form.subtitle')}>
-      {isSubmitting ? <LoadingBlock label={t('loaders.savingForm')} /> : null}
       <div className="donation-form-shell mx-auto w-full">
         {!submissionLoaded ? (
           <LoadingBlock label={t('loaders.loadingSubmission')} />
@@ -475,35 +480,37 @@ export default function FormPage() {
             </h2>
 
             <DonationFormPair className="donation-form-pair--name">
-              <DonationFormRow
-                label={t('form.labels.title')}
-                optional={t('common.optional')}
-                error={errors.title}
-                labelFor="df-title"
-              >
-                <PersonTitleSelect
-                  id="df-title"
-                  value={form.title}
-                  onChange={(e) => updateField('title', e.target.value)}
-                  invalid={Boolean(errors.title)}
-                />
-              </DonationFormRow>
+              <div className="donation-name-lead">
+                <DonationFormRow
+                  label={t('form.labels.title')}
+                  optional={t('common.optional')}
+                  error={errors.title}
+                  labelFor="df-title"
+                >
+                  <PersonTitleSelect
+                    id="df-title"
+                    value={form.title}
+                    onChange={(e) => updateField('title', e.target.value)}
+                    invalid={Boolean(errors.title)}
+                  />
+                </DonationFormRow>
 
-              <DonationFormRow
-                label={t('form.labels.firstName')}
-                required
-                error={errors.firstName}
-                labelFor="df-firstName"
-              >
-                <input
-                  id="df-firstName"
-                  className={inputClass('firstName', errors)}
-                  value={form.firstName}
-                  onChange={(e) => updateField('firstName', e.target.value)}
-                  maxLength={maxLengthForField('firstName')}
-                  autoComplete="given-name"
-                />
-              </DonationFormRow>
+                <DonationFormRow
+                  label={t('form.labels.firstName')}
+                  required
+                  error={errors.firstName}
+                  labelFor="df-firstName"
+                >
+                  <input
+                    id="df-firstName"
+                    className={inputClass('firstName', errors)}
+                    value={form.firstName}
+                    onChange={(e) => updateField('firstName', e.target.value)}
+                    maxLength={maxLengthForField('firstName')}
+                    autoComplete="given-name"
+                  />
+                </DonationFormRow>
+              </div>
 
               <DonationFormRow
                 label={t('form.labels.lastName')}
@@ -693,14 +700,15 @@ export default function FormPage() {
           </section>
 
           <div className="donation-form-actions">
-            <button
+            <StatefulButton
               type="submit"
-              disabled={isSubmitting}
+              status={isSubmitting ? 'loading' : 'idle'}
               className="form-submit-teal donation-form-submit-btn inline-flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? <InlineLoader size={22} /> : <CreditCard size={18} aria-hidden />}
-              {isSubmitting ? t('form.saving') : t('form.proceedToPayment')}
-            </button>
+              label={t('form.proceedToPayment')}
+              loadingLabel={t('form.saving')}
+              icon={<CreditCard size={18} aria-hidden />}
+              iconPosition="start"
+            />
           </div>
         </form>
         )}

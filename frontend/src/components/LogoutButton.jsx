@@ -2,15 +2,18 @@ import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { clearPendingOtp, clearUserAuth } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useToast } from './ToastProvider.jsx';
 
 /** Fixed top-right logout control on authenticated member pages. */
 export default function LogoutButton({ className = '' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { info: toastInfo } = useToast();
 
   function handleLogout() {
     clearUserAuth();
     clearPendingOtp();
+    toastInfo(t('common.loggedOut'));
     navigate('/', { replace: true });
   }
 

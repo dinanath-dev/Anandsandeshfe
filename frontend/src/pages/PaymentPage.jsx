@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, CreditCard } from 'lucide-react';
 import DonationLayout from '../components/DonationLayout.jsx';
-import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
+import { LoadingBlock } from '../components/Loader.jsx';
+import StatefulButton from '../components/StatefulButton.jsx';
 import Alert from '../components/Alert.jsx';
 import UpiPaymentHelp from '../components/UpiPaymentHelp.jsx';
 import {
@@ -13,6 +14,7 @@ import {
 } from '../services/api.js';
 import { getUserAuth } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useToast, friendlyError } from '../components/ToastProvider.jsx';
 import { useSeo } from '../utils/seo.js';
 import {
   calculateSubscriptionTotals,
@@ -108,6 +110,7 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
   });
 
   const { t } = useTranslation();
+  const toast = useToast();
   const SUBSCRIPTION_LABELS = {
     yearly: t('payment.oneYear'),
     five_year: t('payment.fiveYear')
@@ -246,13 +249,14 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
               razorpay_signature: response.razorpay_signature,
               submission_id: String(submissionId)
             });
+            toast.success(t('success.paymentSuccessful'));
             navigate('/success', { state: { paymentVerified: true } });
           } catch (err) {
             navigate('/success', {
               state: {
                 paymentVerified: false,
                 verificationPending: true,
-                verificationMessage: err?.message || t('payment.errors.verificationPending')
+                verificationMessage: friendlyError(err, t('payment.errors.verificationPending'))
               }
             });
           }
@@ -273,19 +277,21 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
           (typeof e?.reason === 'string' && e.reason) ||
           t('payment.errors.paymentFailed');
         setPaymentError(msg);
+        toast.error(msg);
       });
 
       rzp.open();
     } catch (err) {
       releaseCheckout();
-      let msg = err.message || t('payment.errors.couldNotStartShort');
+      let msg = friendlyError(err, t('payment.errors.couldNotStartShort'));
       if (err.status === 409) {
         msg = t('payment.errors.alreadyPaid');
         setAlreadyPaid(true);
       } else if (err.status === 401 && String(err.path || '').startsWith('/payment/')) {
-        msg = `${msg} Sign in again if your session expired, then retry payment.`;
+        msg = t('payment.errors.notSignedIn');
       }
       setError(msg);
+      toast.error(msg);
     }
   }, [
     alreadyPaid,
@@ -309,7 +315,6 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
 
   return (
     <DonationLayout subtitle={t('payment.subtitle')}>
-      {busy ? <LoadingBlock label={t('loaders.startingCheckout')} /> : null}
       <div className="donation-form-shell mx-auto max-w-lg px-2 py-4 text-center sm:px-4">
         <div className="rounded-lg border border-[#0d2d7f]/28 bg-white/90 px-5 py-8 shadow-md backdrop-blur-sm">
           {alreadyPaid ? (
@@ -357,15 +362,16 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
               ) : null}
 
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <button
-                  type="button"
+                <StatefulButton
                   className="btn-primary inline-flex min-h-10 items-center gap-2 px-5 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-80"
                   onClick={startCheckout}
-                  disabled={busy || !plansConfigured}
-                >
-                  {busy ? <InlineLoader size={22} /> : <CreditCard size={18} aria-hidden />}
-                  {busy ? t('payment.startingCheckout') : t('payment.payWithRazorpay')}
-                </button>
+                  status={busy ? 'loading' : 'idle'}
+                  disabled={!plansConfigured}
+                  label={t('payment.payWithRazorpay')}
+                  loadingLabel={t('payment.startingCheckout')}
+                  icon={<CreditCard size={18} aria-hidden />}
+                  iconPosition="start"
+                />
                 <Link to="/form" className="btn-secondary inline-flex min-h-10 items-center gap-2 px-5 py-2 text-sm">
                   <ArrowLeft size={18} /> {t('payment.editDetails')}
                 </Link>

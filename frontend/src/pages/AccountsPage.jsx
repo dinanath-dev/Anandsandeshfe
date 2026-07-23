@@ -5,6 +5,7 @@ import AdminBrandedLayout from '../components/AdminBrandedLayout.jsx';
 import AdminSettlementsPanel from '../components/AdminSettlementsPanel.jsx';
 import { adminLogin } from '../services/api.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useToast, friendlyError } from '../components/ToastProvider.jsx';
 import {
   ACCOUNTS_PORTAL_SLUG,
   clearAdminSession,
@@ -15,6 +16,7 @@ import {
 
 export default function AccountsPage({ portalSlug = ACCOUNTS_PORTAL_SLUG, portalLabel }) {
   const { t } = useTranslation();
+  const toast = useToast();
 
   const [token, setToken] = useState(() => getAdminToken(portalSlug));
   const [username, setUsername] = useState('');
@@ -23,7 +25,7 @@ export default function AccountsPage({ portalSlug = ACCOUNTS_PORTAL_SLUG, portal
   const [error, setError] = useState('');
 
   function handleAuthError(err) {
-    setError(err.message);
+    toast.showError(err, { fallback: t('admin.toasts.genericError') });
     if (err.status === 401) {
       clearAdminSession(portalSlug);
       setToken('');
@@ -43,14 +45,16 @@ export default function AccountsPage({ portalSlug = ACCOUNTS_PORTAL_SLUG, portal
       setToken(data.token);
       setUsername('');
       setPassword('');
+      toast.success(t('admin.toasts.loginSuccess'));
     } catch (err) {
-      setError(err.message);
+      setError(friendlyError(err, t('admin.toasts.genericError')));
     }
   }
 
   function handleLogout() {
     clearAdminSession(portalSlug);
     setToken('');
+    toast.info(t('admin.toasts.loggedOut'));
   }
 
   if (!token) {

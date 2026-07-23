@@ -10,9 +10,10 @@ import {
 } from '../services/api.js';
 import { clearPendingOtp, getPendingOtp, isUserAuthenticated, savePendingOtp, saveUserAuth } from '../utils/auth.js';
 import { useSeo } from '../utils/seo.js';
-import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
+import { InlineLoader } from '../components/Loader.jsx';
+import StatefulButton from '../components/StatefulButton.jsx';
 import OtpInboxHint from '../components/OtpInboxHint.jsx';
-import { useToast } from '../components/ToastProvider.jsx';
+import { useToast, friendlyError } from '../components/ToastProvider.jsx';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 
 const OTP_LENGTH = 6;
@@ -58,6 +59,8 @@ export default function AuthPage() {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const [verifySuccess, setVerifySuccess] = useState(false);
   const [visiblePasswords, setVisiblePasswords] = useState({
     password: false,
     confirmPassword: false,
@@ -198,7 +201,7 @@ export default function AuthPage() {
     try {
       await issueOtp();
     } catch (err) {
-      setError(err.message);
+      setError(friendlyError(err));
     } finally {
       setIsSendingOtp(false);
     }
@@ -247,9 +250,11 @@ export default function AuthPage() {
         // Optional profile refresh failed; token is already stored.
       }
       clearPendingOtp();
-      navigate('/profile', { replace: true });
+      setLoginSuccess(true);
+      showToast(t('auth.loginSuccessToast'), { type: 'success' });
+      window.setTimeout(() => navigate('/profile', { replace: true }), 900);
     } catch (err) {
-      setError(err.message);
+      setError(friendlyError(err));
     } finally {
       setIsLoggingIn(false);
     }
@@ -295,7 +300,7 @@ export default function AuthPage() {
         confirmNewPassword: ''
       }));
     } catch (err) {
-      setError(err.message);
+      setError(friendlyError(err));
     } finally {
       setIsResettingPassword(false);
     }
@@ -380,9 +385,11 @@ export default function AuthPage() {
       }
       clearPendingOtp();
 
-      navigate('/profile', { replace: true });
+      setVerifySuccess(true);
+      showToast(t('auth.loginSuccessToast'), { type: 'success' });
+      window.setTimeout(() => navigate('/profile', { replace: true }), 900);
     } catch (err) {
-      setError(err.message);
+      setError(friendlyError(err));
     } finally {
       setIsVerifyingOtp(false);
     }
@@ -397,7 +404,7 @@ export default function AuthPage() {
     try {
       await issueOtp();
     } catch (err) {
-      setError(err.message);
+      setError(friendlyError(err));
     } finally {
       setIsSendingOtp(false);
     }
@@ -448,8 +455,6 @@ export default function AuthPage() {
 
   return (
     <main className="auth-page min-h-screen overflow-x-hidden px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 lg:px-8">
-      {isLoggingIn ? <LoadingBlock label={t('loaders.signingIn')} /> : null}
-      {isVerifyingOtp ? <LoadingBlock label={t('auth.verifying')} /> : null}
       <div className="mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-lg items-center justify-center sm:min-h-[calc(100vh-2.5rem)]">
         <section className="relative w-full px-1 py-4 sm:px-2 sm:py-8">
           <div className="auth-card-shape auth-card-shape-one" aria-hidden />
@@ -604,11 +609,15 @@ export default function AuthPage() {
                     {error ? <p className="auth-error">{error}</p> : null}
                     {status ? <p className="auth-success">{status}</p> : null}
 
-                    <button className="auth-primary-btn w-full" type="submit" disabled={isLoggingIn}>
-                      {isLoggingIn ? <InlineLoader size={22} /> : null}
-                      {isLoggingIn ? t('auth.signingIn') : t('auth.signIn')}
-                      {!isLoggingIn ? <ArrowRight size={18} aria-hidden /> : null}
-                    </button>
+                    <StatefulButton
+                      className="auth-primary-btn w-full"
+                      type="submit"
+                      status={loginSuccess ? 'success' : isLoggingIn ? 'loading' : 'idle'}
+                      label={t('auth.signIn')}
+                      loadingLabel={t('auth.signingIn')}
+                      successLabel={t('auth.signInSuccess')}
+                      icon={<ArrowRight size={18} aria-hidden />}
+                    />
                   </form>
                 ) : (
                   <form className="mt-6 space-y-4" onSubmit={handleSendOtp}>
@@ -696,15 +705,14 @@ export default function AuthPage() {
                     {error ? <p className="auth-error">{error}</p> : null}
                     {status ? <p className="auth-success">{status}</p> : null}
 
-                    <button className="auth-primary-btn w-full" type="submit" disabled={isSendingOtp}>
-                      {isSendingOtp ? <InlineLoader size={22} /> : null}
-                      {isSendingOtp
-                        ? t('auth.sendingOtp')
-                        : flow === 'forgot'
-                          ? t('auth.sendResetCode')
-                          : t('auth.continueWithOtp')}
-                      {!isSendingOtp ? <ArrowRight size={18} aria-hidden /> : null}
-                    </button>
+                    <StatefulButton
+                      className="auth-primary-btn w-full"
+                      type="submit"
+                      status={isSendingOtp ? 'loading' : 'idle'}
+                      label={flow === 'forgot' ? t('auth.sendResetCode') : t('auth.continueWithOtp')}
+                      loadingLabel={t('auth.sendingOtp')}
+                      icon={<ArrowRight size={18} aria-hidden />}
+                    />
 
                     <p className="text-center text-sm text-[#6b806f]">
                       {flow === 'forgot'
@@ -789,15 +797,14 @@ export default function AuthPage() {
                   {error ? <p className="auth-error mt-4">{error}</p> : null}
                   {status ? <p className="auth-success mt-4">{status}</p> : null}
 
-                  <button
+                  <StatefulButton
                     className="auth-primary-btn mt-5 w-full"
                     type="submit"
-                    disabled={isResettingPassword}
-                  >
-                    {isResettingPassword ? <InlineLoader size={22} /> : null}
-                    {isResettingPassword ? t('auth.updating') : t('auth.updatePassword')}
-                    {!isResettingPassword ? <ChevronRight size={18} aria-hidden /> : null}
-                  </button>
+                    status={isResettingPassword ? 'loading' : 'idle'}
+                    label={t('auth.updatePassword')}
+                    loadingLabel={t('auth.updating')}
+                    icon={<ChevronRight size={18} aria-hidden />}
+                  />
 
                   <div className="mt-5 flex items-center justify-between gap-3 text-sm">
                     <button
@@ -856,10 +863,15 @@ export default function AuthPage() {
                   {error ? <p className="auth-error mt-4">{error}</p> : null}
                   {status ? <p className="auth-success mt-4">{status}</p> : null}
 
-                  <button className="auth-primary-btn mt-5 w-full" type="submit" disabled={isVerifyingOtp}>
-                    {isVerifyingOtp ? t('auth.verifying') : t('auth.verifyAndContinue')}
-                    {!isVerifyingOtp ? <ChevronRight size={18} aria-hidden /> : null}
-                  </button>
+                  <StatefulButton
+                    className="auth-primary-btn mt-5 w-full"
+                    type="submit"
+                    status={verifySuccess ? 'success' : isVerifyingOtp ? 'loading' : 'idle'}
+                    label={t('auth.verifyAndContinue')}
+                    loadingLabel={t('auth.verifying')}
+                    successLabel={t('auth.verifiedSuccess')}
+                    icon={<ChevronRight size={18} aria-hidden />}
+                  />
 
                   <div className="mt-5 flex items-center justify-between gap-3 text-sm">
                     <button

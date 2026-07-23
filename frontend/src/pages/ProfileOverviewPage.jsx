@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import OtpInboxHint from '../components/OtpInboxHint.jsx';
 import Alert from '../components/Alert.jsx';
-import { useToast } from '../components/ToastProvider.jsx';
+import { useToast, friendlyError } from '../components/ToastProvider.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
 import PersonTitleSelect from '../components/PersonTitleSelect.jsx';
 import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
@@ -329,7 +329,7 @@ export default function ProfileOverviewPage() {
 
       setLegacyError(t('profile.errors.notFound'));
     } catch (err) {
-      setLegacyError(err.message || t('profile.errors.searchFailed'));
+      setLegacyError(friendlyError(err, t('profile.errors.searchFailed')));
     } finally {
       setLegacyLoading(false);
     }
@@ -362,7 +362,7 @@ export default function ProfileOverviewPage() {
       setLastSearch(null);
       setClaimInfo(t('profile.claimSuccess'));
     } catch (err) {
-      setLegacyError(err.message || t('profile.errors.claimFailed'));
+      setLegacyError(friendlyError(err, t('profile.errors.claimFailed')));
     } finally {
       setClaimLoading(false);
     }
@@ -423,7 +423,7 @@ export default function ProfileOverviewPage() {
       setEditAddressOpen(false);
       setAddressMessage(t('profile.addressUpdated'));
     } catch (err) {
-      setAddressError(err.message || t('profile.errors.addressUpdateFailed'));
+      setAddressError(friendlyError(err, t('profile.errors.addressUpdateFailed')));
     } finally {
       setAddressSaving(false);
     }
@@ -440,7 +440,7 @@ export default function ProfileOverviewPage() {
       setEmailMessage(data.message);
       showToast(t('auth.otpSentToast'), { type: 'info' });
     } catch (err) {
-      setEmailError(err.message || t('profile.errors.emailChangeFailed'));
+      setEmailError(friendlyError(err, t('profile.errors.emailChangeFailed')));
     } finally {
       setEmailLoading(false);
     }
@@ -462,7 +462,7 @@ export default function ProfileOverviewPage() {
       showToast(t('profile.emailUpdated'), { type: 'success' });
       await refreshProfile();
     } catch (err) {
-      setEmailError(err.message || t('profile.errors.emailVerifyFailed'));
+      setEmailError(friendlyError(err, t('profile.errors.emailVerifyFailed')));
     } finally {
       setEmailLoading(false);
     }

@@ -16,6 +16,7 @@ import {
   saveBookOrderDraft
 } from '../utils/bookOrderDraft.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useToast, friendlyError } from '../components/ToastProvider.jsx';
 import { useSeo } from '../utils/seo.js';
 
 function formatInr(paise) {
@@ -77,6 +78,7 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
   });
 
   const { t } = useTranslation();
+  const toast = useToast();
   const navigate = useNavigate();
   const keyId = String(import.meta.env.VITE_RAZORPAY_KEY_ID || '').trim();
 
@@ -156,6 +158,7 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
             });
             clearBookOrderDraft();
             clearGuestBookToken(bookOrderId);
+            toast.success(t('success.paymentSuccessful'));
             navigate('/success', { state: { paymentVerified: true, bookOrder: true } });
           } catch (err) {
             navigate('/success', {
@@ -163,7 +166,7 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
                 paymentVerified: false,
                 verificationPending: true,
                 bookOrder: true,
-                verificationMessage: err?.message || t('payment.errors.verificationPending')
+                verificationMessage: friendlyError(err, t('payment.errors.verificationPending'))
               }
             });
           }
@@ -184,14 +187,17 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
           (typeof e?.reason === 'string' && e.reason) ||
           t('payment.errors.paymentFailed');
         setPaymentError(msg);
+        toast.error(msg);
       });
 
       rzp.open();
     } catch (err) {
       releaseCheckout();
-      setError(err.message || t('payment.errors.couldNotStartShort'));
+      const msg = friendlyError(err, t('payment.errors.couldNotStartShort'));
+      setError(msg);
+      toast.error(msg);
     }
-  }, [bookDraft, bookOrderId, bookName, busy, keyId, navigate, releaseCheckout, t]);
+  }, [bookDraft, bookOrderId, bookName, busy, keyId, navigate, releaseCheckout, t, toast]);
 
   const items = Array.isArray(orderItems) ? orderItems : [];
   const amountDisplay = formatInr(totalPaise);

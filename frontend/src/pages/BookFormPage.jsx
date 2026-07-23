@@ -22,6 +22,7 @@ import { createBookOrder, getBooks, getCurrentUser, getMyFormSubmission } from '
 import { getUserAuth, isUserAuthenticated } from '../utils/auth.js';
 import { clearGuestBookToken, saveGuestBookToken } from '../utils/guestBookAuth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useToast, friendlyError } from '../components/ToastProvider.jsx';
 import { useSeo } from '../utils/seo.js';
 import {
   draftFromBookOrder,
@@ -115,6 +116,7 @@ export default function BookFormPage() {
   });
 
   const { t } = useTranslation();
+  const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [books, setBooks] = useState([]);
@@ -424,7 +426,9 @@ export default function BookFormPage() {
         }
       });
     } catch (err) {
-      setErrors({ submit: err.message || t('books.errors.orderFailed') });
+      const message = friendlyError(err, t('books.errors.orderFailed'));
+      setErrors({ submit: message });
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

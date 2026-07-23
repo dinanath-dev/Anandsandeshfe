@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState, Fragment } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, Download, RefreshCcw } from 'lucide-react';
-import Alert from './Alert.jsx';
 import { LoadingBlock } from './Loader.jsx';
 import { downloadSettlementDayExcel, getSettlementRecon } from '../services/api.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useToast } from './ToastProvider.jsx';
 import { ACCOUNTS_PORTAL_SLUG } from '../utils/adminAuth.js';
 
 const ACCOUNTING_YEAR_START = 2020;
@@ -63,9 +63,9 @@ export default function AdminSettlementsPanel({
   onAuthError
 }) {
   const { t, language } = useTranslation();
+  const toast = useToast();
   const locale = language === 'hi' ? 'hi-IN' : 'en-IN';
 
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState(currentAccountingDefaults);
   const [summary, setSummary] = useState(null);
@@ -76,7 +76,7 @@ export default function AdminSettlementsPanel({
   const [exportingDay, setExportingDay] = useState(null);
 
   function handleError(err) {
-    setError(err.message);
+    // Parent (AdminPage / AccountsPage) surfaces a friendly error toast + session handling.
     onAuthError?.(err);
   }
 
@@ -84,7 +84,6 @@ export default function AdminSettlementsPanel({
     async (activeToken = token, activeFilters = filters) => {
       if (!activeToken) return;
       setIsLoading(true);
-      setError('');
       setExpandedDay(null);
       setDayDetail(null);
       setDaysPage(1);
@@ -118,7 +117,6 @@ export default function AdminSettlementsPanel({
 
     setExpandedDay(dateKey);
     setDayLoading(true);
-    setError('');
     try {
       const data = await getSettlementRecon(
         token,
@@ -140,13 +138,13 @@ export default function AdminSettlementsPanel({
     if (!day) return;
 
     setExportingDay(dateKey);
-    setError('');
     try {
       await downloadSettlementDayExcel(
         token,
         { year: filters.year, month: filters.month, day: String(day), dateKey },
         portalSlug
       );
+      toast.success(t('admin.toasts.downloadStarted'));
     } catch (err) {
       handleError(err);
     } finally {
@@ -318,12 +316,6 @@ export default function AdminSettlementsPanel({
     <>
       {isLoading || dayLoading ? (
         <LoadingBlock label={dayLoading ? t('accountsAdmin.loadingDay') : t('accountsAdmin.loading')} />
-      ) : null}
-
-      {error ? (
-        <div className="mb-4">
-          <Alert>{error}</Alert>
-        </div>
       ) : null}
 
       <div className="admin-report-filters mb-6">

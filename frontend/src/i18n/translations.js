@@ -15,6 +15,7 @@ export const translations = {
   en: {
     common: {
       logout: 'Log out',
+      loggedOut: 'You have been signed out.',
       backToProfile: 'Back to profile',
       changeEmail: 'Change email',
       resendOtp: 'Resend OTP',
@@ -86,6 +87,8 @@ export const translations = {
       forgotPassword: 'Forgot password?',
       signIn: 'Sign in',
       signingIn: 'Signing in...',
+      signInSuccess: 'Signed in!',
+      verifiedSuccess: 'Verified!',
       sendingOtp: 'Sending OTP...',
       sendResetCode: 'Send reset code',
       continueWithOtp: 'Continue with email OTP',
@@ -102,6 +105,7 @@ export const translations = {
       checkSpamTitle: "Can't see OTP",
       otpSentToast:
         'Verification code sent. If OTP is not available in inbox, please check spam folder also.',
+      loginSuccessToast: 'Welcome back! You are signed in.',
       chooseNewPassword: 'Then choose a new password below.',
       forgotHelp:
         'We will email a one-time code to set a new password. If OTP is not available in inbox, please check spam folder also.',
@@ -735,6 +739,16 @@ export const translations = {
       refresh: 'Refresh',
       refreshing: 'Refreshing...',
       exporting: 'Preparing download…',
+      toasts: {
+        loginSuccess: 'Signed in successfully.',
+        loggedOut: 'You have been signed out.',
+        saved: 'Changes saved.',
+        userUpdated: 'User updated successfully.',
+        downloadStarted: 'Your download is ready.',
+        subscriptionAdded: 'Subscription added successfully.',
+        bookOrderAdded: 'Book order added successfully.',
+        genericError: 'Something went wrong. Please try again.'
+      },
       pagination: {
         previous: 'Previous',
         next: 'Next',
@@ -951,6 +965,7 @@ export const translations = {
   hi: {
     common: {
       logout: 'लॉग आउट',
+      loggedOut: 'आप लॉग आउट हो गए हैं।',
       backToProfile: 'प्रोफ़ाइल पर वापस जाएँ',
       changeEmail: 'ईमेल बदलें',
       resendOtp: 'ओटीपी पुनः भेजें',
@@ -1022,6 +1037,8 @@ export const translations = {
       forgotPassword: 'पासवर्ड भूल गए?',
       signIn: 'साइन इन करें',
       signingIn: 'साइन इन हो रहा है...',
+      signInSuccess: 'साइन इन हो गया!',
+      verifiedSuccess: 'सत्यापित!',
       sendingOtp: 'ओटीपी भेजा जा रहा है...',
       sendResetCode: 'रीसेट कोड भेजें',
       continueWithOtp: 'ईमेल ओटीपी से जारी रखें',
@@ -1039,6 +1056,7 @@ export const translations = {
       checkSpamTitle: 'ओटीपी दिखाई नहीं दे रहा?',
       otpSentToast:
         'सत्यापन कोड भेज दिया गया है। यदि ओटीपी इनबॉक्स में उपलब्ध नहीं है, तो कृपया स्पैम फ़ोल्डर भी देखें।',
+      loginSuccessToast: 'वापसी पर स्वागत है! आप साइन इन हो गए हैं।',
       chooseNewPassword: 'फिर नीचे एक नया पासवर्ड चुनें।',
       forgotHelp:
         'हम नया पासवर्ड सेट करने के लिए ईमेल पर एक बार का कोड भेजेंगे। यदि ओटीपी इनबॉक्स में उपलब्ध नहीं है, तो कृपया स्पैम फ़ोल्डर भी देखें।',
@@ -1679,6 +1697,16 @@ export const translations = {
       refresh: 'रिफ़्रेश',
       refreshing: 'रिफ़्रेश हो रहा है...',
       exporting: 'डाउनलोड तैयार हो रहा है…',
+      toasts: {
+        loginSuccess: 'सफलतापूर्वक साइन इन हो गए।',
+        loggedOut: 'आप लॉग आउट हो गए हैं।',
+        saved: 'परिवर्तन सहेजे गए।',
+        userUpdated: 'उपयोगकर्ता सफलतापूर्वक अपडेट हुआ।',
+        downloadStarted: 'आपका डाउनलोड तैयार है।',
+        subscriptionAdded: 'सदस्यता सफलतापूर्वक जोड़ी गई।',
+        bookOrderAdded: 'पुस्तक ऑर्डर सफलतापूर्वक जोड़ा गया।',
+        genericError: 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।'
+      },
       pagination: {
         previous: 'पिछला',
         next: 'अगला',

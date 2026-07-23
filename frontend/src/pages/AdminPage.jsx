@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, Pencil, Plus, Users, Wallet } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, Pencil, Plus, UserRound, Users, Wallet } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import AdminAddSubscriptionModal from '../components/AdminAddSubscriptionModal.jsx';
 import AdminAddBookOrderModal from '../components/AdminAddBookOrderModal.jsx';
@@ -24,6 +24,7 @@ import {
 } from '../services/api.js';
 import { BOOK_PICKUP_COUNTERS } from '../constants/bookCounters.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
+import { useToast, friendlyError } from '../components/ToastProvider.jsx';
 import {
   ADMIN_PORTAL_SLUG,
   clearAdminSession,
@@ -380,6 +381,10 @@ function formatSalesRupees(paise) {
 
 function adminTabClass(isActive) {
   return isActive ? 'admin-report-tab admin-report-tab--active' : 'admin-report-tab admin-report-tab--inactive';
+}
+
+function adminSubTabClass(isActive) {
+  return isActive ? 'admin-subtab admin-subtab--active' : 'admin-subtab admin-subtab--inactive';
 }
 
 function BookSummaryFilters({ filters, onChange, onDownloadPdf, isLoading, isExporting, t, locale }) {
@@ -791,6 +796,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   });
 
   const { t, language } = useTranslation();
+  const toast = useToast();
   const locale = language === 'hi' ? 'hi-IN' : 'en-IN';
 
   const [token, setToken] = useState(() => getAdminToken(portalSlug));
@@ -857,7 +863,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
       : t('loaders.loadingSubmissions');
 
   function handleAuthError(err) {
-    setError(err.message);
+    toast.showError(err, { fallback: t('admin.toasts.genericError') });
     if (err.status === 401) {
       clearAdminSession(portalSlug);
       setToken('');
@@ -1022,8 +1028,9 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
       } else {
         await loadSubmissions(data.token);
       }
+      toast.success(t('admin.toasts.loginSuccess'));
     } catch (err) {
-      setError(err.message);
+      setError(friendlyError(err, t('admin.toasts.genericError')));
     }
   }
 
@@ -1031,6 +1038,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     clearAdminSession(portalSlug);
     setToken('');
     setRole('');
+    toast.info(t('admin.toasts.loggedOut'));
     setSubmissions([]);
     setSubscriptionSummary(null);
     setBookRows([]);
@@ -1047,6 +1055,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
       await updateAdminUser(token, editingUser.id, patch);
       setEditingUser(null);
       await loadUsers();
+      toast.success(t('admin.toasts.userUpdated'));
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -1136,6 +1145,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setIsExporting(true);
     try {
       await downloadSubmissionLabelsPdf(token, paymentFilters);
+      toast.success(t('admin.toasts.downloadStarted'));
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -1148,6 +1158,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setIsExporting(true);
     try {
       await downloadSubmissionsPdf(token, paymentFilters);
+      toast.success(t('admin.toasts.downloadStarted'));
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -1160,6 +1171,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setIsExporting(true);
     try {
       await downloadSubmissionsExcel(token, paymentFilters);
+      toast.success(t('admin.toasts.downloadStarted'));
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -1171,6 +1183,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setIsExporting(true);
     try {
       await downloadBookOrdersPdf(token, bookFilters, portalSlug);
+      toast.success(t('admin.toasts.downloadStarted'));
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -1183,6 +1196,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setIsExporting(true);
     try {
       await downloadBookOrdersExcel(token, bookFilters, portalSlug);
+      toast.success(t('admin.toasts.downloadStarted'));
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -1195,6 +1209,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setIsExporting(true);
     try {
       await downloadSubmissionsSummaryPdf(token, subscriptionSummaryFilters);
+      toast.success(t('admin.toasts.downloadStarted'));
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -1207,6 +1222,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
     setIsExporting(true);
     try {
       await downloadBookOrdersSummaryPdf(token, bookSummaryFilters, portalSlug);
+      toast.success(t('admin.toasts.downloadStarted'));
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -1296,6 +1312,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                 className={adminTabClass(activeTab === 'subscriptions')}
                 onClick={() => setActiveTab('subscriptions')}
               >
+                <UserRound size={16} strokeWidth={2.25} aria-hidden />
                 {t('admin.tabs.subscriptions')}
               </button>
             ) : null}
@@ -1305,26 +1322,27 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                 className={adminTabClass(activeTab === 'bookOrders')}
                 onClick={() => setActiveTab('bookOrders')}
               >
+                <BookOpen size={16} strokeWidth={2.25} aria-hidden />
                 {t('admin.tabs.bookOrders')}
               </button>
             ) : null}
             {showSettlementsTab ? (
               <button
                 type="button"
-                className={`inline-flex items-center gap-1 ${adminTabClass(activeTab === 'settlements')}`}
+                className={adminTabClass(activeTab === 'settlements')}
                 onClick={() => setActiveTab('settlements')}
               >
-                <Wallet size={15} />
+                <Wallet size={16} strokeWidth={2.25} aria-hidden />
                 {t('admin.tabs.settlements')}
               </button>
             ) : null}
             {showUsersTab ? (
               <button
                 type="button"
-                className={`inline-flex items-center gap-1 ${adminTabClass(activeTab === 'users')}`}
+                className={adminTabClass(activeTab === 'users')}
                 onClick={() => setActiveTab('users')}
               >
-                <Users size={15} />
+                <Users size={16} strokeWidth={2.25} aria-hidden />
                 {t('admin.tabs.users')}
               </button>
             ) : null}
@@ -1339,17 +1357,17 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
 
         {activeTab === 'subscriptions' && showSubscriptionsTab ? (
           <>
-            <div className="mb-4 flex flex-wrap gap-2">
+            <div className="admin-subtabs">
               <button
                 type="button"
-                className={adminTabClass(subscriptionSubTab === 'list')}
+                className={adminSubTabClass(subscriptionSubTab === 'list')}
                 onClick={() => setSubscriptionSubTab('list')}
               >
                 {t('admin.subscriptionsSummary.tabList')}
               </button>
               <button
                 type="button"
-                className={adminTabClass(subscriptionSubTab === 'summary')}
+                className={adminSubTabClass(subscriptionSubTab === 'summary')}
                 onClick={() => setSubscriptionSubTab('summary')}
               >
                 {t('admin.subscriptionsSummary.tabSummary')}
@@ -1530,17 +1548,17 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
 
         {activeTab === 'bookOrders' ? (
           <>
-            <div className="mb-4 flex flex-wrap gap-2">
+            <div className="admin-subtabs">
               <button
                 type="button"
-                className={adminTabClass(bookSubTab === 'orders')}
+                className={adminSubTabClass(bookSubTab === 'orders')}
                 onClick={() => setBookSubTab('orders')}
               >
                 {t('admin.booksSummary.tabOrders')}
               </button>
               <button
                 type="button"
-                className={adminTabClass(bookSubTab === 'summary')}
+                className={adminSubTabClass(bookSubTab === 'summary')}
                 onClick={() => setBookSubTab('summary')}
               >
                 {t('admin.booksSummary.tabSummary')}
@@ -1746,7 +1764,10 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
           token={token}
           portalSlug={portalSlug}
           onClose={() => setShowAddBookOrder(false)}
-          onCreated={() => loadBookOrders()}
+          onCreated={() => {
+            loadBookOrders();
+            toast.success(t('admin.toasts.bookOrderAdded'));
+          }}
         />
       ) : null}
 
@@ -1755,7 +1776,10 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
           open={showAddSubscription}
           token={token}
           onClose={() => setShowAddSubscription(false)}
-          onCreated={() => loadSubmissions()}
+          onCreated={() => {
+            loadSubmissions();
+            toast.success(t('admin.toasts.subscriptionAdded'));
+          }}
         />
       ) : null}
     </>
