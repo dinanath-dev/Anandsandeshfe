@@ -565,62 +565,67 @@ export const translations = {
       navAria: 'Landing page sections',
       menuOpen: 'Open menu',
       menuClose: 'Close menu',
-      navHow: 'How it works',
+      navHow: 'Offerings',
       navAbout: 'About',
       navFaq: 'FAQ',
       navContact: 'Contact',
       navLogin: 'Login',
       navProfile: 'My profile',
       heroEyebrow: 'Official portal — Shri Anandpur Dham',
-      heroTitle: 'Spiritual literature, delivered with care',
+      heroTitle: 'Spiritual satsang literature of Shri Paramhans Advait Mat',
       heroLead:
-        'Subscribe to Anand Sandesh magazine or buy books online from Anand Sandesh Karyalay — published by Shri Paramhans Advait Mat Publication Society.',
+        'Official online website of Anand Sandesh Karyalay, Shri Anandpur Dham — bringing spiritual satsang literature to readers worldwide, simply and organised.',
       heroBadge: 'Hindi & English editions',
-      benefit1: 'Monthly Anand Sandesh magazine subscription online',
-      benefit2: 'Buy spiritual books without creating an account',
-      benefit3: 'Secure payment and delivery across India',
+      benefit1: '(A) Book sales — buy published books and scriptures online',
+      benefit2: '(B) Monthly magazine subscription — Anand Sandesh',
+      benefit3: 'Pay from your mobile anywhere for books and subscription',
       ctaLogin: 'Login',
       ctaProfile: 'Go to profile',
       ctaBuyBooks: 'Buy books',
       ctaSubscribe: 'Subscribe to Anand Sandesh',
-      howHeading: 'How it works',
-      howLead: 'Three simple steps — magazine subscription or guest book order.',
+      howHeading: 'What you can do here',
+      howLead: 'Book sales and magazine subscription — pay securely online from your phone.',
       how: {
         step1: {
-          title: 'Choose your path',
-          body: 'Login to subscribe to the magazine, or open Buy books to order literature as a guest.'
+          title: 'Book sales',
+          body: 'Buy published books and scriptures of Shri Paramhans Advait Mat online through this official portal.'
         },
         step2: {
-          title: 'Share your details',
-          body: 'Enter contact and address (or pick a sales counter), then review your order summary.'
+          title: 'Magazine subscription',
+          body: 'Subscribe to the monthly Anand Sandesh magazine in Hindi or English — become a reader from anywhere.'
         },
         step3: {
-          title: 'Pay securely',
-          body: 'Complete payment online. Collect at counter or receive home delivery as selected.'
+          title: 'Pay from your mobile',
+          body: 'Complete subscription or book payment on your phone from anywhere, securely and easily.'
         }
       },
-      aboutHeading: 'About Anand Sandesh Karyalay',
+      aboutEyebrow: 'Anand Sandesh Karyalay, Shri Anandpur Dham — Post Shri Anandpur, Dist. Ashok Nagar (M.P.)',
+      aboutHeading: 'Spiritual satsang literature of Shri Paramhans Advait Mat',
       aboutBody:
-        'Anand Sandesh Karyalay at Shri Anandpur Dham publishes the beloved monthly Anand Sandesh magazine in Hindi and English, bringing satsang, devotion, and Indian spiritual philosophy to readers across India and abroad.',
+        'This official online website of Anand Sandesh Karyalay is dedicated to bringing the spiritual satsang literature of Shri Paramhans Advait Mat to readers worldwide in a simple, accessible and organised way.',
       aboutBody2:
-        'Alongside the magazine, the Publication Society offers books and literature on spirituality, meditation, and the teachings of Shri Paramhans Advait Mat — available for counter collection or home delivery.',
-      audienceHeading: 'Built for readers and seekers',
-      audienceLead: 'One official portal for magazine subscribers and book orders.',
+        'Through this digital platform, published books, scriptures and the Anand Sandesh monthly magazine are distributed and sold with ease. Pay from your mobile anywhere to subscribe or buy books.',
+      aboutPoint1: '(A) Book sales — buy published books and scriptures online.',
+      aboutPoint2: '(B) Subscription to monthly magazines — Anand Sandesh.',
+      aboutPoint3:
+        'Teachings of Shri Paramhans Dayal Ji Maharaj and other revered saints — for seekers’ inner growth.',
+      audienceHeading: '‘Anand Sandesh’ monthly magazine & Karyalay',
+      audienceLead: 'Magazine history, book literature, and the purpose of this satsang literature.',
       audience: {
         magazine: {
-          title: 'Magazine',
-          subtitle: 'Anand Sandesh monthly',
-          body: 'Yearly and multi-year subscriptions in Hindi and English, managed from your account.'
+          title: 'Anand Sandesh magazine',
+          subtitle: 'Inaugurated on Vaishakhi, 13 April 1953',
+          body: 'Started by Shri Tritiya Padshahi Ji Maharaj. Named “Anand Sandesh” by Shri Sadgurudev Ji — true masters’ self-knowledge gives real bliss. Now published in Hindi and English.'
         },
         books: {
-          title: 'Books',
-          subtitle: 'Guest checkout available',
-          body: 'Order spiritual titles for counter pickup or home delivery — no login required.'
+          title: 'Available literature',
+          subtitle: 'Teachings of the Mat’s saints',
+          body: 'A priceless collection of spiritual teachings, discourses and divine messages of Shri Paramhans Dayal Ji Maharaj and other revered saints — guidance for seekers and satsang followers.'
         },
         community: {
-          title: 'Community',
-          subtitle: 'From Shri Anandpur Dham',
-          body: 'Authentic literature from Shri Paramhans Advait Mat Publication Society for families and satsang.'
+          title: 'Purpose of this literature',
+          subtitle: 'Devotion, selfless service & values',
+          body: 'To give life spiritual direction through simple devotion and selfless service — mental peace, spiritual awakening, and values of non-violence, kindness, compassion, service, truth and mutual respect.'
         }
       },
       faqHeading: 'Frequently asked questions',
@@ -628,7 +633,7 @@ export const translations = {
       faq: {
         subscribe: {
           q: 'How do I subscribe to the magazine?',
-          a: 'Create an account (Login), complete your subscriber details on the form, and pay securely online for a yearly or multi-year Anand Sandesh subscription.'
+          a: 'Create an account (Login), complete your subscriber details on the form, and pay securely online for a yearly or multi-year Anand Sandesh subscription — from your mobile, anywhere.'
         },
         guestBooks: {
           q: 'Can I buy books without an account?',
@@ -638,13 +643,29 @@ export const translations = {
           q: 'What is counter sale vs home delivery?',
           a: 'Counter sale lets you collect books at a Publication Society sales counter after payment. Home delivery ships books to your postal address at the home-delivery rate.'
         },
+        history: {
+          q: 'When was the Anand Sandesh magazine started?',
+          a: 'The Anand Sandesh monthly magazine was inaugurated by Shri Tritiya Padshahi Ji Maharaj on Vaishakhi, 13 April 1953. Anand Sandesh Karyalay was then set up at Shri Anandpur Dham for publication, printing, and distribution.'
+        },
+        languages: {
+          q: 'In which languages is Anand Sandesh published?',
+          a: 'Anand Sandesh is published every month in both Hindi and English editions.'
+        },
+        literature: {
+          q: 'What kind of literature is available here?',
+          a: 'Spiritual teachings, discourses, and divine messages of Shri Paramhans Dayal Ji Maharaj and other revered saints of Shri Paramhans Advait Mat — books and the monthly magazine on devotion, satsang, and spiritual living.'
+        },
+        meaning: {
+          q: 'What does the name “Anand Sandesh” mean?',
+          a: 'Because the self-knowledge of true masters grants the soul real bliss (anand), Shri Sadgurudev Ji named the magazine “Anand Sandesh” — the Message of Bliss.'
+        },
         official: {
           q: 'Is this the official website?',
           a: 'Yes. anandsandeshkaryalay.online is the official online portal of Anand Sandesh Karyalay, Shri Anandpur Dham. Sites with a similar name are not affiliated with the Publication Society.'
         },
         location: {
           q: 'Where is Anand Sandesh Karyalay located?',
-          a: 'Anand Sandesh Karyalay, Shri Anandpur Dham, Post Office Shri Anandpur — 473331, Madhya Pradesh, India.'
+          a: 'Anand Sandesh Karyalay, Shri Anandpur Dham, Post Office Shri Anandpur — District Ashok Nagar (M.P.), 473331, India.'
         }
       },
       contactHeading: 'Contact & address',
@@ -704,7 +725,7 @@ export const translations = {
       addressLine1: 'Shri Anandpur Dham',
       addressLine2: 'Post Office Shri Anandpur',
       addressPin: '473331',
-      addressRegion: 'Madhya Pradesh, India',
+      addressRegion: 'District Ashok Nagar, Madhya Pradesh, India',
       contactNote:
         'For subscription enquiries, visit Anand Sandesh Karyalay at the address above or use this website to register and manage your subscription.',
       officialSiteHeading: 'Official website only',
@@ -1586,62 +1607,67 @@ export const translations = {
       navAria: 'मुखपृष्ठ अनुभाग',
       menuOpen: 'मेनू खोलें',
       menuClose: 'मेनू बंद करें',
-      navHow: 'कैसे काम करता है',
+      navHow: 'सेवाएँ',
       navAbout: 'परिचय',
       navFaq: 'प्रश्न',
       navContact: 'संपर्क',
       navLogin: 'लॉगिन',
       navProfile: 'मेरी प्रोफ़ाइल',
-      heroEyebrow: 'आधिकारिक पोर्टल — श्री आनंदपुर धाम',
-      heroTitle: 'आध्यात्मिक साहित्य, सावधानी से आपके पास',
+      heroEyebrow: 'आधिकारिक पोर्टल — श्री आनन्दपुर धाम',
+      heroTitle: 'श्री परमहंस अद्वैत मत का आध्यात्मिक सत्संग साहित्य',
       heroLead:
-        'आनंद संदेश कार्यालय से मासिक पत्रिका की ग्राहकी लें या ऑनलाइन पुस्तकें खरीदें — श्री परमहंस अद्वैत मत प्रकाशन सोसायटी द्वारा प्रकाशित।',
+        'आनन्द सन्देश कार्यालय, श्री आनन्दपुर धाम की आधिकारिक ऑनलाइन वेबसाइट — आध्यात्मिक सत्संग साहित्य को विश्वभर के पाठकों तक सरल एवं व्यवस्थित रूप से पहुँचाने हेतु।',
       heroBadge: 'हिन्दी और अंग्रेज़ी संस्करण',
-      benefit1: 'मासिक आनंद संदेश पत्रिका की ऑनलाइन ग्राहकी',
-      benefit2: 'बिना खाता बनाए आध्यात्मिक पुस्तकें खरीदें',
-      benefit3: 'सुरक्षित भुगतान और भारत में डिलीवरी',
+      benefit1: '(क) पुस्तक विक्रय — प्रकाशित पुस्तकें एवं ग्रंथ ऑनलाइन खरीदें',
+      benefit2: '(ख) मासिक पत्रिकाओं का सब्सक्रिप्शन — आनन्द सन्देश',
+      benefit3: 'मोबाइल से कहीं भी पुस्तकों और सब्सक्रिप्शन का भुगतान करें',
       ctaLogin: 'लॉगिन',
       ctaProfile: 'प्रोफ़ाइल पर जाएँ',
       ctaBuyBooks: 'पुस्तकें खरीदें',
       ctaSubscribe: 'आनंद संदेश की ग्राहकी लें',
-      howHeading: 'कैसे काम करता है',
-      howLead: 'तीन आसान चरण — पत्रिका ग्राहकी या अतिथि पुस्तक ऑर्डर।',
+      howHeading: 'यहाँ आप क्या कर सकते हैं',
+      howLead: 'पुस्तक विक्रय और पत्रिका सब्सक्रिप्शन — मोबाइल से सुरक्षित ऑनलाइन भुगतान।',
       how: {
         step1: {
-          title: 'अपना मार्ग चुनें',
-          body: 'पत्रिका के लिए लॉगिन करें, या अतिथि के रूप में पुस्तकें खरीदने के लिए Buy books खोलें।'
+          title: 'पुस्तक विक्रय',
+          body: 'श्री परमहंस अद्वैत मत की प्रकाशित पुस्तकें एवं ग्रंथ इस आधिकारिक पोर्टल से ऑनलाइन खरीदें।'
         },
         step2: {
-          title: 'अपना विवरण दें',
-          body: 'संपर्क और पता भरें (या बिक्री काउंटर चुनें), फिर ऑर्डर सारांश देखें।'
+          title: 'पत्रिका सब्सक्रिप्शन',
+          body: 'आनन्द सन्देश मासिक पत्रिका (हिंदी या अंग्रेज़ी) का सब्सक्रिप्शन लें — कहीं से भी ग्राहक बनें।'
         },
         step3: {
-          title: 'सुरक्षित भुगतान करें',
-          body: 'ऑनलाइन भुगतान पूरा करें। चयन के अनुसार काउंटर से लें या घर डिलीवरी पाएँ।'
+          title: 'मोबाइल से भुगतान',
+          body: 'सब्सक्रिप्शन या पुस्तक का भुगतान अपने मोबाइल से कहीं भी सुरक्षित और सहजता से करें।'
         }
       },
-      aboutHeading: 'आनंद संदेश कार्यालय के बारे में',
+      aboutEyebrow: 'आनन्द सन्देश कार्यालय, श्री आनन्दपुर धाम — पो. श्री आनन्दपुर, जिला अशोक नगर (म.प्र.)',
+      aboutHeading: 'श्री परमहंस अद्वैत मत का आध्यात्मिक सत्संग साहित्य',
       aboutBody:
-        'श्री आनंदपुर धाम स्थित आनंद संदेश कार्यालय हिन्दी और अंग्रेज़ी में प्रिय मासिक पत्रिका आनंद संदेश प्रकाशित करता है — भारत और विदेश के पाठकों तक सत्संग, भक्ति और भारतीय आध्यात्मिक दर्शन पहुँचाते हुए।',
+        'आनन्द सन्देश कार्यालय की यह आधिकारिक ऑनलाइन वेबसाइट श्री परमहंस अद्वैत मत के आध्यात्मिक सत्संग साहित्य को विश्वभर के पाठकों तक सरल, सुगम एवं व्यवस्थित रूप से पहुँचाने हेतु समर्पित है।',
       aboutBody2:
-        'पत्रिका के साथ प्रकाशन सोसायटी आध्यात्म, ध्यान और श्री परमहंस अद्वैत मत की शिक्षाओं पर पुस्तकें भी प्रदान करती है — काउंटर से लेने या घर डिलीवरी के लिए उपलब्ध।',
-      audienceHeading: 'पाठकों और साधकों के लिए',
-      audienceLead: 'पत्रिका ग्राहकी और पुस्तक ऑर्डर — एक आधिकारिक पोर्टल।',
+        'इस डिजिटल मंच के माध्यम से प्रकाशित पुस्तकों, ग्रंथों तथा ‘आनन्द सन्देश’ मासिक पत्रिका का वितरण एवं विक्रय अत्यंत सहजता से किया जाएगा। अब मोबाइल से कहीं भी भुगतान कर ग्राहक बनें या पुस्तकें खरीदें।',
+      aboutPoint1: '(क) पुस्तक विक्रय — प्रकाशित पुस्तकें एवं ग्रंथ ऑनलाइन।',
+      aboutPoint2: '(ख) मासिक पत्रिकाओं का सब्सक्रिप्शन — आनन्द सन्देश।',
+      aboutPoint3:
+        'श्री परमहंस दयाल जी महाराज एवं अन्य पूज्य संतों की शिक्षाएँ — साधकों की आत्मिक उन्नति हेतु।',
+      audienceHeading: '‘आनन्द सन्देश’ मासिक पत्रिका एवं कार्यालय',
+      audienceLead: 'पत्रिका का इतिहास, उपलब्ध साहित्य, और इस सत्संग साहित्य का उद्देश्य।',
       audience: {
         magazine: {
-          title: 'पत्रिका',
-          subtitle: 'मासिक आनंद संदेश',
-          body: 'हिन्दी और अंग्रेज़ी में वार्षिक व बहुवर्षीय ग्राहकी — अपने खाते से प्रबंधन।'
+          title: 'आनन्द सन्देश पत्रिका',
+          subtitle: 'वैशाखी, 13 अप्रैल 1953 को शुभारंभ',
+          body: 'श्री तृतीय पादशाही जी महाराज द्वारा आरंभ। श्री सद्गुरुदेव जी ने नाम ‘आनन्द सन्देश’ रखा — सद्गुरुओं का आत्मज्ञान ही सच्चा आनन्द देता है। अब हिंदी एवं अंग्रेज़ी में प्रकाशित।'
         },
         books: {
-          title: 'पुस्तकें',
-          subtitle: 'बिना लॉगिन भी',
-          body: 'काउंटर पिकअप या घर डिलीवरी के लिए आध्यात्मिक पुस्तकें ऑर्डर करें — खाता आवश्यक नहीं।'
+          title: 'उपलब्ध साहित्य',
+          subtitle: 'मत के संतों की शिक्षाएँ',
+          body: 'श्री परमहंस दयाल जी महाराज तथा अन्य पूज्य संत-महापुरुषों की आध्यात्मिक शिक्षाओं, उपदेशों एवं दिव्य संदेशों का अमूल्य संकलन — साधकों एवं सत्संगीजनों हेतु।'
         },
         community: {
-          title: 'समाज',
-          subtitle: 'श्री आनंदपुर धाम से',
-          body: 'परिवारों और सत्संग के लिए श्री परमहंस अद्वैत मत प्रकाशन सोसायटी का प्रामाणिक साहित्य।'
+          title: 'इस साहित्य का उद्देश्य',
+          subtitle: 'भक्ति, परमार्थ एवं मूल्य',
+          body: 'सरल भक्ति एवं परमार्थ से जीवन को आध्यात्मिक दिशा — मानसिक शांति, आत्मिक जागृति, तथा अहिंसा, दया, करुणा, सेवा, सत्य एवं परस्पर सम्मान के मूल्य।'
         }
       },
       faqHeading: 'अक्सर पूछे जाने वाले प्रश्न',
@@ -1649,7 +1675,7 @@ export const translations = {
       faq: {
         subscribe: {
           q: 'पत्रिका की ग्राहकी कैसे लूँ?',
-          a: 'खाता बनाएँ (लॉगिन), फ़ॉर्म पर अपना सदस्य विवरण भरें, और आनंद संदेश की वार्षिक या बहुवर्षीय ग्राहकी के लिए सुरक्षित ऑनलाइन भुगतान करें।'
+          a: 'खाता बनाएँ (लॉगिन), फ़ॉर्म पर अपना सदस्य विवरण भरें, और आनंद संदेश की वार्षिक या बहुवर्षीय ग्राहकी के लिए सुरक्षित ऑनलाइन भुगतान करें — मोबाइल से कहीं से भी।'
         },
         guestBooks: {
           q: 'क्या बिना खाते के पुस्तकें खरीद सकते हैं?',
@@ -1659,13 +1685,29 @@ export const translations = {
           q: 'काउंटर बिक्री और घर डिलीवरी में क्या अंतर है?',
           a: 'काउंटर बिक्री में भुगतान के बाद प्रकाशन सोसायटी के बिक्री काउंटर से पुस्तकें लें। घर डिलीवरी में पुस्तकें आपके डाक पते पर घर-पहुँच दर पर भेजी जाती हैं।'
         },
+        history: {
+          q: 'आनन्द सन्देश पत्रिका का शुभारंभ कब हुआ?',
+          a: '‘आनन्द सन्देश’ मासिक पत्रिका का शुभारंभ श्री तृतीय पादशाही जी महाराज द्वारा वैशाखी, 13 अप्रैल 1953 को किया गया। प्रकाशन, मुद्रण एवं वितरण हेतु श्री आनन्दपुर धाम में आनन्द सन्देश कार्यालय की स्थापना हुई।'
+        },
+        languages: {
+          q: 'आनन्द सन्देश किन भाषाओं में प्रकाशित होती है?',
+          a: 'आनन्द सन्देश प्रत्येक माह हिंदी एवं अंग्रेज़ी—दोनों संस्करणों में प्रकाशित होती है।'
+        },
+        literature: {
+          q: 'यहाँ किस प्रकार का साहित्य उपलब्ध है?',
+          a: 'यहाँ श्री परमहंस दयाल जी महाराज तथा श्री परमहंस अद्वैत मत के अन्य पूज्य संतों की आध्यात्मिक शिक्षाओं, उपदेशों एवं दिव्य संदेशों का साहित्य उपलब्ध है — भक्ति, सत्संग एवं आध्यात्मिक जीवन पर पुस्तकें तथा मासिक पत्रिका।'
+        },
+        meaning: {
+          q: '‘आनन्द सन्देश’ नाम का क्या अर्थ है?',
+          a: 'चूँकि सद्गुरु महापुरुषों का आत्मज्ञान ही जीव को सच्चा आनन्द प्रदान करता है, इसी भावना से श्री सद्गुरुदेव जी ने इस पत्रिका का नाम ‘आनन्द सन्देश’ रखा।'
+        },
         official: {
           q: 'क्या यह आधिकारिक वेबसाइट है?',
           a: 'हाँ। anandsandeshkaryalay.online आनंद संदेश कार्यालय, श्री आनंदपुर धाम का आधिकारिक ऑनलाइन पोर्टल है। समान नाम वाली अन्य साइटें प्रकाशन सोसायटी से संबद्ध नहीं हैं।'
         },
         location: {
           q: 'आनंद संदेश कार्यालय कहाँ है?',
-          a: 'आनंद संदेश कार्यालय, श्री आनंदपुर धाम, पोस्ट ऑफिस श्री आनंदपुर — 473331, मध्य प्रदेश, भारत।'
+          a: 'आनन्द सन्देश कार्यालय, श्री आनन्दपुर धाम, पो. श्री आनन्दपुर — जिला अशोक नगर (म.प्र.), 473331, भारत।'
         }
       },
       contactHeading: 'संपर्क और पता',
@@ -1725,7 +1767,7 @@ export const translations = {
       addressLine1: 'श्री आनंदपुर धाम',
       addressLine2: 'पोस्ट ऑफिस श्री आनंदपुर',
       addressPin: '473331',
-      addressRegion: 'मध्य प्रदेश, भारत',
+      addressRegion: 'जिला अशोक नगर, मध्य प्रदेश, भारत',
       contactNote:
         'ग्राहकी संबंधी पूछताछ के लिए उपरोक्त पते पर आनंद संदेश कार्यालय पर आएँ या इस वेबसाइट पर पंजीकरण और ग्राहकी प्रबंधन करें।',
       officialSiteHeading: 'केवल आधिकारिक वेबसाइट',

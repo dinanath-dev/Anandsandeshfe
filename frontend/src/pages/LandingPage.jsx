@@ -5,10 +5,8 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
-  LogIn,
   Menu,
   Newspaper,
-  Package,
   Sparkles,
   Users,
   X
@@ -19,11 +17,21 @@ import { isUserAuthenticated } from '../utils/auth.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useSeo } from '../utils/seo.js';
 
-const FAQ_KEYS = ['subscribe', 'guestBooks', 'fulfillment', 'official', 'location'];
+const FAQ_KEYS = [
+  'subscribe',
+  'guestBooks',
+  'fulfillment',
+  'history',
+  'languages',
+  'literature',
+  'meaning',
+  'official',
+  'location'
+];
 const HERO_BENEFITS = ['benefit1', 'benefit2', 'benefit3'];
 const HOW_STEPS = [
-  { key: 'step1', Icon: LogIn },
-  { key: 'step2', Icon: Package },
+  { key: 'step1', Icon: BookOpen },
+  { key: 'step2', Icon: Newspaper },
   { key: 'step3', Icon: Sparkles }
 ];
 const AUDIENCE_CARDS = [
@@ -227,16 +235,16 @@ export default function LandingPage() {
               />
             </div>
             <div className="landing-split__content">
-              <p className="landing-kicker">{t('about.eyebrow')}</p>
+              <p className="landing-kicker">{t('landing.aboutEyebrow')}</p>
               <h2 id="landing-about-heading" className="landing-section__title">
                 {t('landing.aboutHeading')}
               </h2>
               <p className="landing-section__body">{t('landing.aboutBody')}</p>
               <p className="landing-section__body">{t('landing.aboutBody2')}</p>
               <ul className="landing-split__points">
-                <li>{t('about.magazinePoint1')}</li>
-                <li>{t('about.magazinePoint2')}</li>
-                <li>{t('about.magazinePoint3')}</li>
+                <li>{t('landing.aboutPoint1')}</li>
+                <li>{t('landing.aboutPoint2')}</li>
+                <li>{t('landing.aboutPoint3')}</li>
               </ul>
               <Link to="/about" className="landing-text-link">
                 {t('about.footerLink')} →
