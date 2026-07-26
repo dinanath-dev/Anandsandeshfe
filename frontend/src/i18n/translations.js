@@ -574,11 +574,13 @@ export const translations = {
       heroEyebrow: 'Official portal — Shri Anandpur Dham',
       heroTitle: 'Spiritual satsang literature of Shri Paramhans Advait Mat',
       heroLead:
-        'Official online website of Anand Sandesh Karyalay, Shri Anandpur Dham — bringing spiritual satsang literature to readers worldwide, simply and organised.',
+        'This official online website of Anand Sandesh Karyalay is dedicated to bringing the spiritual satsang literature of Shri Paramhans Advait Mat to readers worldwide in a simple, accessible and organised way.',
       heroBadge: 'Hindi & English editions',
-      benefit1: '(A) Book sales — buy published books and scriptures online',
-      benefit2: '(B) Monthly magazine subscription — Anand Sandesh',
-      benefit3: 'Pay from your mobile anywhere for books and subscription',
+      benefit1:
+        'Through this digital platform, published books, scriptures and the Anand Sandesh monthly magazine will be distributed and sold with great ease',
+      benefit2:
+        'Pay for your Anand Sandesh magazine subscription from your mobile, anywhere, and become a subscriber',
+      benefit3: 'Similarly, pay from your mobile to buy other books as well',
       ctaLogin: 'Login',
       ctaProfile: 'Go to profile',
       ctaBuyBooks: 'Buy books',
@@ -600,32 +602,34 @@ export const translations = {
         }
       },
       aboutEyebrow: 'Anand Sandesh Karyalay, Shri Anandpur Dham — Post Shri Anandpur, Dist. Ashok Nagar (M.P.)',
-      aboutHeading: 'Spiritual satsang literature of Shri Paramhans Advait Mat',
+      aboutHeading: '‘Anand Sandesh’ monthly magazine & Anand Sandesh Karyalay',
       aboutBody:
-        'This official online website of Anand Sandesh Karyalay is dedicated to bringing the spiritual satsang literature of Shri Paramhans Advait Mat to readers worldwide in a simple, accessible and organised way.',
+        'The monthly magazine ‘Anand Sandesh’ was inaugurated by Shri Tritiya Padshahi Ji Maharaj of Shri Paramhans Advait Mat on the sacred occasion of Vaishakhi, 13 April 1953. Indeed, it is the self-knowledge of true masters that grants real bliss to the soul—with this feeling, Shri Sadgurudev Ji named the magazine ‘Anand Sandesh’. Through its articles, it truly imparts self-knowledge and brings joy to readers.',
       aboutBody2:
-        'Through this digital platform, published books, scriptures and the Anand Sandesh monthly magazine are distributed and sold with ease. Pay from your mobile anywhere to subscribe or buy books.',
-      aboutPoint1: '(A) Book sales — buy published books and scriptures online.',
-      aboutPoint2: '(B) Subscription to monthly magazines — Anand Sandesh.',
-      aboutPoint3:
-        'Teachings of Shri Paramhans Dayal Ji Maharaj and other revered saints — for seekers’ inner growth.',
+        'Along with the magazine, printing of satsang books also began. To carry out all work of publication, printing and distribution smoothly, ‘Anand Sandesh Karyalay’ was established at Shri Anandpur Dham at that time. Since then, this magazine has been published continuously from this office and has remained a beacon of spiritual consciousness.',
+      aboutBody3:
+        'Presently, this magazine is published in both Hindi and English. Presenting the teachings of self-realized masters in the form of simple devotion and selfless service, this magazine has become a powerful medium for uplifting the lives of countless readers and seekers in India and abroad.',
+      aboutBody4:
+        'The literature available here includes a priceless collection of spiritual teachings, discourses and divine messages given by Shri Paramhans Dayal Ji Maharaj, the great founder of Shri Paramhans Advait Mat, and other revered saints of the Mat. These books and magazines published on various subjects provide reliable guidance for the spiritual progress of seekers, inquirers and satsang followers.',
+      aboutBody5:
+        'The fundamental purpose of this literature is to give human life a spiritual direction through the self-knowledge of saints and true masters, by way of simple devotion and selfless service. Illuminated by sacred texts and the words of saints, these teachings bring seekers mental peace, spiritual awakening, and an understanding of the true purpose of life. They also offer inspiring exposition of values that support the development of humanity—non-violence, kindness, compassion, service, truth, good sense, sweet conduct, mutual respect—and help in building an ideal and balanced life.',
       audienceHeading: '‘Anand Sandesh’ monthly magazine & Karyalay',
       audienceLead: 'Magazine history, book literature, and the purpose of this satsang literature.',
       audience: {
         magazine: {
           title: 'Anand Sandesh magazine',
           subtitle: 'Inaugurated on Vaishakhi, 13 April 1953',
-          body: 'Started by Shri Tritiya Padshahi Ji Maharaj. Named “Anand Sandesh” by Shri Sadgurudev Ji — true masters’ self-knowledge gives real bliss. Now published in Hindi and English.'
+          body: 'Started by Shri Tritiya Padshahi Ji Maharaj of Shri Paramhans Advait Mat. Named “Anand Sandesh” by Shri Sadgurudev Ji — true masters’ self-knowledge gives real bliss. Through its articles it imparts self-knowledge and joy. Now published in Hindi and English.'
         },
         books: {
           title: 'Available literature',
           subtitle: 'Teachings of the Mat’s saints',
-          body: 'A priceless collection of spiritual teachings, discourses and divine messages of Shri Paramhans Dayal Ji Maharaj and other revered saints — guidance for seekers and satsang followers.'
+          body: 'A priceless collection of spiritual teachings, discourses and divine messages of Shri Paramhans Dayal Ji Maharaj and other revered saints — reliable guidance for the spiritual progress of seekers, inquirers and satsang followers.'
         },
         community: {
           title: 'Purpose of this literature',
           subtitle: 'Devotion, selfless service & values',
-          body: 'To give life spiritual direction through simple devotion and selfless service — mental peace, spiritual awakening, and values of non-violence, kindness, compassion, service, truth and mutual respect.'
+          body: 'To give life spiritual direction through simple devotion and selfless service — mental peace, spiritual awakening, and values of non-violence, kindness, compassion, service, truth, mutual respect and humanity.'
         }
       },
       faqHeading: 'Frequently asked questions',
@@ -1619,11 +1623,13 @@ export const translations = {
       heroEyebrow: 'आधिकारिक पोर्टल — श्री आनन्दपुर धाम',
       heroTitle: 'श्री परमहंस अद्वैत मत का आध्यात्मिक सत्संग साहित्य',
       heroLead:
-        'आनन्द सन्देश कार्यालय, श्री आनन्दपुर धाम की आधिकारिक ऑनलाइन वेबसाइट — आध्यात्मिक सत्संग साहित्य को विश्वभर के पाठकों तक सरल एवं व्यवस्थित रूप से पहुँचाने हेतु।',
+        'आनन्द सन्देश कार्यालय की यह आधिकारिक ऑनलाइन वेबसाइट श्री परमहंस अद्वैत मत के आध्यात्मिक सत्संग साहित्य को विश्वभर के पाठकों तक सरल, सुगम एवं व्यवस्थित रूप से पहुँचाने हेतु समर्पित है।',
       heroBadge: 'हिन्दी और अंग्रेज़ी संस्करण',
-      benefit1: '(क) पुस्तक विक्रय — प्रकाशित पुस्तकें एवं ग्रंथ ऑनलाइन खरीदें',
-      benefit2: '(ख) मासिक पत्रिकाओं का सब्सक्रिप्शन — आनन्द सन्देश',
-      benefit3: 'मोबाइल से कहीं भी पुस्तकों और सब्सक्रिप्शन का भुगतान करें',
+      benefit1:
+        'इस डिजिटल मंच के माध्यम से प्रकाशित पुस्तकों, ग्रंथों तथा ‘आनन्द सन्देश’ मासिक पत्रिका का वितरण एवं विक्रय अत्यंत सहजता से किया जाएगा',
+      benefit2:
+        'अब इसके सब्सक्रिप्शन की पेमेंट आप अपने मोबाइल द्वारा कहीं से भी करके आनन्द सन्देश मासिक पत्रिका का ग्राहक बन सकते हैं',
+      benefit3: 'इसी प्रकार अन्य पुस्तकें खरीदने के लिए भी अपने मोबाइल से पेमेंट कर सकते हैं',
       ctaLogin: 'लॉगिन',
       ctaProfile: 'प्रोफ़ाइल पर जाएँ',
       ctaBuyBooks: 'पुस्तकें खरीदें',
@@ -1645,32 +1651,34 @@ export const translations = {
         }
       },
       aboutEyebrow: 'आनन्द सन्देश कार्यालय, श्री आनन्दपुर धाम — पो. श्री आनन्दपुर, जिला अशोक नगर (म.प्र.)',
-      aboutHeading: 'श्री परमहंस अद्वैत मत का आध्यात्मिक सत्संग साहित्य',
+      aboutHeading: '‘आनन्द सन्देश’ मासिक पत्रिका एवं आनन्द सन्देश कार्यालय',
       aboutBody:
-        'आनन्द सन्देश कार्यालय की यह आधिकारिक ऑनलाइन वेबसाइट श्री परमहंस अद्वैत मत के आध्यात्मिक सत्संग साहित्य को विश्वभर के पाठकों तक सरल, सुगम एवं व्यवस्थित रूप से पहुँचाने हेतु समर्पित है।',
+        '‘आनन्द सन्देश’ मासिक पत्रिका का शुभारंभ श्री परमहंस अद्वैत मत के श्री तृतीय पादशाही जी महाराज द्वारा 13 अप्रैल 1953, वैशाखी के पावन पर्व पर किया गया। वस्तुतः सद्गुरु महापुरुषों का आत्मज्ञान ही जीव को सच्चा आनन्द प्रदान करता है—इसी भावना से श्री सद्गुरुदेव जी ने इस पत्रिका का नाम ‘आनन्द सन्देश’ रखा। जोकि वास्तव में अपने लेखों के द्वारा आत्मज्ञान देकर पाठकों को आनन्द प्रदान कर रही है।',
       aboutBody2:
-        'इस डिजिटल मंच के माध्यम से प्रकाशित पुस्तकों, ग्रंथों तथा ‘आनन्द सन्देश’ मासिक पत्रिका का वितरण एवं विक्रय अत्यंत सहजता से किया जाएगा। अब मोबाइल से कहीं भी भुगतान कर ग्राहक बनें या पुस्तकें खरीदें।',
-      aboutPoint1: '(क) पुस्तक विक्रय — प्रकाशित पुस्तकें एवं ग्रंथ ऑनलाइन।',
-      aboutPoint2: '(ख) मासिक पत्रिकाओं का सब्सक्रिप्शन — आनन्द सन्देश।',
-      aboutPoint3:
-        'श्री परमहंस दयाल जी महाराज एवं अन्य पूज्य संतों की शिक्षाएँ — साधकों की आत्मिक उन्नति हेतु।',
+        'पत्रिका के साथ ही सत्संग-पुस्तकों का मुद्रण भी आरंभ हुआ। प्रकाशन, मुद्रण एवं वितरण के समस्त कार्यों को सुचारु रूप से संचालित करने के लिए तभी श्री आनन्दपुर धाम में ‘आनन्द सन्देश कार्यालय’ की स्थापना की गई। तब से यह पत्रिका निरंतर इसी कार्यालय से प्रकाशित होती आ रही है और आध्यात्मिक चेतना का प्रकाश-स्तंभ बनी हुई है।',
+      aboutBody3:
+        'वर्तमान में यह पत्रिका हिंदी एवं अंग्रेज़ी—दोनों भाषाओं में प्रकाशित होती है। आत्मज्ञानी सद्गुरुओं के उपदेशों को सुगम भक्ति और परमार्थ के रूप में प्रस्तुत करने वाली यह पत्रिका देश-विदेश के असंख्य पाठकों एवं साधकों के जीवन को उन्नत बनाने का सशक्त माध्यम बनी हुई है।',
+      aboutBody4:
+        'यहाँ उपलब्ध साहित्य में श्री परमहंस अद्वैत मत के महान प्रवर्तक श्री परमहंस दयाल जी महाराज तथा मत के अन्य पूज्य संत-महापुरुषों द्वारा प्रदत्त आध्यात्मिक शिक्षाओं, उपदेशों एवं दिव्य संदेशों का अमूल्य संकलन सम्मिलित है। विभिन्न विषयों पर प्रकाशित ये पुस्तकें एवं पत्रिकाएँ साधकों, जिज्ञासुओं एवं सत्संगीजनों के लिए आत्मिक उन्नति का विश्वसनीय मार्गदर्शन प्रदान करती हैं।',
+      aboutBody5:
+        'इस साहित्य का मूल उद्देश्य संत-सद्गुरुओं के आत्मज्ञान को सरल भक्ति एवं परमार्थ के माध्यम से मानव जीवन को आध्यात्मिक दिशा प्रदान करना है। सद्ग्रंथों एवं संतवाणी के आलोक में प्रस्तुत ये शिक्षाएँ साधकों को मानसिक शांति, आत्मिक जागृति तथा जीवन के वास्तविक उद्देश्य का बोध कराती हैं। साथ ही, इनमें अहिंसा, दया, करुणा, सेवा, सत्य, सुमति, मधुर व्यवहार, परस्पर सम्मान तथा मानवता के विकास में सहायक सर्वकल्याणकारी मूल्यों का प्रेरणादायी विवेचन किया गया है, जो एक आदर्श एवं संतुलित जीवन-निर्माण में सहायक हैं।',
       audienceHeading: '‘आनन्द सन्देश’ मासिक पत्रिका एवं कार्यालय',
       audienceLead: 'पत्रिका का इतिहास, उपलब्ध साहित्य, और इस सत्संग साहित्य का उद्देश्य।',
       audience: {
         magazine: {
           title: 'आनन्द सन्देश पत्रिका',
           subtitle: 'वैशाखी, 13 अप्रैल 1953 को शुभारंभ',
-          body: 'श्री तृतीय पादशाही जी महाराज द्वारा आरंभ। श्री सद्गुरुदेव जी ने नाम ‘आनन्द सन्देश’ रखा — सद्गुरुओं का आत्मज्ञान ही सच्चा आनन्द देता है। अब हिंदी एवं अंग्रेज़ी में प्रकाशित।'
+          body: 'श्री तृतीय पादशाही जी महाराज द्वारा आरंभ। श्री सद्गुरुदेव जी ने नाम ‘आनन्द सन्देश’ रखा — सद्गुरुओं का आत्मज्ञान ही सच्चा आनन्द देता है। लेखों द्वारा आत्मज्ञान देकर पाठकों को आनन्द प्रदान करती है। अब हिंदी एवं अंग्रेज़ी में प्रकाशित।'
         },
         books: {
           title: 'उपलब्ध साहित्य',
           subtitle: 'मत के संतों की शिक्षाएँ',
-          body: 'श्री परमहंस दयाल जी महाराज तथा अन्य पूज्य संत-महापुरुषों की आध्यात्मिक शिक्षाओं, उपदेशों एवं दिव्य संदेशों का अमूल्य संकलन — साधकों एवं सत्संगीजनों हेतु।'
+          body: 'श्री परमहंस दयाल जी महाराज तथा अन्य पूज्य संत-महापुरुषों की आध्यात्मिक शिक्षाओं, उपदेशों एवं दिव्य संदेशों का अमूल्य संकलन — साधकों, जिज्ञासुओं एवं सत्संगीजनों हेतु आत्मिक उन्नति का विश्वसनीय मार्गदर्शन।'
         },
         community: {
           title: 'इस साहित्य का उद्देश्य',
           subtitle: 'भक्ति, परमार्थ एवं मूल्य',
-          body: 'सरल भक्ति एवं परमार्थ से जीवन को आध्यात्मिक दिशा — मानसिक शांति, आत्मिक जागृति, तथा अहिंसा, दया, करुणा, सेवा, सत्य एवं परस्पर सम्मान के मूल्य।'
+          body: 'सरल भक्ति एवं परमार्थ से जीवन को आध्यात्मिक दिशा — मानसिक शांति, आत्मिक जागृति, तथा अहिंसा, दया, करुणा, सेवा, सत्य, परस्पर सम्मान एवं मानवता के मूल्य।'
         }
       },
       faqHeading: 'अक्सर पूछे जाने वाले प्रश्न',

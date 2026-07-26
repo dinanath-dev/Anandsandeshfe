@@ -1004,6 +1004,8 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
           {
             status: filters.status || undefined,
             search: filters.search || undefined,
+            fulfillment_mode: filters.fulfillment_mode || undefined,
+            counter: filters.counter,
             month: filters.month,
             year: filters.year,
             page,

@@ -29,6 +29,7 @@ const FAQ_KEYS = [
   'location'
 ];
 const HERO_BENEFITS = ['benefit1', 'benefit2', 'benefit3'];
+const ABOUT_BODIES = ['aboutBody', 'aboutBody2', 'aboutBody3', 'aboutBody4', 'aboutBody5'];
 const HOW_STEPS = [
   { key: 'step1', Icon: BookOpen },
   { key: 'step2', Icon: Newspaper },
@@ -239,13 +240,11 @@ export default function LandingPage() {
               <h2 id="landing-about-heading" className="landing-section__title">
                 {t('landing.aboutHeading')}
               </h2>
-              <p className="landing-section__body">{t('landing.aboutBody')}</p>
-              <p className="landing-section__body">{t('landing.aboutBody2')}</p>
-              <ul className="landing-split__points">
-                <li>{t('landing.aboutPoint1')}</li>
-                <li>{t('landing.aboutPoint2')}</li>
-                <li>{t('landing.aboutPoint3')}</li>
-              </ul>
+              {ABOUT_BODIES.map((key) => (
+                <p key={key} className="landing-section__body">
+                  {t(`landing.${key}`)}
+                </p>
+              ))}
               <Link to="/about" className="landing-text-link">
                 {t('about.footerLink')} →
               </Link>
