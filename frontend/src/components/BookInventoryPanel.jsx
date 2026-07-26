@@ -402,9 +402,9 @@ export default function BookInventoryPanel({ token, portalSlug, t, locale, toast
     <>
       {isLoading ? <LoadingBlock label={t('admin.inventory.loading')} /> : null}
 
-      <div className="admin-inventory-toolbar">
-        <div className="admin-inventory-toolbar__grid">
-          <label className="admin-inventory-field admin-inventory-field--counter">
+      <div className="admin-filterbar">
+        <div className="admin-filterbar__grid admin-filterbar__grid--four">
+          <label className="admin-filterbar__field">
             <span className="admin-report-label">{t('admin.inventory.counter')}</span>
             <select
               className="input"
@@ -420,12 +420,12 @@ export default function BookInventoryPanel({ token, portalSlug, t, locale, toast
             </select>
           </label>
 
-          <label className="admin-inventory-field admin-inventory-field--search">
+          <label className="admin-filterbar__field">
             <span className="admin-report-label">{t('admin.inventory.search')}</span>
-            <div className="admin-inventory-search">
-              <Search size={16} aria-hidden className="admin-inventory-search__icon" />
+            <div className="admin-filterbar__search">
+              <Search size={16} aria-hidden className="admin-filterbar__search-icon" />
               <input
-                className="input admin-inventory-search__input"
+                className="input admin-filterbar__search-input"
                 value={filters.search}
                 placeholder={t('admin.inventory.searchPlaceholder')}
                 onChange={(e) => updateFilter('search', e.target.value)}
@@ -433,7 +433,7 @@ export default function BookInventoryPanel({ token, portalSlug, t, locale, toast
             </div>
           </label>
 
-          <div className="admin-inventory-field admin-inventory-field--toggle">
+          <div className="admin-filterbar__field">
             <span className="admin-report-label">{t('admin.inventory.lowStockFilter')}</span>
             <button
               type="button"
@@ -449,12 +449,12 @@ export default function BookInventoryPanel({ token, portalSlug, t, locale, toast
             </button>
           </div>
 
-          <div className="admin-inventory-field admin-inventory-field--action">
-            <span className="admin-report-label admin-inventory-field__spacer" aria-hidden>
+          <div className="admin-filterbar__field">
+            <span className="admin-report-label admin-filterbar__spacer" aria-hidden>
               &nbsp;
             </span>
             <button
-              className="admin-report-btn-secondary admin-inventory-refresh"
+              className="admin-report-btn-secondary admin-filterbar__btn"
               type="button"
               onClick={() => load(filters)}
               disabled={isLoading}
@@ -465,7 +465,7 @@ export default function BookInventoryPanel({ token, portalSlug, t, locale, toast
           </div>
         </div>
 
-        <p className="admin-inventory-hint">
+        <p className="admin-filterbar__hint">
           {singleCounter ? t('admin.inventory.addHint') : t('admin.inventory.overviewHint')}
         </p>
       </div>

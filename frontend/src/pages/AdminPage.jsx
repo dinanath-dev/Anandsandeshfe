@@ -326,9 +326,11 @@ function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDow
   const showCounterFilter = filters.fulfillment_mode !== 'home_delivery';
 
   return (
-    <div className="admin-toolbar">
-      <div className={`admin-toolbar__grid ${showCounterFilter ? 'admin-toolbar__grid--orders' : 'admin-toolbar__grid--orders-compact'}`}>
-        <label className="admin-toolbar__field">
+    <div className="admin-filterbar">
+      <div
+        className={`admin-filterbar__grid ${showCounterFilter ? 'admin-filterbar__grid--six' : 'admin-filterbar__grid--five'}`}
+      >
+        <label className="admin-filterbar__field">
           <span className="admin-report-label">{t('admin.filters.status')}</span>
           <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
             <option value="verified">{t('admin.filterVerified')}</option>
@@ -337,7 +339,7 @@ function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDow
             <option value="failed">{t('admin.filterFailed')}</option>
           </select>
         </label>
-        <label className="admin-toolbar__field">
+        <label className="admin-filterbar__field">
           <span className="admin-report-label">{t('admin.filters.fulfillment')}</span>
           <select
             className="input"
@@ -350,7 +352,7 @@ function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDow
           </select>
         </label>
         {showCounterFilter ? (
-          <label className="admin-toolbar__field">
+          <label className="admin-filterbar__field">
             <span className="admin-report-label">{t('admin.booksSummary.counter')}</span>
             <select className="input" value={filters.counter} onChange={(e) => onChange('counter', e.target.value)}>
               <option value="all">{t('admin.booksSummary.allCounters')}</option>
@@ -362,19 +364,19 @@ function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDow
             </select>
           </label>
         ) : null}
-        <label className="admin-toolbar__field admin-toolbar__field--search">
+        <label className="admin-filterbar__field">
           <span className="admin-report-label">{t('admin.filters.search')}</span>
-          <div className="admin-toolbar__search">
-            <Search size={16} aria-hidden className="admin-toolbar__search-icon" />
+          <div className="admin-filterbar__search">
+            <Search size={16} aria-hidden className="admin-filterbar__search-icon" />
             <input
-              className="input admin-toolbar__search-input"
+              className="input admin-filterbar__search-input"
               value={filters.search}
               onChange={(e) => onChange('search', e.target.value)}
               placeholder={t('admin.filters.searchPlaceholder')}
             />
           </div>
         </label>
-        <label className="admin-toolbar__field">
+        <label className="admin-filterbar__field">
           <span className="admin-report-label">{t('admin.filters.accountingYear')}</span>
           <select className="input" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -385,7 +387,7 @@ function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDow
             ))}
           </select>
         </label>
-        <label className="admin-toolbar__field">
+        <label className="admin-filterbar__field">
           <span className="admin-report-label">{t('admin.filters.accountingMonth')}</span>
           <select className="input" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -398,9 +400,9 @@ function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDow
         </label>
       </div>
 
-      <div className="admin-toolbar__actions">
+      <div className="admin-filterbar__actions">
         <button
-          className="admin-report-btn-primary admin-toolbar__btn"
+          className="admin-report-btn-primary admin-filterbar__btn"
           type="button"
           onClick={onAddManual}
           disabled={isLoading}
@@ -408,9 +410,9 @@ function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDow
           <Plus size={16} aria-hidden />
           {t('admin.manualBookOrder.addButton')}
         </button>
-        <div className="admin-toolbar__actions-secondary">
+        <div className="admin-filterbar__actions-secondary">
           <button
-            className="admin-report-btn-secondary admin-toolbar__btn"
+            className="admin-report-btn-secondary admin-filterbar__btn"
             type="button"
             onClick={onDownloadPdf}
             disabled={isLoading || isExporting}
@@ -419,7 +421,7 @@ function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDow
             {t('admin.filters.downloadPdf')}
           </button>
           <button
-            className="admin-report-btn-secondary admin-toolbar__btn"
+            className="admin-report-btn-secondary admin-filterbar__btn"
             type="button"
             onClick={onDownloadExcel}
             disabled={isLoading || isExporting}
@@ -452,9 +454,9 @@ function BookSummaryFilters({ filters, onChange, onDownloadPdf, isLoading, isExp
   const yearOptions = accountingYearOptions();
 
   return (
-    <div className="admin-toolbar">
-      <div className="admin-toolbar__grid admin-toolbar__grid--summary">
-        <label className="admin-toolbar__field">
+    <div className="admin-filterbar">
+      <div className="admin-filterbar__grid admin-filterbar__grid--four">
+        <label className="admin-filterbar__field">
           <span className="admin-report-label">{t('admin.filters.status')}</span>
           <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
             <option value="verified">{t('admin.filterVerified')}</option>
@@ -463,7 +465,7 @@ function BookSummaryFilters({ filters, onChange, onDownloadPdf, isLoading, isExp
             <option value="failed">{t('admin.filterFailed')}</option>
           </select>
         </label>
-        <label className="admin-toolbar__field">
+        <label className="admin-filterbar__field">
           <span className="admin-report-label">{t('admin.booksSummary.counter')}</span>
           <select className="input" value={filters.counter} onChange={(e) => onChange('counter', e.target.value)}>
             <option value="all">{t('admin.booksSummary.allCounters')}</option>
@@ -474,7 +476,7 @@ function BookSummaryFilters({ filters, onChange, onDownloadPdf, isLoading, isExp
             ))}
           </select>
         </label>
-        <label className="admin-toolbar__field">
+        <label className="admin-filterbar__field">
           <span className="admin-report-label">{t('admin.filters.accountingYear')}</span>
           <select className="input" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -485,7 +487,7 @@ function BookSummaryFilters({ filters, onChange, onDownloadPdf, isLoading, isExp
             ))}
           </select>
         </label>
-        <label className="admin-toolbar__field">
+        <label className="admin-filterbar__field">
           <span className="admin-report-label">{t('admin.filters.accountingMonth')}</span>
           <select className="input" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -496,12 +498,11 @@ function BookSummaryFilters({ filters, onChange, onDownloadPdf, isLoading, isExp
             ))}
           </select>
         </label>
-        <div className="admin-toolbar__field admin-toolbar__field--action">
-          <span className="admin-report-label admin-toolbar__spacer" aria-hidden>
-            &nbsp;
-          </span>
+      </div>
+      <div className="admin-filterbar__actions">
+        <div className="admin-filterbar__actions-secondary">
           <button
-            className="admin-report-btn-secondary admin-toolbar__btn"
+            className="admin-report-btn-secondary admin-filterbar__btn"
             type="button"
             onClick={onDownloadPdf}
             disabled={isLoading || isExporting}

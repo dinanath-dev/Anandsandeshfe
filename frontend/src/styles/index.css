@@ -2465,96 +2465,62 @@ select {
   @apply w-full min-h-[2.75rem];
 }
 
-.admin-toolbar {
-  @apply mb-5 rounded-2xl border border-emerald-200/80 bg-white p-4 shadow-sm sm:p-5;
+/* Shared filter panel for the admin report tabs (orders, summary, inventory). */
+.admin-filterbar {
+  @apply mb-5 w-full rounded-2xl border border-emerald-200/80 bg-white p-4 shadow-sm sm:p-5;
 }
 
-.admin-toolbar__grid {
-  @apply grid grid-cols-1 items-end gap-3 sm:grid-cols-2;
+.admin-filterbar__grid {
+  @apply grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-3;
 }
 
-.admin-toolbar__grid--orders {
-  @apply lg:grid-cols-3 xl:grid-cols-6;
+.admin-filterbar__grid--six,
+.admin-filterbar__grid--five {
+  @apply xl:grid-cols-3;
 }
 
-.admin-toolbar__grid--orders-compact {
-  @apply lg:grid-cols-3 xl:grid-cols-5;
+.admin-filterbar__grid--four {
+  @apply lg:grid-cols-2 xl:grid-cols-4;
 }
 
-.admin-toolbar__grid--summary {
-  @apply lg:grid-cols-3 xl:grid-cols-[repeat(4,minmax(0,1fr))_auto];
-}
-
-.admin-toolbar__field {
+.admin-filterbar__field {
   @apply flex min-w-0 flex-col gap-1.5;
 }
 
-.admin-toolbar__field--action {
-  @apply sm:justify-self-start xl:justify-self-end;
+.admin-filterbar__spacer {
+  @apply hidden lg:block;
 }
 
-.admin-toolbar__spacer {
-  @apply hidden xl:block;
-}
-
-.admin-toolbar__search {
+.admin-filterbar__search {
   @apply relative;
 }
 
-.admin-toolbar__search-icon {
+.admin-filterbar__search-icon {
   @apply pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700/80;
 }
 
-.admin-toolbar__search-input {
+.admin-filterbar__search-input {
   @apply !pl-9;
 }
 
-.admin-toolbar__actions {
+.admin-filterbar__actions {
   @apply mt-4 flex flex-col gap-3 border-t border-emerald-100 pt-4 sm:flex-row sm:flex-wrap sm:items-center;
 }
 
-.admin-toolbar__actions-secondary {
+.admin-filterbar__actions-secondary {
   @apply flex w-full flex-col gap-3 sm:ml-auto sm:w-auto sm:flex-row;
 }
 
-.admin-toolbar__btn {
+.admin-filterbar__btn {
   @apply !min-h-[2.75rem] w-full sm:w-auto sm:min-w-[9.5rem];
 }
 
-.admin-toolbar__actions > .admin-report-btn-primary {
+.admin-filterbar__actions > .admin-report-btn-primary {
   @apply sm:min-w-[13.5rem];
 }
 
-.admin-inventory-toolbar {
-  @apply mb-5 rounded-2xl border border-emerald-200/80 bg-white p-4 shadow-sm sm:p-5;
-}
-
-.admin-inventory-toolbar__grid {
-  @apply grid grid-cols-1 items-end gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(14rem,1.35fr)_minmax(12rem,1fr)_auto_auto];
-}
-
-.admin-inventory-field {
-  @apply flex min-w-0 flex-col gap-1.5;
-}
-
-.admin-inventory-field--action {
-  @apply sm:justify-self-start xl:justify-self-end;
-}
-
-.admin-inventory-field__spacer {
-  @apply hidden xl:block;
-}
-
-.admin-inventory-search {
-  @apply relative;
-}
-
-.admin-inventory-search__icon {
-  @apply pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700/80;
-}
-
-.admin-inventory-search__input {
-  @apply !pl-9;
+.admin-filterbar__hint {
+  @apply mt-4 border-t border-emerald-100 pt-3 text-sm leading-relaxed text-emerald-800/80;
 }
 
 .admin-inventory-toggle {
@@ -2583,14 +2549,6 @@ select {
 
 .admin-inventory-toggle__label {
   @apply whitespace-nowrap;
-}
-
-.admin-inventory-refresh {
-  @apply !min-h-[2.75rem] !w-full px-4 xl:!w-auto;
-}
-
-.admin-inventory-hint {
-  @apply mt-3 border-t border-emerald-100 pt-3 text-sm leading-relaxed text-emerald-800/80;
 }
 
 .admin-inventory-empty {
