@@ -402,12 +402,12 @@ export default function BookInventoryPanel({ token, portalSlug, t, locale, toast
     <>
       {isLoading ? <LoadingBlock label={t('admin.inventory.loading')} /> : null}
 
-      <div className="admin-report-filters admin-books-filters">
-        <div className="admin-books-filters__fields">
-          <label className="admin-filter-field">
+      <div className="admin-inventory-toolbar">
+        <div className="admin-inventory-toolbar__grid">
+          <label className="admin-inventory-field admin-inventory-field--counter">
             <span className="admin-report-label">{t('admin.inventory.counter')}</span>
             <select
-              className="input text-base"
+              className="input"
               value={filters.counter}
               onChange={(e) => updateFilter('counter', e.target.value)}
             >
@@ -419,66 +419,71 @@ export default function BookInventoryPanel({ token, portalSlug, t, locale, toast
               <option value="all">{t('admin.inventory.allCounters')}</option>
             </select>
           </label>
-          <label className="admin-filter-field">
+
+          <label className="admin-inventory-field admin-inventory-field--search">
             <span className="admin-report-label">{t('admin.inventory.search')}</span>
-            <div className="relative">
-              <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700" />
+            <div className="admin-inventory-search">
+              <Search size={16} aria-hidden className="admin-inventory-search__icon" />
               <input
-                className="input text-base !pl-9"
+                className="input admin-inventory-search__input"
                 value={filters.search}
                 placeholder={t('admin.inventory.searchPlaceholder')}
                 onChange={(e) => updateFilter('search', e.target.value)}
               />
             </div>
           </label>
-          <label className="admin-filter-field justify-end">
+
+          <div className="admin-inventory-field admin-inventory-field--toggle">
             <span className="admin-report-label">{t('admin.inventory.lowStockFilter')}</span>
-            <label className="flex h-[46px] items-center gap-2 rounded-xl border border-emerald-300/70 bg-white px-3 text-base font-semibold text-emerald-900">
-              <input
-                type="checkbox"
-                checked={filters.lowStock}
-                onChange={(e) => updateFilter('lowStock', e.target.checked)}
-              />
-              {t('admin.inventory.lowStockOnly')}
-            </label>
-          </label>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={filters.lowStock}
+              className={`admin-inventory-toggle ${filters.lowStock ? 'admin-inventory-toggle--on' : ''}`}
+              onClick={() => updateFilter('lowStock', !filters.lowStock)}
+            >
+              <span className="admin-inventory-toggle__track" aria-hidden>
+                <span className="admin-inventory-toggle__thumb" />
+              </span>
+              <span className="admin-inventory-toggle__label">{t('admin.inventory.lowStockOnly')}</span>
+            </button>
+          </div>
+
+          <div className="admin-inventory-field admin-inventory-field--action">
+            <span className="admin-report-label admin-inventory-field__spacer" aria-hidden>
+              &nbsp;
+            </span>
+            <button
+              className="admin-report-btn-secondary admin-inventory-refresh"
+              type="button"
+              onClick={() => load(filters)}
+              disabled={isLoading}
+            >
+              <RefreshCw size={16} className={isLoading ? 'animate-spin' : undefined} />
+              {t('admin.inventory.refresh')}
+            </button>
+          </div>
         </div>
-        <div className="admin-books-filters__actions admin-books-filters__actions--single">
-          <button
-            className="admin-report-btn-secondary !text-base"
-            type="button"
-            onClick={() => load(filters)}
-            disabled={isLoading}
-          >
-            <RefreshCw size={18} />
-            {t('admin.inventory.refresh')}
-          </button>
-        </div>
+
+        <p className="admin-inventory-hint">
+          {singleCounter ? t('admin.inventory.addHint') : t('admin.inventory.overviewHint')}
+        </p>
       </div>
 
-      {singleCounter ? (
-        <p className="mb-4 rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-base text-emerald-900">
-          {t('admin.inventory.addHint')}
-        </p>
-      ) : (
-        <p className="mb-4 rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-base text-emerald-900">
-          {t('admin.inventory.overviewHint')}
-        </p>
-      )}
-
       {!counters.length ? (
-        <div className="admin-report-card border border-emerald-200/70 bg-emerald-50/80 p-10 text-center text-base font-medium text-emerald-800">
+        <div className="admin-inventory-empty">
           {notReady ? t('admin.inventory.none') : t('admin.inventory.noBooks')}
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="admin-inventory-list">
           {counters.map((counter) => (
-            <div key={counter.code} className="admin-report-card">
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <div className="admin-report-section-title sm:text-xl">{counter.label}</div>
-                <div className="flex items-center gap-2">
+            <div key={counter.code} className="admin-report-card admin-inventory-card">
+              <div className="admin-inventory-card__header">
+                <div className="admin-inventory-card__title">{counter.label}</div>
+                <div className="admin-inventory-card__meta">
                   <span className="admin-report-badge bg-emerald-100 text-emerald-800">
-                    {t('admin.inventory.totalUnits')}: <span className="tabular-nums">{counter.total_quantity}</span>
+                    {t('admin.inventory.totalUnits')}:{' '}
+                    <span className="tabular-nums">{counter.total_quantity}</span>
                   </span>
                   {counter.low_stock_count > 0 ? (
                     <span className="admin-report-badge bg-amber-100 text-amber-800">
@@ -488,7 +493,7 @@ export default function BookInventoryPanel({ token, portalSlug, t, locale, toast
                 </div>
               </div>
               <div className="admin-report-table-wrap">
-                <table className="admin-report-table min-w-[640px] text-base">
+                <table className="admin-report-table admin-inventory-table min-w-[640px]">
                   <thead>
                     <tr>
                       <th>{t('admin.inventory.book')}</th>

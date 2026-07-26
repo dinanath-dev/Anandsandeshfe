@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { BookOpen, Boxes, ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, Pencil, Plus, UserRound, Users, Wallet } from 'lucide-react';
+import { BookOpen, Boxes, ChevronLeft, ChevronRight, Download, Eye, EyeOff, Lock, Pencil, Plus, Search, UserRound, Users, Wallet } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import AdminAddSubscriptionModal from '../components/AdminAddSubscriptionModal.jsx';
 import AdminAddBookOrderModal from '../components/AdminAddBookOrderModal.jsx';
@@ -23,7 +23,7 @@ import {
   listAdminUsers,
   updateAdminUser
 } from '../services/api.js';
-import { BOOK_PICKUP_COUNTERS } from '../constants/bookCounters.js';
+import { BOOK_PICKUP_COUNTERS, pickupCounterLabel } from '../constants/bookCounters.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useToast, friendlyError } from '../components/ToastProvider.jsx';
 import {
@@ -60,6 +60,8 @@ function currentAccountingFilterDefaults() {
 const DEFAULT_BOOK_FILTERS = {
   status: 'verified',
   search: '',
+  fulfillment_mode: '',
+  counter: 'all',
   ...currentAccountingFilterDefaults()
 };
 
@@ -138,6 +140,26 @@ function formatSubmissionAddress(item) {
   if (line) return line;
   if (item.address) return item.address;
   return [item.state, item.pin].filter(Boolean).join(' - ') || '-';
+}
+
+function formatBookOrderFulfillment(item, t) {
+  const mode = String(item?.fulfillment_mode || '').trim();
+  if (mode === 'counter_sale') return t('books.counterSale');
+  if (mode === 'home_delivery') return t('books.homeDelivery');
+  return mode || '-';
+}
+
+function formatBookOrderAddressOrCounter(item, t) {
+  const mode = String(item?.fulfillment_mode || '').trim();
+  if (mode === 'counter_sale') {
+    const code = item?.pickup_counter;
+    return code ? pickupCounterLabel(code) : '-';
+  }
+  if (mode === 'home_delivery') return formatSubmissionAddress(item);
+  const address = formatSubmissionAddress(item);
+  if (address !== '-') return address;
+  if (item?.pickup_counter) return pickupCounterLabel(item.pickup_counter);
+  return '-';
 }
 
 function PaymentFilters({
@@ -301,11 +323,12 @@ function UserFilters({ filters, onChange, t }) {
 function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDownloadExcel, isLoading, isExporting, t, locale }) {
   const monthOptions = accountingMonthOptions(locale);
   const yearOptions = accountingYearOptions();
+  const showCounterFilter = filters.fulfillment_mode !== 'home_delivery';
 
   return (
-    <div className="admin-report-filters admin-books-filters">
-      <div className="admin-books-filters__fields">
-        <label className="admin-filter-field">
+    <div className="admin-toolbar">
+      <div className={`admin-toolbar__grid ${showCounterFilter ? 'admin-toolbar__grid--orders' : 'admin-toolbar__grid--orders-compact'}`}>
+        <label className="admin-toolbar__field">
           <span className="admin-report-label">{t('admin.filters.status')}</span>
           <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
             <option value="verified">{t('admin.filterVerified')}</option>
@@ -314,16 +337,44 @@ function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDow
             <option value="failed">{t('admin.filterFailed')}</option>
           </select>
         </label>
-        <label className="admin-filter-field">
-          <span className="admin-report-label">{t('admin.filters.search')}</span>
-          <input
+        <label className="admin-toolbar__field">
+          <span className="admin-report-label">{t('admin.filters.fulfillment')}</span>
+          <select
             className="input"
-            value={filters.search}
-            onChange={(e) => onChange('search', e.target.value)}
-            placeholder={t('admin.filters.searchPlaceholder')}
-          />
+            value={filters.fulfillment_mode}
+            onChange={(e) => onChange('fulfillment_mode', e.target.value)}
+          >
+            <option value="">{t('admin.filterAll')}</option>
+            <option value="counter_sale">{t('books.counterSale')}</option>
+            <option value="home_delivery">{t('books.homeDelivery')}</option>
+          </select>
         </label>
-        <label className="admin-filter-field">
+        {showCounterFilter ? (
+          <label className="admin-toolbar__field">
+            <span className="admin-report-label">{t('admin.booksSummary.counter')}</span>
+            <select className="input" value={filters.counter} onChange={(e) => onChange('counter', e.target.value)}>
+              <option value="all">{t('admin.booksSummary.allCounters')}</option>
+              {BOOK_PICKUP_COUNTERS.map((counter) => (
+                <option key={counter.code} value={counter.code}>
+                  {counter.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        <label className="admin-toolbar__field admin-toolbar__field--search">
+          <span className="admin-report-label">{t('admin.filters.search')}</span>
+          <div className="admin-toolbar__search">
+            <Search size={16} aria-hidden className="admin-toolbar__search-icon" />
+            <input
+              className="input admin-toolbar__search-input"
+              value={filters.search}
+              onChange={(e) => onChange('search', e.target.value)}
+              placeholder={t('admin.filters.searchPlaceholder')}
+            />
+          </div>
+        </label>
+        <label className="admin-toolbar__field">
           <span className="admin-report-label">{t('admin.filters.accountingYear')}</span>
           <select className="input" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -334,7 +385,7 @@ function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDow
             ))}
           </select>
         </label>
-        <label className="admin-filter-field">
+        <label className="admin-toolbar__field">
           <span className="admin-report-label">{t('admin.filters.accountingMonth')}</span>
           <select className="input" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
@@ -346,29 +397,37 @@ function BookOrderFilters({ filters, onChange, onAddManual, onDownloadPdf, onDow
           </select>
         </label>
       </div>
-      <div className="admin-books-filters__actions admin-books-filters__actions--three">
-        <button className="admin-report-btn-primary" type="button" onClick={onAddManual} disabled={isLoading}>
-          <Plus size={18} aria-hidden />
+
+      <div className="admin-toolbar__actions">
+        <button
+          className="admin-report-btn-primary admin-toolbar__btn"
+          type="button"
+          onClick={onAddManual}
+          disabled={isLoading}
+        >
+          <Plus size={16} aria-hidden />
           {t('admin.manualBookOrder.addButton')}
         </button>
-        <button
-          className="admin-report-btn-secondary"
-          type="button"
-          onClick={onDownloadPdf}
-          disabled={isLoading || isExporting}
-        >
-          <Download size={16} />
-          {t('admin.filters.downloadPdf')}
-        </button>
-        <button
-          className="admin-report-btn-secondary"
-          type="button"
-          onClick={onDownloadExcel}
-          disabled={isLoading || isExporting}
-        >
-          <Download size={16} />
-          {t('admin.filters.downloadExcel')}
-        </button>
+        <div className="admin-toolbar__actions-secondary">
+          <button
+            className="admin-report-btn-secondary admin-toolbar__btn"
+            type="button"
+            onClick={onDownloadPdf}
+            disabled={isLoading || isExporting}
+          >
+            <Download size={16} />
+            {t('admin.filters.downloadPdf')}
+          </button>
+          <button
+            className="admin-report-btn-secondary admin-toolbar__btn"
+            type="button"
+            onClick={onDownloadExcel}
+            disabled={isLoading || isExporting}
+          >
+            <Download size={16} />
+            {t('admin.filters.downloadExcel')}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -393,20 +452,20 @@ function BookSummaryFilters({ filters, onChange, onDownloadPdf, isLoading, isExp
   const yearOptions = accountingYearOptions();
 
   return (
-    <div className="admin-report-filters admin-books-filters">
-      <div className="admin-books-filters__fields">
-        <label className="admin-filter-field">
+    <div className="admin-toolbar">
+      <div className="admin-toolbar__grid admin-toolbar__grid--summary">
+        <label className="admin-toolbar__field">
           <span className="admin-report-label">{t('admin.filters.status')}</span>
-          <select className="input text-base" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
+          <select className="input" value={filters.status} onChange={(e) => onChange('status', e.target.value)}>
             <option value="verified">{t('admin.filterVerified')}</option>
             <option value="pending">{t('admin.filterPending')}</option>
             <option value="">{t('admin.filterAll')}</option>
             <option value="failed">{t('admin.filterFailed')}</option>
           </select>
         </label>
-        <label className="admin-filter-field">
+        <label className="admin-toolbar__field">
           <span className="admin-report-label">{t('admin.booksSummary.counter')}</span>
-          <select className="input text-base" value={filters.counter} onChange={(e) => onChange('counter', e.target.value)}>
+          <select className="input" value={filters.counter} onChange={(e) => onChange('counter', e.target.value)}>
             <option value="all">{t('admin.booksSummary.allCounters')}</option>
             {BOOK_PICKUP_COUNTERS.map((counter) => (
               <option key={counter.code} value={counter.code}>
@@ -415,9 +474,9 @@ function BookSummaryFilters({ filters, onChange, onDownloadPdf, isLoading, isExp
             ))}
           </select>
         </label>
-        <label className="admin-filter-field">
+        <label className="admin-toolbar__field">
           <span className="admin-report-label">{t('admin.filters.accountingYear')}</span>
-          <select className="input text-base" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
+          <select className="input" value={filters.year} onChange={(e) => onChange('year', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
             {yearOptions.map((year) => (
               <option key={year} value={String(year)}>
@@ -426,9 +485,9 @@ function BookSummaryFilters({ filters, onChange, onDownloadPdf, isLoading, isExp
             ))}
           </select>
         </label>
-        <label className="admin-filter-field">
+        <label className="admin-toolbar__field">
           <span className="admin-report-label">{t('admin.filters.accountingMonth')}</span>
-          <select className="input text-base" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
+          <select className="input" value={filters.month} onChange={(e) => onChange('month', e.target.value)}>
             <option value="all">{t('admin.filterAll')}</option>
             {monthOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -437,17 +496,20 @@ function BookSummaryFilters({ filters, onChange, onDownloadPdf, isLoading, isExp
             ))}
           </select>
         </label>
-      </div>
-      <div className="admin-books-filters__actions admin-books-filters__actions--single">
-        <button
-          className="admin-report-btn-secondary !text-base"
-          type="button"
-          onClick={onDownloadPdf}
-          disabled={isLoading || isExporting}
-        >
-          <Download size={18} />
-          {t('admin.booksSummary.downloadPdf')}
-        </button>
+        <div className="admin-toolbar__field admin-toolbar__field--action">
+          <span className="admin-report-label admin-toolbar__spacer" aria-hidden>
+            &nbsp;
+          </span>
+          <button
+            className="admin-report-btn-secondary admin-toolbar__btn"
+            type="button"
+            onClick={onDownloadPdf}
+            disabled={isLoading || isExporting}
+          >
+            <Download size={16} />
+            {t('admin.booksSummary.downloadPdf')}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1070,7 +1132,13 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
 
   function updateBookFilter(key, value) {
     setBookPage(1);
-    setBookFilters((prev) => ({ ...prev, [key]: value }));
+    setBookFilters((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === 'fulfillment_mode' && value === 'home_delivery') {
+        next.counter = 'all';
+      }
+      return next;
+    });
   }
 
   function updateBookSummaryFilter(key, value) {
@@ -1599,12 +1667,14 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                 {t('admin.tabs.bookOrders')} ({bookPagination.total || bookRows.length})
               </div>
               <div className="admin-report-table-wrap">
-                <table className="admin-report-table min-w-[640px]">
+                <table className="admin-report-table min-w-[640px] md:min-w-[860px]">
                   <thead>
                     <tr>
                       <th>{t('admin.books.orderId')}</th>
                       <th>{t('admin.table.name')}</th>
                       <th>{t('admin.books.title')}</th>
+                      <th>{t('admin.books.fulfillment')}</th>
+                      <th>{t('admin.books.addressOrCounter')}</th>
                       <th>{t('admin.books.amount')}</th>
                       <th>{t('admin.table.status')}</th>
                     </tr>
@@ -1615,6 +1685,10 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                         <td className="font-mono text-xs">{String(item.id).slice(0, 8)}…</td>
                         <td className="font-semibold">{item.name || '-'}</td>
                         <td>{item.book_name || '-'}</td>
+                        <td>{formatBookOrderFulfillment(item, t)}</td>
+                        <td className="max-w-72 text-muted">
+                          <p className="whitespace-pre-wrap break-words">{formatBookOrderAddressOrCounter(item, t)}</p>
+                        </td>
                         <td className="font-semibold text-emerald-900">
                           {item.total_amount_paise != null ? `₹${(item.total_amount_paise / 100).toFixed(2)}` : '-'}
                         </td>
@@ -1623,7 +1697,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                     ))}
                     {!bookRows.length ? (
                       <tr>
-                        <td colSpan="5" className="py-8 text-center text-muted">
+                        <td colSpan="7" className="py-8 text-center text-muted">
                           {t('admin.noBookOrders')}
                         </td>
                       </tr>

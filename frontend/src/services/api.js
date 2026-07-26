@@ -401,6 +401,10 @@ export function getBookSubscriptions(token, filters, portalSlug = ADMIN_PORTAL_S
   const params = new URLSearchParams();
   if (filters?.status) params.set('status', filters.status);
   if (filters?.search) params.set('search', filters.search);
+  if (filters?.fulfillment_mode) params.set('fulfillment_mode', filters.fulfillment_mode);
+  if (filters?.counter != null && String(filters.counter).trim() !== '' && filters.counter !== 'all') {
+    params.set('counter', String(filters.counter));
+  }
   if (filters?.month != null && String(filters.month).trim() !== '') params.set('month', String(filters.month));
   if (filters?.year != null && String(filters.year).trim() !== '') params.set('year', String(filters.year));
   if (filters?.page != null) params.set('page', String(filters.page));

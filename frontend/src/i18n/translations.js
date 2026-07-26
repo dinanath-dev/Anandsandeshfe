@@ -808,6 +808,7 @@ export const translations = {
         accountingMonth: 'Accounting month',
         accountingDay: 'Date (day)',
         allDays: 'All days',
+        fulfillment: 'Counter / Home delivery',
         apply: 'Apply filters',
         downloadPdf: 'Download PDF',
         downloadExcel: 'Download Excel',
@@ -817,7 +818,9 @@ export const translations = {
       books: {
         orderId: 'Order ID',
         title: 'Book',
-        amount: 'Amount'
+        amount: 'Amount',
+        fulfillment: 'Fulfillment',
+        addressOrCounter: 'Address / Counter'
       },
       booksSummary: {
         tabOrders: 'Orders',
@@ -1850,6 +1853,7 @@ export const translations = {
         accountingMonth: 'लेखा माह',
         accountingDay: 'तिथि (दिन)',
         allDays: 'सभी दिन',
+        fulfillment: 'काउंटर / घर डिलीवरी',
         apply: 'फ़िल्टर लागू करें',
         downloadPdf: 'PDF डाउनलोड',
         downloadExcel: 'Excel डाउनलोड',
@@ -1859,7 +1863,9 @@ export const translations = {
       books: {
         orderId: 'ऑर्डर ID',
         title: 'पुस्तक',
-        amount: 'राशि'
+        amount: 'राशि',
+        fulfillment: 'पूर्ति',
+        addressOrCounter: 'पता / काउंटर'
       },
       booksSummary: {
         tabOrders: 'ऑर्डर',

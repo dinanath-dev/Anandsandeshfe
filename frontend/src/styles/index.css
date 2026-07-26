@@ -2465,6 +2465,162 @@ select {
   @apply w-full min-h-[2.75rem];
 }
 
+.admin-toolbar {
+  @apply mb-5 rounded-2xl border border-emerald-200/80 bg-white p-4 shadow-sm sm:p-5;
+}
+
+.admin-toolbar__grid {
+  @apply grid grid-cols-1 items-end gap-3 sm:grid-cols-2;
+}
+
+.admin-toolbar__grid--orders {
+  @apply lg:grid-cols-3 xl:grid-cols-6;
+}
+
+.admin-toolbar__grid--orders-compact {
+  @apply lg:grid-cols-3 xl:grid-cols-5;
+}
+
+.admin-toolbar__grid--summary {
+  @apply lg:grid-cols-3 xl:grid-cols-[repeat(4,minmax(0,1fr))_auto];
+}
+
+.admin-toolbar__field {
+  @apply flex min-w-0 flex-col gap-1.5;
+}
+
+.admin-toolbar__field--action {
+  @apply sm:justify-self-start xl:justify-self-end;
+}
+
+.admin-toolbar__spacer {
+  @apply hidden xl:block;
+}
+
+.admin-toolbar__search {
+  @apply relative;
+}
+
+.admin-toolbar__search-icon {
+  @apply pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700/80;
+}
+
+.admin-toolbar__search-input {
+  @apply !pl-9;
+}
+
+.admin-toolbar__actions {
+  @apply mt-4 flex flex-col gap-3 border-t border-emerald-100 pt-4 sm:flex-row sm:flex-wrap sm:items-center;
+}
+
+.admin-toolbar__actions-secondary {
+  @apply flex w-full flex-col gap-3 sm:ml-auto sm:w-auto sm:flex-row;
+}
+
+.admin-toolbar__btn {
+  @apply !min-h-[2.75rem] w-full sm:w-auto sm:min-w-[9.5rem];
+}
+
+.admin-toolbar__actions > .admin-report-btn-primary {
+  @apply sm:min-w-[13.5rem];
+}
+
+.admin-inventory-toolbar {
+  @apply mb-5 rounded-2xl border border-emerald-200/80 bg-white p-4 shadow-sm sm:p-5;
+}
+
+.admin-inventory-toolbar__grid {
+  @apply grid grid-cols-1 items-end gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(14rem,1.35fr)_minmax(12rem,1fr)_auto_auto];
+}
+
+.admin-inventory-field {
+  @apply flex min-w-0 flex-col gap-1.5;
+}
+
+.admin-inventory-field--action {
+  @apply sm:justify-self-start xl:justify-self-end;
+}
+
+.admin-inventory-field__spacer {
+  @apply hidden xl:block;
+}
+
+.admin-inventory-search {
+  @apply relative;
+}
+
+.admin-inventory-search__icon {
+  @apply pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700/80;
+}
+
+.admin-inventory-search__input {
+  @apply !pl-9;
+}
+
+.admin-inventory-toggle {
+  @apply inline-flex h-11 min-h-[2.75rem] w-full items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/40 px-3 text-left text-sm font-semibold text-emerald-900 transition-colors duration-200 hover:border-emerald-300 hover:bg-emerald-50 sm:w-auto;
+}
+
+.admin-inventory-toggle--on {
+  @apply border-amber-300 bg-amber-50 text-amber-950;
+}
+
+.admin-inventory-toggle__track {
+  @apply relative inline-flex h-5 w-9 shrink-0 items-center rounded-full bg-emerald-200/90 transition-colors duration-200;
+}
+
+.admin-inventory-toggle--on .admin-inventory-toggle__track {
+  @apply bg-amber-500;
+}
+
+.admin-inventory-toggle__thumb {
+  @apply absolute left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200;
+}
+
+.admin-inventory-toggle--on .admin-inventory-toggle__thumb {
+  transform: translateX(1rem);
+}
+
+.admin-inventory-toggle__label {
+  @apply whitespace-nowrap;
+}
+
+.admin-inventory-refresh {
+  @apply !min-h-[2.75rem] !w-full px-4 xl:!w-auto;
+}
+
+.admin-inventory-hint {
+  @apply mt-3 border-t border-emerald-100 pt-3 text-sm leading-relaxed text-emerald-800/80;
+}
+
+.admin-inventory-empty {
+  @apply rounded-2xl border border-dashed border-emerald-300/80 bg-emerald-50/50 px-6 py-12 text-center text-base font-medium text-emerald-800;
+}
+
+.admin-inventory-list {
+  @apply space-y-5;
+}
+
+.admin-inventory-card {
+  @apply !overflow-hidden;
+}
+
+.admin-inventory-card__header {
+  @apply flex flex-wrap items-center justify-between gap-3 border-b border-emerald-200/80 bg-emerald-100/90 px-4 py-3 sm:px-5;
+}
+
+.admin-inventory-card__title {
+  @apply text-base font-black text-emerald-950 sm:text-lg;
+}
+
+.admin-inventory-card__meta {
+  @apply flex flex-wrap items-center gap-2;
+}
+
+.admin-inventory-table {
+  @apply text-sm sm:text-base;
+}
+
 .admin-report-label {
   @apply label text-base font-semibold text-emerald-900;
 }
