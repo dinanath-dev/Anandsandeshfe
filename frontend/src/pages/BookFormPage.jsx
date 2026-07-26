@@ -129,11 +129,15 @@ export default function BookFormPage() {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadError, setLoadError] = useState('');
+  /** Names prefilled from the signed-in profile — only these stay locked on counter sale. */
+  const [profileLockedName, setProfileLockedName] = useState({ firstName: false, lastName: false });
   const profileContactRef = useRef({ title: '', firstName: '', lastName: '', mobile: '' });
 
   const signedIn = isUserAuthenticated();
   const isHomeDelivery = fulfillmentMode === 'home_delivery';
   const isCounterSale = fulfillmentMode === 'counter_sale';
+  const lockFirstName = isCounterSale && profileLockedName.firstName;
+  const lockLastName = isCounterSale && profileLockedName.lastName;
 
   const selectedLines = useMemo(() => {
     return books
@@ -196,6 +200,10 @@ export default function BookFormPage() {
         const submission = submissionData?.submission || null;
         const profileContact = profileContactFromSources(user, submission);
         profileContactRef.current = profileContact;
+        setProfileLockedName({
+          firstName: Boolean(String(profileContact.firstName || '').trim()),
+          lastName: Boolean(String(profileContact.lastName || '').trim())
+        });
 
         setForm((prev) => ({
           ...prev,
@@ -693,12 +701,12 @@ export default function BookFormPage() {
                 >
                   <input
                     id="bf-firstName"
-                    className={inputClass('firstName', errors)}
                     value={form.firstName}
-                    onChange={(e) => updateField('firstName', e.target.value)}
+                    onChange={lockFirstName ? undefined : (e) => updateField('firstName', e.target.value)}
                     maxLength={maxLengthForField('firstName')}
                     autoComplete="given-name"
-                    readOnly={isCounterSale && Boolean(form.firstName.trim())}
+                    readOnly={lockFirstName}
+                    className={`${inputClass('firstName', errors)}${lockFirstName ? ' donation-input--readonly' : ''}`}
                   />
                 </DonationFormRow>
               </DonationFormPair>
@@ -712,12 +720,12 @@ export default function BookFormPage() {
                 >
                   <input
                     id="bf-lastName"
-                    className={inputClass('lastName', errors)}
                     value={form.lastName}
-                    onChange={(e) => updateField('lastName', e.target.value)}
+                    onChange={lockLastName ? undefined : (e) => updateField('lastName', e.target.value)}
                     maxLength={maxLengthForField('lastName')}
                     autoComplete="family-name"
-                    readOnly={isCounterSale && Boolean(form.lastName.trim())}
+                    readOnly={lockLastName}
+                    className={`${inputClass('lastName', errors)}${lockLastName ? ' donation-input--readonly' : ''}`}
                   />
                 </DonationFormRow>
               </DonationFormPair>
