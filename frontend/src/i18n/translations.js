@@ -824,7 +824,9 @@ export const translations = {
         title: 'Book',
         amount: 'Amount',
         fulfillment: 'Fulfillment',
-        addressOrCounter: 'Address / Counter'
+        addressOrCounter: 'Address / Counter',
+        phone: 'Phone no',
+        purchaseDate: 'Purchase date'
       },
       booksSummary: {
         tabOrders: 'Orders',
@@ -1873,7 +1875,9 @@ export const translations = {
         title: 'पुस्तक',
         amount: 'राशि',
         fulfillment: 'पूर्ति',
-        addressOrCounter: 'पता / काउंटर'
+        addressOrCounter: 'पता / काउंटर',
+        phone: 'फ़ोन नंबर',
+        purchaseDate: 'खरीद की तारीख'
       },
       booksSummary: {
         tabOrders: 'ऑर्डर',

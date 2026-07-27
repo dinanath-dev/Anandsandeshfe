@@ -1364,6 +1364,8 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   }
 
   const adminSubtitle = booksOnlyPortal ? t('booksAdmin.pageTitle') : t('admin.pageTitle');
+  const showHomeDeliveryBookColumns = bookFilters.fulfillment_mode === 'home_delivery';
+  const bookOrderColumnCount = showHomeDeliveryBookColumns ? 9 : 7;
 
   return (
     <>
@@ -1675,6 +1677,8 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                     <tr>
                       <th>{t('admin.books.orderId')}</th>
                       <th>{t('admin.table.name')}</th>
+                      {showHomeDeliveryBookColumns ? <th>{t('admin.books.phone')}</th> : null}
+                      {showHomeDeliveryBookColumns ? <th>{t('admin.books.purchaseDate')}</th> : null}
                       <th>{t('admin.books.title')}</th>
                       <th>{t('admin.books.fulfillment')}</th>
                       <th>{t('admin.books.addressOrCounter')}</th>
@@ -1687,6 +1691,12 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                       <tr key={item.id}>
                         <td className="font-mono text-xs">{String(item.id).slice(0, 8)}…</td>
                         <td className="font-semibold">{item.name || '-'}</td>
+                        {showHomeDeliveryBookColumns ? <td>{item.phone || item.mobile || '-'}</td> : null}
+                        {showHomeDeliveryBookColumns ? (
+                          <td className="text-muted">
+                            {item.created_at ? new Date(item.created_at).toLocaleString(locale) : '-'}
+                          </td>
+                        ) : null}
                         <td>{item.book_name || '-'}</td>
                         <td>{formatBookOrderFulfillment(item, t)}</td>
                         <td className="max-w-72 text-muted">
@@ -1700,7 +1710,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                     ))}
                     {!bookRows.length ? (
                       <tr>
-                        <td colSpan="7" className="py-8 text-center text-muted">
+                        <td colSpan={bookOrderColumnCount} className="py-8 text-center text-muted">
                           {t('admin.noBookOrders')}
                         </td>
                       </tr>
