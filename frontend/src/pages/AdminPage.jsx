@@ -120,6 +120,19 @@ function submissionRowKey(item) {
   return item.row_uuid || `${item?.subscriber_no}-${item?.created_at}` || String(item?.id ?? '');
 }
 
+function bookOrderPurchaseDisplayDate(item) {
+  const raw =
+    String(item?.payment_status || '').trim().toLowerCase() === 'verified'
+      ? item?.paid_at || item?.created_at
+      : item?.created_at || item?.updated_at;
+  return raw ? new Date(raw) : null;
+}
+
+function formatBookOrderPurchaseDate(item, locale) {
+  const date = bookOrderPurchaseDisplayDate(item);
+  return date ? date.toLocaleString(locale) : '-';
+}
+
 function formatSubmissionAddress(item) {
   const line = [
     item.care_of || item.careOf,
@@ -1693,9 +1706,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                         <td className="font-semibold">{item.name || '-'}</td>
                         {showHomeDeliveryBookColumns ? <td>{item.phone || item.mobile || '-'}</td> : null}
                         {showHomeDeliveryBookColumns ? (
-                          <td className="text-muted">
-                            {item.created_at ? new Date(item.created_at).toLocaleString(locale) : '-'}
-                          </td>
+                          <td className="text-muted">{formatBookOrderPurchaseDate(item, locale)}</td>
                         ) : null}
                         <td>{item.book_name || '-'}</td>
                         <td>{formatBookOrderFulfillment(item, t)}</td>
