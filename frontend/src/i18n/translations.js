@@ -1071,6 +1071,10 @@ export const translations = {
       dayTotal: 'Day total',
       none: 'No settlements found for the selected month.',
       noTransactions: 'No transactions for this day.',
+      download: 'Download',
+      downloadTitle: 'Download settlements',
+      downloadSubtitle: 'Choose PDF or Excel for {date}.',
+      downloadPdf: 'PDF',
       downloadExcel: 'Excel'
     }
   },
@@ -2143,6 +2147,10 @@ export const translations = {
       dayTotal: 'दिन कुल',
       none: 'चयनित महीने के लिए कोई निपटान नहीं मिला।',
       noTransactions: 'इस दिन के लिए कोई लेन-देन नहीं।',
+      download: 'डाउनलोड',
+      downloadTitle: 'निपटान डाउनलोड',
+      downloadSubtitle: '{date} के लिए PDF या Excel चुनें।',
+      downloadPdf: 'PDF',
       downloadExcel: 'Excel'
     }
   }

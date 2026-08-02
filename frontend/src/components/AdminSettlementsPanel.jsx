@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, Fragment } from 'react';
-import { ChevronDown, ChevronLeft, ChevronRight, Download, RefreshCcw } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Download, FileSpreadsheet, FileText, RefreshCcw, X } from 'lucide-react';
 import { LoadingBlock } from './Loader.jsx';
-import { downloadSettlementDayExcel, getSettlementRecon } from '../services/api.js';
+import { downloadSettlementDayExcel, downloadSettlementDayPdf, getSettlementRecon } from '../services/api.js';
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useToast } from './ToastProvider.jsx';
 import { ACCOUNTS_PORTAL_SLUG } from '../utils/adminAuth.js';
@@ -74,6 +74,7 @@ export default function AdminSettlementsPanel({
   const [dayLoading, setDayLoading] = useState(false);
   const [daysPage, setDaysPage] = useState(1);
   const [exportingDay, setExportingDay] = useState(null);
+  const [downloadDay, setDownloadDay] = useState(null);
 
   function handleError(err) {
     // Parent (AdminPage / AccountsPage) surfaces a friendly error toast + session handling.
@@ -131,19 +132,27 @@ export default function AdminSettlementsPanel({
     }
   }
 
-  async function handleDownloadDay(dateKey, event) {
+  function openDownloadPopup(dateKey, event) {
     event.stopPropagation();
-    if (!token || !dateKey) return;
+    if (!token || !dateKey || exportingDay) return;
+    setDownloadDay(dateKey);
+  }
+
+  async function handleDownloadDay(format) {
+    const dateKey = downloadDay;
+    if (!token || !dateKey || !format) return;
     const day = dayFromDateKey(dateKey);
     if (!day) return;
 
     setExportingDay(dateKey);
+    setDownloadDay(null);
     try {
-      await downloadSettlementDayExcel(
-        token,
-        { year: filters.year, month: filters.month, day: String(day), dateKey },
-        portalSlug
-      );
+      const payload = { year: filters.year, month: filters.month, day: String(day), dateKey };
+      if (format === 'pdf') {
+        await downloadSettlementDayPdf(token, payload, portalSlug);
+      } else {
+        await downloadSettlementDayExcel(token, payload, portalSlug);
+      }
       toast.success(t('admin.toasts.downloadStarted'));
     } catch (err) {
       handleError(err);
@@ -469,7 +478,7 @@ export default function AdminSettlementsPanel({
                   <button
                     type="button"
                     className="admin-report-btn-secondary w-full !min-h-11 text-sm"
-                    onClick={(event) => handleDownloadDay(day.date, event)}
+                    onClick={(event) => openDownloadPopup(day.date, event)}
                     disabled={exportingDay === day.date}
                   >
                     {exportingDay === day.date ? (
@@ -477,7 +486,7 @@ export default function AdminSettlementsPanel({
                     ) : (
                       <Download size={16} strokeWidth={2.25} aria-hidden />
                     )}
-                    {t('accountsAdmin.downloadExcel')}
+                    {t('accountsAdmin.download')}
                   </button>
                 </div>
                 {isOpen ? <div className="border-t border-emerald-100 bg-emerald-50/40">{renderDayTransactions()}</div> : null}
@@ -515,7 +524,7 @@ export default function AdminSettlementsPanel({
                 <th className="col-num">{t('accountsAdmin.tax')}</th>
                 <th className="col-num">{t('accountsAdmin.net')}</th>
                 <th className="col-utr">{t('accountsAdmin.utr')}</th>
-                <th className="col-download" aria-label={t('accountsAdmin.downloadExcel')} />
+                <th className="col-download" aria-label={t('accountsAdmin.download')} />
               </tr>
             </thead>
             <tbody>
@@ -538,10 +547,10 @@ export default function AdminSettlementsPanel({
                         <button
                           type="button"
                           className="admin-download-icon-btn"
-                          onClick={(event) => handleDownloadDay(day.date, event)}
+                          onClick={(event) => openDownloadPopup(day.date, event)}
                           disabled={exportingDay === day.date}
-                          aria-label={`${t('accountsAdmin.downloadExcel')} ${day.date}`}
-                          title={t('accountsAdmin.downloadExcel')}
+                          aria-label={`${t('accountsAdmin.download')} ${day.date}`}
+                          title={t('accountsAdmin.download')}
                         >
                           {exportingDay === day.date ? (
                             <RefreshCcw size={18} className="animate-spin" />
@@ -630,6 +639,58 @@ export default function AdminSettlementsPanel({
           </div>
         ) : null}
       </div>
+
+      {downloadDay ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/55 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="settlement-download-title"
+          onClick={() => setDownloadDay(null)}
+        >
+          <div
+            className="card w-full max-w-sm shadow-card"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="flex items-start justify-between gap-3 border-b border-ink/10 px-4 py-4">
+              <div className="min-w-0">
+                <h2 id="settlement-download-title" className="text-lg font-black text-ink">
+                  {t('accountsAdmin.downloadTitle')}
+                </h2>
+                <p className="mt-1 text-sm text-muted">
+                  {t('accountsAdmin.downloadSubtitle', { date: downloadDay })}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="shrink-0 rounded-lg border border-ink/10 p-2 text-muted hover:bg-ink/5"
+                onClick={() => setDownloadDay(null)}
+                aria-label={t('common.cancel')}
+              >
+                <X size={18} />
+              </button>
+            </header>
+            <div className="grid gap-3 p-4 sm:grid-cols-2">
+              <button
+                type="button"
+                className="admin-report-btn-secondary !min-h-12 justify-center text-sm"
+                onClick={() => handleDownloadDay('pdf')}
+              >
+                <FileText size={18} aria-hidden />
+                {t('accountsAdmin.downloadPdf')}
+              </button>
+              <button
+                type="button"
+                className="admin-report-btn-secondary !min-h-12 justify-center text-sm"
+                onClick={() => handleDownloadDay('excel')}
+              >
+                <FileSpreadsheet size={18} aria-hidden />
+                {t('accountsAdmin.downloadExcel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

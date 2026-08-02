@@ -338,6 +338,20 @@ export async function downloadSettlementDayExcel(token, filters = {}, portalSlug
   );
 }
 
+export async function downloadSettlementDayPdf(token, filters = {}, portalSlug = ACCOUNTS_PORTAL_SLUG) {
+  const day = filters.day != null ? String(filters.day) : '';
+  const dateKey =
+    filters.dateKey ||
+    `${filters.year}-${String(filters.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  await downloadAdminFile(
+    token,
+    `${STAFF}/settlements/recon/export/pdf`,
+    { year: filters.year, month: filters.month, day },
+    `settlements-${dateKey}.pdf`,
+    portalSlug
+  );
+}
+
 export function getAdminMe(token) {
   return request(`${STAFF}/me`, {
     headers: adminAuthHeaders(token)

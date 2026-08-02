@@ -1585,16 +1585,6 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                 {t('admin.tabs.bookOrders')}
               </button>
             ) : null}
-            {showInventoryTab ? (
-              <button
-                type="button"
-                className={adminTabClass(activeTab === 'inventory')}
-                onClick={() => setActiveTab('inventory')}
-              >
-                <Boxes size={16} strokeWidth={2.25} aria-hidden />
-                {t('admin.inventory.tab')}
-              </button>
-            ) : null}
             {showSettlementsTab ? (
               <button
                 type="button"
@@ -1603,6 +1593,16 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
               >
                 <Wallet size={16} strokeWidth={2.25} aria-hidden />
                 {t('admin.tabs.settlements')}
+              </button>
+            ) : null}
+            {showInventoryTab ? (
+              <button
+                type="button"
+                className={adminTabClass(activeTab === 'inventory')}
+                onClick={() => setActiveTab('inventory')}
+              >
+                <Boxes size={16} strokeWidth={2.25} aria-hidden />
+                {t('admin.inventory.tab')}
               </button>
             ) : null}
             {showUsersTab ? (
