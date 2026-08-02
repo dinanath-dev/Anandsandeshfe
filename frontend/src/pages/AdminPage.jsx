@@ -21,6 +21,8 @@ import {
   getSubmissions,
   getSubmissionsSummary,
   listAdminUsers,
+  markBookOrderPosted,
+  markSubmissionPosted,
   updateAdminUser
 } from '../services/api.js';
 import { BOOK_PICKUP_COUNTERS, pickupCounterLabel } from '../constants/bookCounters.js';
@@ -69,6 +71,7 @@ function expandSubmissionsByPublication(submissions = [], t) {
         key: `${baseKey}-as-${lang}`,
         item,
         plan,
+        publicationKind: 'anand_sandesh',
         publication: `${t('admin.anandSandeshLabel')} ${lang}`
       });
     }
@@ -77,14 +80,21 @@ function expandSubmissionsByPublication(submissions = [], t) {
         key: `${baseKey}-sb-english`,
         item,
         plan,
+        publicationKind: 'spiritual_bliss',
         publication: t('admin.spiritualBlissEnglish')
       });
     }
     if (!rows.length) {
-      rows.push({ key: `${baseKey}-none`, item, plan, publication: '-' });
+      rows.push({ key: `${baseKey}-none`, item, plan, publicationKind: null, publication: '-' });
     }
     return rows;
   });
+}
+
+function publicationPostedAt(item, publicationKind) {
+  if (publicationKind === 'spiritual_bliss') return item?.spiritual_bliss_posted_at || null;
+  if (publicationKind === 'anand_sandesh') return item?.posted_at || null;
+  return item?.posted_at || null;
 }
 
 function currentAccountingFilterDefaults() {
@@ -897,6 +907,54 @@ function UserEditModal({ user, onClose, onSave, saving, t }) {
   );
 }
 
+function PostedConfirmModal({ draft, saving, onClose, onConfirm, t }) {
+  if (!draft) return null;
+
+  const title =
+    draft.kind === 'book'
+      ? t('admin.posted.confirmBookTitle')
+      : draft.publicationKind === 'spiritual_bliss'
+        ? t('admin.posted.confirmSpiritualTitle')
+        : t('admin.posted.confirmMagazineTitle');
+
+  const body =
+    draft.kind === 'book'
+      ? t('admin.posted.confirmBookBody', { name: draft.name || '-', detail: draft.detail || '-' })
+      : draft.publicationKind === 'spiritual_bliss'
+        ? t('admin.posted.confirmSpiritualBody', { name: draft.name || '-', detail: draft.detail || '-' })
+        : t('admin.posted.confirmMagazineBody', { name: draft.name || '-', detail: draft.detail || '-' });
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-ink/55 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="posted-confirm-title"
+      onClick={saving ? undefined : onClose}
+    >
+      <div className="card w-full max-w-md shadow-card" onClick={(event) => event.stopPropagation()}>
+        <div className="border-b border-emerald-100 px-5 py-4">
+          <h2 id="posted-confirm-title" className="text-lg font-black text-emerald-950">
+            {title}
+          </h2>
+        </div>
+        <div className="space-y-3 px-5 py-5">
+          <p className="text-sm leading-relaxed text-ink">{body}</p>
+          <p className="text-xs text-muted">{t('admin.posted.confirmEmailNote')}</p>
+        </div>
+        <div className="flex gap-2 border-t border-emerald-100 px-5 py-4">
+          <button type="button" className="admin-report-btn-secondary flex-1" onClick={onClose} disabled={saving}>
+            {t('admin.posted.cancel')}
+          </button>
+          <button type="button" className="admin-report-btn-primary flex-1" onClick={onConfirm} disabled={saving}>
+            {saving ? t('admin.posted.saving') : t('admin.posted.save')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: booksOnlyPortal = false }) {
 
   useSeo({
@@ -957,6 +1015,8 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   const [isSavingUser, setIsSavingUser] = useState(false);
   const [showAddSubscription, setShowAddSubscription] = useState(false);
   const [showAddBookOrder, setShowAddBookOrder] = useState(false);
+  const [postedConfirm, setPostedConfirm] = useState(null);
+  const [savingPostedKey, setSavingPostedKey] = useState('');
 
   const superAdmin = role === 'super_admin';
   const booksAdminRole = role === 'books_admin';
@@ -1181,6 +1241,75 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
       handleAuthError(err);
     } finally {
       setIsSavingUser(false);
+    }
+  }
+
+  function postedDraftKey(kind, id, publicationKind = '') {
+    return publicationKind ? `${kind}:${id}:${publicationKind}` : `${kind}:${id}`;
+  }
+
+  function openSubmissionPostedConfirm(item, publicationKind, publicationLabel) {
+    const id = item?.subscriber_no ?? item?.id;
+    if (!id || !publicationKind || publicationPostedAt(item, publicationKind) || savingPostedKey) return;
+    setPostedConfirm({
+      kind: 'subscription',
+      id,
+      publicationKind,
+      name: item.name || '',
+      detail: publicationLabel || ''
+    });
+  }
+
+  function openBookPostedConfirm(item) {
+    const id = item?.id;
+    if (!id || item?.posted_at || savingPostedKey) return;
+    if (String(item?.fulfillment_mode || '').trim() !== 'home_delivery') return;
+    setPostedConfirm({
+      kind: 'book',
+      id,
+      publicationKind: null,
+      name: item.name || '',
+      detail: item.book_name || ''
+    });
+  }
+
+  async function handleConfirmPosted() {
+    if (!postedConfirm || savingPostedKey) return;
+    const { kind, id, publicationKind } = postedConfirm;
+    const saveKey = postedDraftKey(kind, id, publicationKind || '');
+    setSavingPostedKey(saveKey);
+    setError('');
+    try {
+      if (kind === 'book') {
+        const data = await markBookOrderPosted(token, id, portalSlug);
+        const postedAt = data?.order?.posted_at || new Date().toISOString();
+        setBookRows((prev) =>
+          prev.map((row) => (String(row.id) === String(id) ? { ...row, posted_at: postedAt } : row))
+        );
+        if (data?.email_sent) toast.success(t('admin.toasts.postedEmailSent'));
+        else toast.success(t('admin.toasts.postedSaved'));
+      } else {
+        const data = await markSubmissionPosted(token, id, publicationKind);
+        const submission = data?.submission || {};
+        setSubmissions((prev) =>
+          prev.map((row) => {
+            if (String(row.subscriber_no ?? row.id) !== String(id)) return row;
+            return {
+              ...row,
+              posted_at: submission.posted_at ?? row.posted_at,
+              spiritual_bliss_posted_at:
+                submission.spiritual_bliss_posted_at ?? row.spiritual_bliss_posted_at
+            };
+          })
+        );
+        if (data?.email_sent) toast.success(t('admin.toasts.postedEmailSent'));
+        else toast.success(t('admin.toasts.postedSaved'));
+      }
+      setPostedConfirm(null);
+    } catch (err) {
+      handleAuthError(err);
+    } finally {
+      setSavingPostedKey('');
     }
   }
 
@@ -1416,7 +1545,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
 
   const adminSubtitle = booksOnlyPortal ? t('booksAdmin.pageTitle') : t('admin.pageTitle');
   const showHomeDeliveryBookColumns = bookFilters.fulfillment_mode === 'home_delivery';
-  const bookOrderColumnCount = showHomeDeliveryBookColumns ? 9 : 7;
+  const bookOrderColumnCount = showHomeDeliveryBookColumns ? 10 : 7;
   const subscriptionPublicationRows = expandSubmissionsByPublication(submissions, t);
 
   return (
@@ -1533,7 +1662,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
             <div className="admin-report-card">
               <div className="admin-report-section-title">
                 {t('admin.tabs.subscriptions')} (
-                {subscriptionPublicationRows.length || paymentPagination.total || 0})
+                {paymentPagination.total || submissions.length || 0})
               </div>
               <div className="admin-report-table-wrap">
                 <table className="admin-report-table min-w-[640px] md:min-w-[720px] lg:min-w-[840px]">
@@ -1546,12 +1675,17 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                       <th>{t('admin.table.subscription')}</th>
                       <th>{t('admin.table.status')}</th>
                       <th>{t('admin.table.validUpto')}</th>
+                      <th>{t('admin.posted.column')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {subscriptionPublicationRows.map((row) => {
-                      const { item, plan, publication } = row;
+                      const { item, plan, publication, publicationKind } = row;
                       const status = displayPaymentStatus(item);
+                      const postId = item.subscriber_no ?? item.id;
+                      const alreadyPosted = Boolean(publicationPostedAt(item, publicationKind));
+                      const saving =
+                        savingPostedKey === postedDraftKey('subscription', postId, publicationKind || '');
                       return (
                       <tr key={row.key}>
                         <td className="font-semibold tabular-nums text-ink">{formatSubscriberNo(item)}</td>
@@ -1593,12 +1727,35 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                         <td className="text-sm font-medium tabular-nums text-ink">
                           {formatUptoPeriod(item)}
                         </td>
+                        <td>
+                          {publicationKind ? (
+                            <label
+                              className={`flex items-center gap-2 text-sm ${
+                                alreadyPosted ? 'text-muted' : 'text-ink'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={alreadyPosted}
+                                disabled={alreadyPosted || saving || Boolean(postedConfirm)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    openSubmissionPostedConfirm(item, publicationKind, publication);
+                                  }
+                                }}
+                              />
+                              <span>{t('admin.posted.label')}</span>
+                            </label>
+                          ) : (
+                            <span className="text-muted">—</span>
+                          )}
+                        </td>
                       </tr>
                       );
                     })}
                     {!submissions.length ? (
                       <tr>
-                        <td colSpan="7" className="px-4 py-10">
+                        <td colSpan="8" className="px-4 py-10">
                           <p className="text-center font-semibold text-muted">{t('admin.noSubmissions')}</p>
                         </td>
                       </tr>
@@ -1728,10 +1885,14 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                       <th>{t('admin.books.addressOrCounter')}</th>
                       <th>{t('admin.books.amount')}</th>
                       <th>{t('admin.table.status')}</th>
+                      {showHomeDeliveryBookColumns ? <th>{t('admin.posted.column')}</th> : null}
                     </tr>
                   </thead>
                   <tbody>
-                    {bookRows.map((item) => (
+                    {bookRows.map((item) => {
+                      const alreadyPosted = Boolean(item.posted_at);
+                      const saving = savingPostedKey === postedDraftKey('book', item.id);
+                      return (
                       <tr key={item.id}>
                         <td className="font-mono text-xs">{String(item.id).slice(0, 8)}…</td>
                         <td className="font-semibold">{item.name || '-'}</td>
@@ -1748,8 +1909,28 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                           {item.total_amount_paise != null ? `₹${(item.total_amount_paise / 100).toFixed(2)}` : '-'}
                         </td>
                         <td>{item.payment_status || '-'}</td>
+                        {showHomeDeliveryBookColumns ? (
+                          <td>
+                            <label
+                              className={`flex items-center gap-2 text-sm ${
+                                alreadyPosted ? 'text-muted' : 'text-ink'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={alreadyPosted}
+                                disabled={alreadyPosted || saving || Boolean(postedConfirm)}
+                                onChange={(e) => {
+                                  if (e.target.checked) openBookPostedConfirm(item);
+                                }}
+                              />
+                              <span>{t('admin.posted.label')}</span>
+                            </label>
+                          </td>
+                        ) : null}
                       </tr>
-                    ))}
+                      );
+                    })}
                     {!bookRows.length ? (
                       <tr>
                         <td colSpan={bookOrderColumnCount} className="py-8 text-center text-muted">
@@ -1912,6 +2093,16 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
           t={t}
         />
       ) : null}
+
+      <PostedConfirmModal
+        draft={postedConfirm}
+        saving={Boolean(savingPostedKey)}
+        onClose={() => {
+          if (!savingPostedKey) setPostedConfirm(null);
+        }}
+        onConfirm={handleConfirmPosted}
+        t={t}
+      />
 
       {showAddBookOrder ? (
         <AdminAddBookOrderModal

@@ -391,6 +391,21 @@ export function createAdminSubmission(token, body) {
   });
 }
 
+export function markSubmissionPosted(token, id, publication = 'anand_sandesh') {
+  return request(`${STAFF}/submissions/${encodeURIComponent(id)}/posted`, {
+    method: 'PUT',
+    headers: { ...adminAuthHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ publication })
+  });
+}
+
+export function markBookOrderPosted(token, id, portalSlug = ADMIN_PORTAL_SLUG) {
+  return request(`${STAFF}/subscriptions/books/${encodeURIComponent(id)}/posted`, {
+    method: 'PUT',
+    headers: adminAuthHeaders(token, portalSlug)
+  });
+}
+
 export function getMagazineSubscriptions(token, filters) {
   return request(`${STAFF}/subscriptions/magazine${buildFilterQuery(filters)}`, {
     headers: adminAuthHeaders(token)

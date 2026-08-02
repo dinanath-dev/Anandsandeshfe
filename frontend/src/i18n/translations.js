@@ -773,7 +773,27 @@ export const translations = {
         downloadStarted: 'Your download is ready.',
         subscriptionAdded: 'Subscription added successfully.',
         bookOrderAdded: 'Book order added successfully.',
+        postedSaved: 'Marked as posted.',
+        postedEmailSent: 'Marked as posted. Email sent to the customer.',
         genericError: 'Something went wrong. Please try again.'
+      },
+      posted: {
+        column: 'Posted',
+        label: 'Posted',
+        posted: 'Posted',
+        save: 'Save',
+        saving: 'Saving…',
+        cancel: 'Cancel',
+        tickFirst: 'Tick Posted, then click Save.',
+        confirmMagazineTitle: 'Post Anand Sandesh?',
+        confirmMagazineBody:
+          'Mark Anand Sandesh as posted for {name} ({detail}) and send them an email?',
+        confirmSpiritualTitle: 'Post Spiritual Bliss?',
+        confirmSpiritualBody:
+          'Mark Spiritual Bliss as posted for {name} ({detail}) and send them an email?',
+        confirmBookTitle: 'Post book order?',
+        confirmBookBody: 'Mark this home-delivery book order as posted for {name} ({detail}) and send them an email?',
+        confirmEmailNote: 'Email will be sent from Anand Sandesh Karyalay, Shri Anandpur Dham.'
       },
       pagination: {
         previous: 'Previous',
@@ -1824,7 +1844,28 @@ export const translations = {
         downloadStarted: 'आपका डाउनलोड तैयार है।',
         subscriptionAdded: 'सदस्यता सफलतापूर्वक जोड़ी गई।',
         bookOrderAdded: 'पुस्तक ऑर्डर सफलतापूर्वक जोड़ा गया।',
+        postedSaved: 'पोस्ट किया गया चिह्नित।',
+        postedEmailSent: 'पोस्ट किया गया चिह्नित। ग्राहक को ईमेल भेज दी गई।',
         genericError: 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।'
+      },
+      posted: {
+        column: 'पोस्ट',
+        label: 'पोस्ट किया',
+        posted: 'पोस्ट हो चुका',
+        save: 'सहेजें',
+        saving: 'सहेजा जा रहा है…',
+        cancel: 'रद्द करें',
+        tickFirst: 'पहले पोस्ट पर टिक करें, फिर सहेजें।',
+        confirmMagazineTitle: 'आनंद संदेश पोस्ट करें?',
+        confirmMagazineBody:
+          '{name} ({detail}) के लिए आनंद संदेश को पोस्ट किया चिह्नित करें और ईमेल भेजें?',
+        confirmSpiritualTitle: 'Spiritual Bliss पोस्ट करें?',
+        confirmSpiritualBody:
+          '{name} ({detail}) के लिए Spiritual Bliss को पोस्ट किया चिह्नित करें और ईमेल भेजें?',
+        confirmBookTitle: 'पुस्तक ऑर्डर पोस्ट करें?',
+        confirmBookBody:
+          '{name} ({detail}) के लिए घर डिलीवरी पुस्तक ऑर्डर को पोस्ट किया चिह्नित करें और ईमेल भेजें?',
+        confirmEmailNote: 'ईमेल Anand Sandesh Karyalay, Shri Anandpur Dham से भेजी जाएगी।'
       },
       pagination: {
         previous: 'पिछला',
