@@ -49,6 +49,44 @@ function formatUptoPeriod(item) {
   return `${month} / ${year}`;
 }
 
+function subscriptionPlanLabel(item, t) {
+  if (item?.subscription_type === 'five_year') return t('admin.fiveYear');
+  if (item?.subscription_type === 'yearly') return t('admin.oneYear');
+  return item?.subscription_type || '-';
+}
+
+/** One table/PDF-style row per publication (same subscriber # can appear more than once). */
+function expandSubmissionsByPublication(submissions = [], t) {
+  return submissions.flatMap((item) => {
+    const baseKey = submissionRowKey(item);
+    const plan = subscriptionPlanLabel(item, t);
+    const rows = [];
+    const lang = String(item.anand_sandesh_lang || '')
+      .trim()
+      .toLowerCase();
+    if (lang === 'hindi' || lang === 'english') {
+      rows.push({
+        key: `${baseKey}-as-${lang}`,
+        item,
+        plan,
+        publication: `${t('admin.anandSandeshLabel')} ${lang}`
+      });
+    }
+    if (String(item.spiritual_bliss || '').toLowerCase() === 'english') {
+      rows.push({
+        key: `${baseKey}-sb-english`,
+        item,
+        plan,
+        publication: t('admin.spiritualBlissEnglish')
+      });
+    }
+    if (!rows.length) {
+      rows.push({ key: `${baseKey}-none`, item, plan, publication: '-' });
+    }
+    return rows;
+  });
+}
+
 function currentAccountingFilterDefaults() {
   const now = new Date();
   return {
@@ -1379,6 +1417,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
   const adminSubtitle = booksOnlyPortal ? t('booksAdmin.pageTitle') : t('admin.pageTitle');
   const showHomeDeliveryBookColumns = bookFilters.fulfillment_mode === 'home_delivery';
   const bookOrderColumnCount = showHomeDeliveryBookColumns ? 9 : 7;
+  const subscriptionPublicationRows = expandSubmissionsByPublication(submissions, t);
 
   return (
     <>
@@ -1493,7 +1532,8 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
 
             <div className="admin-report-card">
               <div className="admin-report-section-title">
-                {t('admin.tabs.subscriptions')} ({paymentPagination.total || submissions.length})
+                {t('admin.tabs.subscriptions')} (
+                {subscriptionPublicationRows.length || paymentPagination.total || 0})
               </div>
               <div className="admin-report-table-wrap">
                 <table className="admin-report-table min-w-[640px] md:min-w-[720px] lg:min-w-[840px]">
@@ -1509,10 +1549,11 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                     </tr>
                   </thead>
                   <tbody>
-                    {submissions.map((item) => {
+                    {subscriptionPublicationRows.map((row) => {
+                      const { item, plan, publication } = row;
                       const status = displayPaymentStatus(item);
                       return (
-                      <tr key={submissionRowKey(item)}>
+                      <tr key={row.key}>
                         <td className="font-semibold tabular-nums text-ink">{formatSubscriberNo(item)}</td>
                         <td>
                           <p className="font-bold text-ink">{item.name || t('admin.notSubmitted')}</p>
@@ -1531,18 +1572,8 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                           <p className="whitespace-pre-wrap break-words">{formatSubmissionAddress(item)}</p>
                         </td>
                         <td className="max-w-[14rem] text-xs font-semibold text-ink">
-                          <p>
-                            {item.subscription_type === 'five_year'
-                              ? t('admin.fiveYear')
-                              : item.subscription_type === 'yearly'
-                                ? t('admin.oneYear')
-                                : item.subscription_type || '-'}
-                          </p>
-                          {item.anand_sandesh_lang ? (
-                            <p className="mt-1 font-normal normal-case text-muted">
-                              {t('admin.anandSandeshLabel')} {item.anand_sandesh_lang}
-                            </p>
-                          ) : null}
+                          <p>{plan}</p>
+                          <p className="mt-1 font-normal normal-case text-muted">{publication}</p>
                         </td>
                         <td>
                           <span
