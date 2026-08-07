@@ -1545,7 +1545,7 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
 
   const adminSubtitle = booksOnlyPortal ? t('booksAdmin.pageTitle') : t('admin.pageTitle');
   const showHomeDeliveryBookColumns = bookFilters.fulfillment_mode === 'home_delivery';
-  const bookOrderColumnCount = showHomeDeliveryBookColumns ? 10 : 7;
+  const bookOrderColumnCount = showHomeDeliveryBookColumns ? 10 : 9;
   const subscriptionPublicationRows = expandSubmissionsByPublication(submissions, t);
 
   return (
@@ -1878,8 +1878,8 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                     <tr>
                       <th>{t('admin.books.orderId')}</th>
                       <th>{t('admin.table.name')}</th>
-                      {showHomeDeliveryBookColumns ? <th>{t('admin.books.phone')}</th> : null}
-                      {showHomeDeliveryBookColumns ? <th>{t('admin.books.purchaseDate')}</th> : null}
+                      <th>{t('admin.books.phone')}</th>
+                      <th>{t('admin.books.purchaseDate')}</th>
                       <th>{t('admin.books.title')}</th>
                       <th>{t('admin.books.fulfillment')}</th>
                       <th>{t('admin.books.addressOrCounter')}</th>
@@ -1896,10 +1896,8 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                       <tr key={item.id}>
                         <td className="font-mono text-xs">{String(item.id).slice(0, 8)}…</td>
                         <td className="font-semibold">{item.name || '-'}</td>
-                        {showHomeDeliveryBookColumns ? <td>{item.phone || item.mobile || '-'}</td> : null}
-                        {showHomeDeliveryBookColumns ? (
-                          <td className="text-muted">{formatBookOrderPurchaseDate(item, locale)}</td>
-                        ) : null}
+                        <td>{item.phone || item.mobile || '-'}</td>
+                        <td className="text-muted">{formatBookOrderPurchaseDate(item, locale)}</td>
                         <td>{item.book_name || '-'}</td>
                         <td>{formatBookOrderFulfillment(item, t)}</td>
                         <td className="max-w-72 text-muted">
@@ -1934,7 +1932,8 @@ export default function AdminPage({ portalSlug = ADMIN_PORTAL_SLUG, booksOnly: b
                     {!bookRows.length ? (
                       <tr>
                         <td colSpan={bookOrderColumnCount} className="py-8 text-center text-muted">
-                          {t('admin.noBookOrders')}
+                          <p className="font-semibold">{t('admin.noBookOrders')}</p>
+                          <p className="mt-2 text-sm">{t('admin.noBookOrdersHint')}</p>
                         </td>
                       </tr>
                     ) : null}

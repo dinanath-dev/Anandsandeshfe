@@ -1,8 +1,7 @@
 export default function BookOrderStepper({ currentStep, t }) {
   const steps = [
-    { n: 1, label: t('books.stepMode') },
-    { n: 2, label: t('books.stepBooks') },
-    { n: 3, label: t('books.stepPayment') }
+    { n: 1, label: t('books.stepBooks') },
+    { n: 2, label: t('books.stepPayment') }
   ];
 
   return (

@@ -206,7 +206,7 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
     <DonationLayout subtitle={t('books.paymentSubtitle')}>
       {busy ? <LoadingBlock label={t('loaders.startingCheckout')} /> : null}
       <div className="book-order-shell">
-        <BookOrderStepper currentStep={3} t={t} />
+        <BookOrderStepper currentStep={2} t={t} />
         <div className="book-order-card text-center">
           <BookOpen className="mx-auto mb-3 text-primary" size={40} />
           <h2 className="text-xl font-black text-ink sm:text-2xl">{t('books.paymentHeading')}</h2>

@@ -297,7 +297,7 @@ export const translations = {
       errors: {
         loadFailed: 'Could not load books. Please try again.',
         bookRequired: 'Please select at least one book.',
-        fulfillmentRequired: 'Please choose counter sale or home delivery.',
+        fulfillmentRequired: 'Please choose counter sale.',
         counterRequired: 'Please select a pickup counter.',
         orderFailed: 'Could not create your order. Please try again.'
       }
@@ -641,7 +641,7 @@ export const translations = {
         },
         guestBooks: {
           q: 'Can I buy books without an account?',
-          a: 'Yes. Use Buy books from this page — choose counter sale or home delivery, enter your details, and pay online. No login is required for book orders.'
+          a: 'Yes. Use Buy books from this page — choose a pickup counter, enter your details, and pay online. Collect your books at the selected sales counter after payment. No login is required for book orders.'
         },
         fulfillment: {
           q: 'What is counter sale vs home delivery?',
@@ -984,6 +984,8 @@ export const translations = {
       done: 'Done',
       noSubmissions: 'No submissions found.',
       noBookOrders: 'No book orders found.',
+      noBookOrdersHint:
+        'Default filters are Verified + this month. Try Pending, set Month to All, or pick July if you expect older paid orders.',
       oneYear: 'One year',
       fiveYear: '5 year',
       manualSubscription: {
@@ -1366,7 +1368,7 @@ export const translations = {
       errors: {
         loadFailed: 'पुस्तकें लोड नहीं हो सकीं। पुनः प्रयास करें।',
         bookRequired: 'कृपया कम से कम एक पुस्तक चुनें।',
-        fulfillmentRequired: 'कृपया काउंटर मूल्य या घर पर डिलीवरी चुनें।',
+        fulfillmentRequired: 'कृपया काउंटर बिक्री चुनें।',
         counterRequired: 'कृपया काउंटर चुनें।',
         orderFailed: 'ऑर्डर नहीं बन सका। पुनः प्रयास करें।'
       }
@@ -1716,7 +1718,7 @@ export const translations = {
         },
         guestBooks: {
           q: 'क्या बिना खाते के पुस्तकें खरीद सकते हैं?',
-          a: 'हाँ। इस पृष्ठ से “पुस्तकें खरीदें” चुनें — काउंटर या घर डिलीवरी चुनें, अपना विवरण भरें, और ऑनलाइन भुगतान करें। पुस्तक ऑर्डर के लिए लॉगिन आवश्यक नहीं है।'
+          a: 'हाँ। इस पृष्ठ से “पुस्तकें खरीदें” चुनें — पिकअप काउंटर चुनें, अपना विवरण भरें, और ऑनलाइन भुगतान करें। भुगतान के बाद चयनित बिक्री काउंटर से पुस्तकें लें। पुस्तक ऑर्डर के लिए लॉगिन आवश्यक नहीं है।'
         },
         fulfillment: {
           q: 'काउंटर बिक्री और घर डिलीवरी में क्या अंतर है?',
@@ -2060,6 +2062,8 @@ export const translations = {
       done: 'पूर्ण',
       noSubmissions: 'कोई प्रविष्टि नहीं मिली।',
       noBookOrders: 'कोई पुस्तक ऑर्डर नहीं मिला।',
+      noBookOrdersHint:
+        'डिफ़ॉल्ट फ़िल्टर सत्यापित + इस महीने हैं। Pending देखें, Month को All करें, या जुलाई चुनें यदि पुराने भुगतान वाले ऑर्डर चाहिए।',
       oneYear: 'एक वर्ष',
       fiveYear: '5 वर्ष',
       manualSubscription: {

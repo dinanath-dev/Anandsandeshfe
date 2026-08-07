@@ -20,7 +20,6 @@ import { useSeo } from '../utils/seo.js';
 const FAQ_KEYS = [
   'subscribe',
   'guestBooks',
-  'fulfillment',
   'history',
   'languages',
   'literature',

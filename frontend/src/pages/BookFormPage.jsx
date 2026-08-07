@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, Search } from 'lucide-react';
+import { BookOpen, ChevronDown, Search } from 'lucide-react';
 import Alert from '../components/Alert.jsx';
 import BookOrderStepper from '../components/BookOrderStepper.jsx';
 import DonationLayout from '../components/DonationLayout.jsx';
@@ -8,7 +8,6 @@ import { InlineLoader, LoadingBlock } from '../components/Loader.jsx';
 import DonationFormRow from '../components/DonationFormRow.jsx';
 import DonationFormPair from '../components/DonationFormPair.jsx';
 import PersonTitleSelect from '../components/PersonTitleSelect.jsx';
-import AddressFieldsBlock from '../components/AddressFieldsBlock.jsx';
 import MobileNumberField from '../components/MobileNumberField.jsx';
 import { DEFAULT_COUNTRY } from '../data/countries.js';
 import {
@@ -25,12 +24,11 @@ import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useToast, friendlyError } from '../components/ToastProvider.jsx';
 import { useSeo } from '../utils/seo.js';
 import {
-  draftFromBookOrder,
   loadBookOrderDraft,
   saveBookOrderDraft
 } from '../utils/bookOrderDraft.js';
 
-const FULFILLMENT_MODES = ['counter_sale', 'home_delivery'];
+const FULFILLMENT_MODE = 'counter_sale';
 
 const initialForm = {
   title: '',
@@ -62,15 +60,8 @@ function formatInr(rupees) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(n);
 }
 
-function bookUnitPrice(book, fulfillmentMode) {
-  if (fulfillmentMode === 'counter_sale') {
-    return Number(book.counter_sale_rate ?? book.sales_rate) || 0;
-  }
-  return Number(book.home_delivery_rate) || 0;
-}
-
-function fulfillmentLabel(mode, t) {
-  return mode === 'counter_sale' ? t('books.counterSale') : t('books.homeDelivery');
+function bookUnitPrice(book) {
+  return Number(book.counter_sale_rate ?? book.sales_rate) || 0;
 }
 
 function profileContactFromSources(user, submission) {
@@ -121,9 +112,7 @@ export default function BookFormPage() {
   const location = useLocation();
   const [books, setBooks] = useState([]);
   const [loadingBooks, setLoadingBooks] = useState(true);
-  const [step, setStep] = useState(1);
   const [form, setForm] = useState(initialForm);
-  const [fulfillmentMode, setFulfillmentMode] = useState('counter_sale');
   const [cart, setCart] = useState({});
   const [bookSearchQuery, setBookSearchQuery] = useState('');
   const [errors, setErrors] = useState({});
@@ -134,10 +123,8 @@ export default function BookFormPage() {
   const profileContactRef = useRef({ title: '', firstName: '', lastName: '', mobile: '' });
 
   const signedIn = isUserAuthenticated();
-  const isHomeDelivery = fulfillmentMode === 'home_delivery';
-  const isCounterSale = fulfillmentMode === 'counter_sale';
-  const lockFirstName = isCounterSale && profileLockedName.firstName;
-  const lockLastName = isCounterSale && profileLockedName.lastName;
+  const lockFirstName = profileLockedName.firstName;
+  const lockLastName = profileLockedName.lastName;
 
   const selectedLines = useMemo(() => {
     return books
@@ -149,12 +136,8 @@ export default function BookFormPage() {
   }, [books, cart]);
 
   const cartTotal = useMemo(
-    () =>
-      selectedLines.reduce(
-        (sum, line) => sum + bookUnitPrice(line.book, fulfillmentMode) * line.quantity,
-        0
-      ),
-    [selectedLines, fulfillmentMode]
+    () => selectedLines.reduce((sum, line) => sum + bookUnitPrice(line.book) * line.quantity, 0),
+    [selectedLines]
   );
 
   const filteredBooks = useMemo(() => {
@@ -186,10 +169,6 @@ export default function BookFormPage() {
           }
           setForm(draftForm);
           setCart(storedDraft.cart && typeof storedDraft.cart === 'object' ? storedDraft.cart : {});
-          if (FULFILLMENT_MODES.includes(storedDraft.fulfillmentMode)) {
-            setFulfillmentMode(storedDraft.fulfillmentMode);
-            setStep(storedDraft.step === 1 ? 1 : 2);
-          }
           return;
         }
 
@@ -225,7 +204,6 @@ export default function BookFormPage() {
   }, [t, location.state]);
 
   useEffect(() => {
-    if (!isCounterSale) return;
     const { title, firstName, lastName, mobile } = profileContactRef.current;
     setForm((prev) => ({
       ...prev,
@@ -234,7 +212,7 @@ export default function BookFormPage() {
       lastName: lastName || prev.lastName,
       mobile: mobile || prev.mobile
     }));
-  }, [isCounterSale]);
+  }, []);
 
   function updateField(field, value) {
     const nextValue = sanitizeFormField(field, value);
@@ -245,34 +223,6 @@ export default function BookFormPage() {
   function handleCountryChange(country) {
     setForm((current) => applyCountryToForm(current, country));
     setErrors((current) => ({ ...current, country: '', mobile: '', pin: '' }));
-  }
-
-  function selectFulfillmentMode(mode) {
-    if (!FULFILLMENT_MODES.includes(mode)) return;
-    setFulfillmentMode(mode);
-    setErrors((prev) => ({ ...prev, fulfillmentMode: '' }));
-  }
-
-  function goToStep1() {
-    setStep(1);
-    setErrors({});
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  function validateStep1() {
-    const next = {};
-    if (!FULFILLMENT_MODES.includes(fulfillmentMode)) {
-      next.fulfillmentMode = t('books.errors.fulfillmentRequired');
-    }
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  }
-
-  function handleStep1Continue() {
-    if (!validateStep1()) return;
-    setStep(2);
-    setErrors({});
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function toggleBook(bookId) {
@@ -335,13 +285,13 @@ export default function BookFormPage() {
     });
   }
 
-  function validateStep2() {
+  function validateForm() {
     const next = {};
     if (selectedLines.length === 0) next.books = t('books.errors.bookRequired');
 
     const fieldErrors = validateIndianFormFields(form, t, {
       requireRehbar: false,
-      requireAddress: isHomeDelivery
+      requireAddress: false
     });
     Object.assign(next, fieldErrors);
 
@@ -349,25 +299,17 @@ export default function BookFormPage() {
     else if (!validateNationalMobile(form.mobile, form.country).valid) next.mobile = t('form.errors.mobileInvalid');
     if (!form.email.trim()) next.email = t('form.errors.emailRequired');
 
-    if (isCounterSale) {
-      if (!normalizePickupCounter(form.counter)) {
-        next.counter = t('books.errors.counterRequired');
-      }
-    }
-
-    if (isHomeDelivery) {
-      if (!form.country.trim()) next.country = t('form.errors.countryRequired');
-      if (!form.pin.trim()) next.pin = t('form.errors.pinRequired');
-      else if (!/^\d{4,10}$/.test(form.pin)) next.pin = t('form.errors.pinInvalid');
+    if (!normalizePickupCounter(form.counter)) {
+      next.counter = t('books.errors.counterRequired');
     }
 
     setErrors(next);
     return Object.keys(next).length === 0;
   }
 
-  async function handleStep2Submit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!validateStep2()) return;
+    if (!validateForm()) return;
     setIsSubmitting(true);
     try {
       const items = selectedLines.map(({ book, quantity }) => ({
@@ -375,33 +317,13 @@ export default function BookFormPage() {
         quantity
       }));
       const payload = {
-        fulfillment_mode: fulfillmentMode,
+        fulfillment_mode: FULFILLMENT_MODE,
         items,
         name: buildOrderName(form),
         mobile: form.mobile.trim(),
-        email: form.email.trim()
+        email: form.email.trim(),
+        pickup_counter: normalizePickupCounter(form.counter)
       };
-
-      if (isCounterSale) {
-        payload.pickup_counter = normalizePickupCounter(form.counter);
-      }
-
-      if (isHomeDelivery) {
-        Object.assign(payload, {
-          house_no: form.houseNo.trim(),
-          street: form.street.trim(),
-          area: form.area.trim(),
-          post_office: form.postOffice.trim(),
-          mark: form.landmark.trim(),
-          address: form.houseNo.trim(),
-          address_1: form.houseNo.trim(),
-          country: form.country.trim() || DEFAULT_COUNTRY,
-          town: form.town.trim(),
-          district: form.district.trim(),
-          state: form.state,
-          pin: form.pin.trim()
-        });
-      }
 
       const data = await createBookOrder(payload);
       const orderId = data?.order?.id;
@@ -416,8 +338,8 @@ export default function BookFormPage() {
       const draft = {
         form: { ...form },
         cart: { ...cart },
-        fulfillmentMode,
-        step: 2,
+        fulfillmentMode: FULFILLMENT_MODE,
+        step: 1,
         bookOrderId: orderId
       };
       saveBookOrderDraft(draft);
@@ -426,7 +348,7 @@ export default function BookFormPage() {
         state: {
           bookOrderId: orderId,
           bookName: data.order.book_name,
-          fulfillmentMode: data.order.fulfillment_mode || fulfillmentMode,
+          fulfillmentMode: data.order.fulfillment_mode || FULFILLMENT_MODE,
           orderItems: data.order.order_items || items,
           totalPaise: data.order.total_amount_paise,
           guestToken: data.guest_token || null,
@@ -462,362 +384,268 @@ export default function BookFormPage() {
           </Link>
         </div>
 
-        <BookOrderStepper currentStep={step} t={t} />
+        <BookOrderStepper currentStep={1} t={t} />
 
         {loadError ? (
           <Alert>{loadError}</Alert>
-        ) : step === 1 ? (
-          <div className="book-order-card">
-            <h3 className="book-order-section-title">{t('books.fulfillmentHeading')}</h3>
-            <div className="book-order-fulfillment" role="radiogroup" aria-label={t('books.fulfillmentHeading')}>
-              {fulfillmentMode === 'home_delivery' ? (
-                <div className="book-order-mode-secondary">
-                  <button
-                    type="button"
-                    className="book-order-mode-card book-order-mode-card--compact is-selected"
-                    onClick={() => selectFulfillmentMode('home_delivery')}
-                    aria-pressed
-                  >
-                    <span className="book-order-mode-card-title">{t('books.homeDelivery')}</span>
-                    <span className="book-order-mode-card-help">{t('books.homeDeliveryHelp')}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="book-order-mode-alt-link"
-                    onClick={() => selectFulfillmentMode('counter_sale')}
-                  >
-                    {t('books.counterSaleInstead')}
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="book-order-mode-card book-order-mode-card--featured is-selected"
-                    onClick={() => selectFulfillmentMode('counter_sale')}
-                    aria-pressed
-                  >
-                    <span className="book-order-mode-card-title">{t('books.counterSale')}</span>
-                    <span className="book-order-mode-card-help">{t('books.counterSaleHelp')}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="book-order-mode-alt-link"
-                    onClick={() => selectFulfillmentMode('home_delivery')}
-                  >
-                    {t('books.homeDeliveryInstead')}
-                  </button>
-                </>
-              )}
-            </div>
-            {errors.fulfillmentMode ? (
-              <p className="donation-form-hint mt-2">{errors.fulfillmentMode}</p>
-            ) : null}
-
-            <div className="book-order-nav-actions !justify-end">
-              <button
-                type="button"
-                className="btn-primary inline-flex min-h-11 items-center justify-center gap-2 px-8 py-2.5 text-sm font-semibold"
-                onClick={handleStep1Continue}
-              >
-                {t('books.continueBtn')} <ArrowRight size={18} aria-hidden />
-              </button>
-            </div>
-          </div>
         ) : (
-          <form onSubmit={handleStep2Submit} className="donation-form book-order-form book-order-form--split" noValidate>
+          <form onSubmit={handleSubmit} className="donation-form book-order-form book-order-form--split" noValidate>
             <div className="book-order-form__catalog">
-            <section className="book-order-card book-order-card--panel">
-              <p className="book-order-selected-mode">
-                {t('books.selectedModeLabel')}: {fulfillmentLabel(fulfillmentMode, t)}
-              </p>
-              <h3 className="book-order-section-title">{t('books.selectBooks')}</h3>
-              {books.length === 0 ? (
-                <p className="mt-2 text-center text-sm text-muted">{t('books.noBooks')}</p>
-              ) : (
-                <>
-                  <div className="book-order-search-wrap">
-                    <Search className="book-order-search-icon" aria-hidden />
-                    <input
-                      id="bf-books"
-                      type="search"
-                      className="donation-input book-order-search-input"
-                      value={bookSearchQuery}
-                      onChange={(e) => setBookSearchQuery(e.target.value)}
-                      placeholder={t('books.searchBooksPlaceholder')}
-                      autoComplete="off"
-                    />
-                  </div>
-                  <div
-                    className={`book-order-table-wrap mt-3 ${errors.books ? '!border-red-400' : ''}`}
-                    aria-invalid={Boolean(errors.books)}
-                  >
-                    <table className="book-order-table">
-                      <thead>
-                        <tr>
-                          <th>{t('books.columnSrNo')}</th>
-                          <th>{t('books.columnBook')}</th>
-                          <th>{t('books.columnRate')}</th>
-                          <th className="col-qty">{t('books.columnSelect')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredBooks.map((b) => {
-                          const selected = Object.prototype.hasOwnProperty.call(cart, b.id);
-                          const unitPrice = bookUnitPrice(b, fulfillmentMode);
-                          return (
-                            <tr key={b.id} className={selected ? 'is-selected' : ''}>
-                              <td>{b.s_no}</td>
-                              <td>
-                                <span className="font-semibold text-ink">{b.name}</span>
-                                {b.measurements ? (
-                                  <span className="mt-0.5 block text-xs text-muted">{b.measurements}</span>
-                                ) : null}
-                              </td>
-                              <td className="col-rate">{formatInr(unitPrice)}</td>
-                              <td className="col-qty">
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    className="h-4 w-4 shrink-0 accent-primary"
-                                    checked={selected}
-                                    onChange={() => toggleBook(b.id)}
-                                    aria-label={`${b.name}`}
-                                  />
-                                  {selected ? (
-                                    <div className="book-order-qty">
-                                      <button
-                                        type="button"
-                                        className="book-order-qty__btn"
-                                        onClick={() => bumpBookQuantity(b.id, -1)}
-                                        aria-label={t('books.decreaseQty')}
-                                      >
-                                        −
-                                      </button>
-                                      <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        maxLength={2}
-                                        className="donation-input book-order-qty__input"
-                                        value={cart[b.id] === '' ? '' : String(cart[b.id])}
-                                        onFocus={(e) => e.target.select()}
-                                        onChange={(e) => updateBookQuantity(b.id, e.target.value)}
-                                        onBlur={() => commitBookQuantity(b.id)}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'ArrowUp') {
-                                            e.preventDefault();
-                                            bumpBookQuantity(b.id, 1);
-                                          } else if (e.key === 'ArrowDown') {
-                                            e.preventDefault();
-                                            bumpBookQuantity(b.id, -1);
-                                          }
-                                        }}
-                                        aria-label={t('books.quantity')}
-                                      />
-                                      <button
-                                        type="button"
-                                        className="book-order-qty__btn"
-                                        onClick={() => bumpBookQuantity(b.id, 1)}
-                                        aria-label={t('books.increaseQty')}
-                                      >
-                                        +
-                                      </button>
-                                    </div>
+              <section className="book-order-card book-order-card--panel">
+                <p className="book-order-selected-mode">
+                  {t('books.selectedModeLabel')}: {t('books.counterSale')}
+                </p>
+                <h3 className="book-order-section-title">{t('books.selectBooks')}</h3>
+                {books.length === 0 ? (
+                  <p className="mt-2 text-center text-sm text-muted">{t('books.noBooks')}</p>
+                ) : (
+                  <>
+                    <div className="book-order-search-wrap">
+                      <Search className="book-order-search-icon" aria-hidden />
+                      <input
+                        id="bf-books"
+                        type="search"
+                        className="donation-input book-order-search-input"
+                        value={bookSearchQuery}
+                        onChange={(e) => setBookSearchQuery(e.target.value)}
+                        placeholder={t('books.searchBooksPlaceholder')}
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div
+                      className={`book-order-table-wrap mt-3 ${errors.books ? '!border-red-400' : ''}`}
+                      aria-invalid={Boolean(errors.books)}
+                    >
+                      <table className="book-order-table">
+                        <thead>
+                          <tr>
+                            <th>{t('books.columnSrNo')}</th>
+                            <th>{t('books.columnBook')}</th>
+                            <th>{t('books.columnRate')}</th>
+                            <th className="col-qty">{t('books.columnSelect')}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredBooks.map((b) => {
+                            const selected = Object.prototype.hasOwnProperty.call(cart, b.id);
+                            const unitPrice = bookUnitPrice(b);
+                            return (
+                              <tr key={b.id} className={selected ? 'is-selected' : ''}>
+                                <td>{b.s_no}</td>
+                                <td>
+                                  <span className="font-semibold text-ink">{b.name}</span>
+                                  {b.measurements ? (
+                                    <span className="mt-0.5 block text-xs text-muted">{b.measurements}</span>
                                   ) : null}
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                  {filteredBooks.length === 0 ? (
-                    <p className="mt-2 text-center text-sm text-muted">{t('books.noBooksMatch')}</p>
-                  ) : null}
-                </>
-              )}
-              {errors.books ? <p className="donation-form-hint mt-1">{errors.books}</p> : null}
-            </section>
-
-            {selectedLines.length > 0 ? (
-              <section className="book-order-cart" aria-live="polite">
-                <p className="book-order-section-title !mb-2">{t('books.cartSummary')}</p>
-                <ul className="space-y-2 text-sm text-ink">
-                  {selectedLines.map(({ book, quantity }) => {
-                    const unitTotal = bookUnitPrice(book, fulfillmentMode);
-                    return (
-                      <li
-                        key={book.id}
-                        className="flex flex-col gap-0.5 rounded-lg border border-primary/10 bg-white/80 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
-                      >
-                        <span className="min-w-0 font-semibold">
-                          {book.name} × {quantity}
-                        </span>
-                        <span className="shrink-0 tabular-nums font-bold text-primary">
-                          {formatInr(unitTotal * quantity)}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-                <div className="book-order-cart-total">
-                  <span>{t('books.totalLabel')}</span>
-                  <span className="tabular-nums text-lg">{formatInr(cartTotal)}</span>
-                </div>
+                                </td>
+                                <td className="col-rate">{formatInr(unitPrice)}</td>
+                                <td className="col-qty">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="checkbox"
+                                      className="h-4 w-4 shrink-0 accent-primary"
+                                      checked={selected}
+                                      onChange={() => toggleBook(b.id)}
+                                      aria-label={`${b.name}`}
+                                    />
+                                    {selected ? (
+                                      <div className="book-order-qty">
+                                        <button
+                                          type="button"
+                                          className="book-order-qty__btn"
+                                          onClick={() => bumpBookQuantity(b.id, -1)}
+                                          aria-label={t('books.decreaseQty')}
+                                        >
+                                          −
+                                        </button>
+                                        <input
+                                          type="text"
+                                          inputMode="numeric"
+                                          pattern="[0-9]*"
+                                          maxLength={2}
+                                          className="donation-input book-order-qty__input"
+                                          value={cart[b.id] === '' ? '' : String(cart[b.id])}
+                                          onFocus={(e) => e.target.select()}
+                                          onChange={(e) => updateBookQuantity(b.id, e.target.value)}
+                                          onBlur={() => commitBookQuantity(b.id)}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'ArrowUp') {
+                                              e.preventDefault();
+                                              bumpBookQuantity(b.id, 1);
+                                            } else if (e.key === 'ArrowDown') {
+                                              e.preventDefault();
+                                              bumpBookQuantity(b.id, -1);
+                                            }
+                                          }}
+                                          aria-label={t('books.quantity')}
+                                        />
+                                        <button
+                                          type="button"
+                                          className="book-order-qty__btn"
+                                          onClick={() => bumpBookQuantity(b.id, 1)}
+                                          aria-label={t('books.increaseQty')}
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    {filteredBooks.length === 0 ? (
+                      <p className="mt-2 text-center text-sm text-muted">{t('books.noBooksMatch')}</p>
+                    ) : null}
+                  </>
+                )}
+                {errors.books ? <p className="donation-form-hint mt-1">{errors.books}</p> : null}
               </section>
-            ) : null}
+
+              {selectedLines.length > 0 ? (
+                <section className="book-order-cart" aria-live="polite">
+                  <p className="book-order-section-title !mb-2">{t('books.cartSummary')}</p>
+                  <ul className="space-y-2 text-sm text-ink">
+                    {selectedLines.map(({ book, quantity }) => {
+                      const unitTotal = bookUnitPrice(book);
+                      return (
+                        <li
+                          key={book.id}
+                          className="flex flex-col gap-0.5 rounded-lg border border-primary/10 bg-white/80 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <span className="min-w-0 font-semibold">
+                            {book.name} × {quantity}
+                          </span>
+                          <span className="shrink-0 tabular-nums font-bold text-primary">
+                            {formatInr(unitTotal * quantity)}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <div className="book-order-cart-total">
+                    <span>{t('books.totalLabel')}</span>
+                    <span className="tabular-nums text-lg">{formatInr(cartTotal)}</span>
+                  </div>
+                </section>
+              ) : null}
             </div>
 
             <div className="book-order-form__details">
-            <section className="book-order-card book-order-card--panel">
-              <h3 className="book-order-section-title">
-                {isHomeDelivery ? t('books.deliveryDetails') : t('books.contactDetails')}
-              </h3>
+              <section className="book-order-card book-order-card--panel">
+                <h3 className="book-order-section-title">{t('books.contactDetails')}</h3>
 
-              <DonationFormPair className="donation-form-pair--narrow">
-                <DonationFormRow
-                  label={t('form.labels.title')}
-                  optional={t('common.optional')}
-                  error={errors.title}
-                  labelFor="bf-title"
-                >
-                  <PersonTitleSelect
-                    id="bf-title"
-                    value={form.title}
-                    onChange={(e) => updateField('title', e.target.value)}
-                    invalid={Boolean(errors.title)}
-                  />
-                </DonationFormRow>
-              </DonationFormPair>
-
-              <DonationFormPair className="donation-form-pair--single">
-                <DonationFormRow
-                  label={t('form.labels.firstName')}
-                  required
-                  error={errors.firstName}
-                  labelFor="bf-firstName"
-                >
-                  <input
-                    id="bf-firstName"
-                    value={form.firstName}
-                    onChange={lockFirstName ? undefined : (e) => updateField('firstName', e.target.value)}
-                    maxLength={maxLengthForField('firstName')}
-                    autoComplete="given-name"
-                    readOnly={lockFirstName}
-                    className={`${inputClass('firstName', errors)}${lockFirstName ? ' donation-input--readonly' : ''}`}
-                  />
-                </DonationFormRow>
-              </DonationFormPair>
-
-              <DonationFormPair className="donation-form-pair--single">
-                <DonationFormRow
-                  label={t('form.labels.lastName')}
-                  required
-                  error={errors.lastName}
-                  labelFor="bf-lastName"
-                >
-                  <input
-                    id="bf-lastName"
-                    value={form.lastName}
-                    onChange={lockLastName ? undefined : (e) => updateField('lastName', e.target.value)}
-                    maxLength={maxLengthForField('lastName')}
-                    autoComplete="family-name"
-                    readOnly={lockLastName}
-                    className={`${inputClass('lastName', errors)}${lockLastName ? ' donation-input--readonly' : ''}`}
-                  />
-                </DonationFormRow>
-              </DonationFormPair>
-
-              {isHomeDelivery ? (
-                <DonationFormPair className="donation-form-pair--single">
+                <DonationFormPair className="donation-form-pair--narrow">
                   <DonationFormRow
-                    label={t('form.labels.careOf')}
+                    label={t('form.labels.title')}
                     optional={t('common.optional')}
-                    error={errors.careOf}
-                    labelFor="bf-careOf"
+                    error={errors.title}
+                    labelFor="bf-title"
                   >
-                    <input
-                      id="bf-careOf"
-                      className={inputClass('careOf', errors)}
-                      value={form.careOf}
-                      onChange={(e) => updateField('careOf', e.target.value)}
-                      placeholder={t('form.placeholders.careOf')}
-                      autoComplete="off"
+                    <PersonTitleSelect
+                      id="bf-title"
+                      value={form.title}
+                      onChange={(e) => updateField('title', e.target.value)}
+                      invalid={Boolean(errors.title)}
                     />
                   </DonationFormRow>
                 </DonationFormPair>
-              ) : null}
 
-              <DonationFormPair>
-                <DonationFormRow label={t('form.labels.mobile')} required error={errors.mobile} labelFor="bf-mobile">
-                  <MobileNumberField
-                    id="bf-mobile"
-                    country={form.country}
-                    onCountryChange={handleCountryChange}
-                    value={form.mobile}
-                    onChange={(value) => updateField('mobile', value)}
-                    errors={errors}
-                  />
-                </DonationFormRow>
-                <DonationFormRow label={t('form.labels.email')} required error={errors.email} labelFor="bf-email">
-                  <input
-                    id="bf-email"
-                    type="email"
-                    className={inputClass('email', errors)}
-                    value={form.email}
-                    readOnly={signedIn}
-                    onChange={signedIn ? undefined : (e) => updateField('email', e.target.value)}
-                    autoComplete="email"
-                  />
-                </DonationFormRow>
-              </DonationFormPair>
+                <DonationFormPair className="donation-form-pair--single">
+                  <DonationFormRow
+                    label={t('form.labels.firstName')}
+                    required
+                    error={errors.firstName}
+                    labelFor="bf-firstName"
+                  >
+                    <input
+                      id="bf-firstName"
+                      value={form.firstName}
+                      onChange={lockFirstName ? undefined : (e) => updateField('firstName', e.target.value)}
+                      maxLength={maxLengthForField('firstName')}
+                      autoComplete="given-name"
+                      readOnly={lockFirstName}
+                      className={`${inputClass('firstName', errors)}${lockFirstName ? ' donation-input--readonly' : ''}`}
+                    />
+                  </DonationFormRow>
+                </DonationFormPair>
 
-              {isHomeDelivery ? (
-                <AddressFieldsBlock
-                  form={form}
-                  errors={errors}
-                  updateField={updateField}
-                  setForm={setForm}
-                  onCountryChange={handleCountryChange}
-                  idPrefix="bf"
-                  showSectionTitle={false}
-                />
-              ) : (
-                <>
-                  <DonationFormPair className="donation-form-pair--single">
-                    <DonationFormRow
-                      label={t('books.pickupCounter')}
-                      required
-                      error={errors.counter}
-                      labelFor="bf-counter"
-                    >
-                      <div className="relative">
-                        <select
-                          id="bf-counter"
-                          className={`${inputClass('counter', errors)} appearance-none pr-10`}
-                          value={normalizePickupCounter(form.counter)}
-                          onChange={(e) => updateField('counter', e.target.value)}
-                        >
-                          <option value="">{t('books.selectCounter')}</option>
-                          {BOOK_PICKUP_COUNTERS.map(({ code, label }) => (
-                            <option key={code} value={code}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown
-                          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
-                          aria-hidden
-                        />
-                      </div>
-                    </DonationFormRow>
-                  </DonationFormPair>
-                  <p className="mt-2 text-sm text-muted">{t('books.counterSalePickupNote')}</p>
-                </>
-              )}
-            </section>
+                <DonationFormPair className="donation-form-pair--single">
+                  <DonationFormRow
+                    label={t('form.labels.lastName')}
+                    required
+                    error={errors.lastName}
+                    labelFor="bf-lastName"
+                  >
+                    <input
+                      id="bf-lastName"
+                      value={form.lastName}
+                      onChange={lockLastName ? undefined : (e) => updateField('lastName', e.target.value)}
+                      maxLength={maxLengthForField('lastName')}
+                      autoComplete="family-name"
+                      readOnly={lockLastName}
+                      className={`${inputClass('lastName', errors)}${lockLastName ? ' donation-input--readonly' : ''}`}
+                    />
+                  </DonationFormRow>
+                </DonationFormPair>
+
+                <DonationFormPair>
+                  <DonationFormRow label={t('form.labels.mobile')} required error={errors.mobile} labelFor="bf-mobile">
+                    <MobileNumberField
+                      id="bf-mobile"
+                      country={form.country}
+                      onCountryChange={handleCountryChange}
+                      value={form.mobile}
+                      onChange={(value) => updateField('mobile', value)}
+                      errors={errors}
+                    />
+                  </DonationFormRow>
+                  <DonationFormRow label={t('form.labels.email')} required error={errors.email} labelFor="bf-email">
+                    <input
+                      id="bf-email"
+                      type="email"
+                      className={inputClass('email', errors)}
+                      value={form.email}
+                      readOnly={signedIn}
+                      onChange={signedIn ? undefined : (e) => updateField('email', e.target.value)}
+                      autoComplete="email"
+                    />
+                  </DonationFormRow>
+                </DonationFormPair>
+
+                <DonationFormPair className="donation-form-pair--single">
+                  <DonationFormRow
+                    label={t('books.pickupCounter')}
+                    required
+                    error={errors.counter}
+                    labelFor="bf-counter"
+                  >
+                    <div className="relative">
+                      <select
+                        id="bf-counter"
+                        className={`${inputClass('counter', errors)} appearance-none pr-10`}
+                        value={normalizePickupCounter(form.counter)}
+                        onChange={(e) => updateField('counter', e.target.value)}
+                      >
+                        <option value="">{t('books.selectCounter')}</option>
+                        {BOOK_PICKUP_COUNTERS.map(({ code, label }) => (
+                          <option key={code} value={code}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+                        aria-hidden
+                      />
+                    </div>
+                  </DonationFormRow>
+                </DonationFormPair>
+                <p className="mt-2 text-sm text-muted">{t('books.counterSalePickupNote')}</p>
+              </section>
             </div>
 
             {errors.submit ? (
@@ -826,15 +654,7 @@ export default function BookFormPage() {
               </div>
             ) : null}
 
-            <div className="book-order-nav-actions book-order-form__actions">
-              <button
-                type="button"
-                className="btn-secondary inline-flex min-h-11 items-center gap-2 px-6 py-2.5 text-sm font-semibold"
-                onClick={goToStep1}
-                disabled={isSubmitting}
-              >
-                <ArrowLeft size={18} aria-hidden /> {t('books.backBtn')}
-              </button>
+            <div className="book-order-nav-actions book-order-form__actions !justify-end">
               <button
                 type="submit"
                 disabled={isSubmitting || books.length === 0 || selectedLines.length === 0}
