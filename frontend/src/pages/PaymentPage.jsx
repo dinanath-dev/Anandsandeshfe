@@ -22,6 +22,11 @@ import {
   formatInr
 } from '../utils/subscriptionPricing.js';
 import { normalizePaymentStatus } from '../utils/subscriptionPeriod.js';
+import {
+  buildCheckoutPrefill,
+  normalizeCheckoutContact,
+  openRazorpayCheckout
+} from '../utils/razorpayCheckout.js';
 
 function planConfigForType(subscriptionType) {
   const keyId = String(import.meta.env.VITE_RAZORPAY_KEY_ID || '').trim();
@@ -50,17 +55,12 @@ function userDisplayName(user) {
   return [first, last].filter(Boolean).join(' ');
 }
 
-function razorpayContact(...sources) {
+function firstContact(...sources) {
   for (const src of sources) {
-    const digits = String(src || '').replace(/\D/g, '');
-    if (digits.length >= 10) return digits.slice(-10);
+    const digits = normalizeCheckoutContact(src);
+    if (digits) return digits;
   }
   return '';
-}
-
-function formatRazorpayContact(digits10) {
-  const d = String(digits10 || '').replace(/\D/g, '').slice(-10);
-  return d.length === 10 ? `+91${d}` : '';
 }
 
 function submissionDisplayName(submission) {
@@ -68,16 +68,14 @@ function submissionDisplayName(submission) {
 }
 
 function checkoutPrefill(submission, user, serverCustomer) {
-  const contactDigits =
-    razorpayContact(serverCustomer?.contact, submission?.mobile, submission?.phone) ||
-    razorpayContact(user?.mobile, user?.phone);
-  return {
-    name: String(serverCustomer?.name || submissionDisplayName(submission) || userDisplayName(user)).trim(),
-    email: String(serverCustomer?.email || submission?.email || user?.email || '')
-      .trim()
-      .toLowerCase(),
-    contact: formatRazorpayContact(contactDigits)
-  };
+  return buildCheckoutPrefill({
+    name: serverCustomer?.name || submissionDisplayName(submission) || userDisplayName(user),
+    email: serverCustomer?.email || submission?.email || user?.email,
+    contact:
+      firstContact(serverCustomer?.contact, submission?.mobile, submission?.phone) ||
+      firstContact(user?.mobile, user?.phone),
+    preferUpi: true
+  });
 }
 
 export default function PaymentPage() {
@@ -228,20 +226,34 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
 
       checkoutOpenRef.current = true;
 
-      const rzp = new window.Razorpay({
-        key: keyId,
-        subscription_id: subscriptionRzId,
-        name: 'Anand Sandesh',
-        description: t('payment.recurringDescription', { plan: planLabel }),
-        prefill,
-        readonly: {
-          name: Boolean(prefill.name),
-          email: Boolean(prefill.email),
-          contact: Boolean(prefill.contact)
+      openRazorpayCheckout({
+        options: {
+          key: keyId,
+          subscription_id: subscriptionRzId,
+          name: 'Anand Sandesh',
+          description: t('payment.recurringDescription', { plan: planLabel }),
+          prefill,
+          readonly: {
+            name: Boolean(prefill.name),
+            email: Boolean(prefill.email),
+            contact: Boolean(prefill.contact)
+          },
+          theme: { color: '#2563eb' }
         },
-        theme: { color: '#2563eb' },
-        handler: async function handler(response) {
+        cancelMessage: t('payment.errors.paymentCancelled'),
+        failedMessage: t('payment.errors.paymentFailed'),
+        pollPaid: async () => {
+          const data = await getMyFormSubmission();
+          const status = normalizePaymentStatus(data?.submission?.payment_status, data?.submission);
+          return status === 'verified';
+        },
+        onSuccess: async (response) => {
           releaseCheckout();
+          if (response?.polled) {
+            toast.success(t('success.paymentSuccessful'));
+            navigate('/success', { state: { paymentVerified: true } });
+            return;
+          }
           try {
             await verifySubscriptionPayment({
               razorpay_payment_id: response.razorpay_payment_id,
@@ -261,26 +273,16 @@ function PaymentPageContent({ submissionId, subscriptionType: subscriptionTypeFr
             });
           }
         },
-        modal: {
-          ondismiss: function onDismiss() {
-            releaseCheckout();
-            setPaymentError(t('payment.errors.paymentCancelled'));
-          }
+        onFailure: (msg) => {
+          releaseCheckout();
+          setPaymentError(msg);
+          toast.error(msg);
+        },
+        onCancel: () => {
+          releaseCheckout();
+          setPaymentError(t('payment.errors.paymentCancelled'));
         }
       });
-
-      rzp.on('payment.failed', function onPaymentFailed(resp) {
-        releaseCheckout();
-        const e = resp?.error;
-        const msg =
-          (typeof e?.description === 'string' && e.description) ||
-          (typeof e?.reason === 'string' && e.reason) ||
-          t('payment.errors.paymentFailed');
-        setPaymentError(msg);
-        toast.error(msg);
-      });
-
-      rzp.open();
     } catch (err) {
       releaseCheckout();
       let msg = friendlyError(err, t('payment.errors.couldNotStartShort'));

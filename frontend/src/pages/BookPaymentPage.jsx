@@ -18,6 +18,10 @@ import {
 import { useTranslation } from '../i18n/LanguageContext.jsx';
 import { useToast, friendlyError } from '../components/ToastProvider.jsx';
 import { useSeo } from '../utils/seo.js';
+import {
+  buildCheckoutPrefill,
+  openRazorpayCheckout
+} from '../utils/razorpayCheckout.js';
 
 function formatInr(paise) {
   const n = Number(paise);
@@ -64,11 +68,12 @@ function resolvePrefill(auth, bookDraft) {
   const form = bookDraft?.form || loadBookOrderDraft()?.form || {};
   const user = auth?.user || {};
   const nameFromForm = [form.title, form.firstName, form.lastName].filter(Boolean).join(' ').trim();
-  return {
+  return buildCheckoutPrefill({
     name: nameFromForm || String(user.fullName || user.name || '').trim(),
     email: String(form.email || user.email || '').trim(),
-    contact: String(form.mobile || user.mobile || '').trim()
-  };
+    contact: String(form.mobile || user.mobile || '').trim(),
+    preferUpi: true
+  });
 }
 
 function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, bookDraft }) {
@@ -138,17 +143,32 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
       const prefill = resolvePrefill(auth, bookDraft);
       checkoutOpenRef.current = true;
 
-      const rzp = new window.Razorpay({
-        key: keyId,
-        amount: orderData.amount,
-        currency: orderData.currency || 'INR',
-        order_id: orderId,
-        name: 'Anand Sandesh',
-        description: bookName || t('books.oneTimePayment'),
-        prefill,
-        theme: { color: '#2563eb' },
-        handler: async function handler(response) {
+      openRazorpayCheckout({
+        options: {
+          key: keyId,
+          amount: orderData.amount,
+          currency: orderData.currency || 'INR',
+          order_id: orderId,
+          name: 'Anand Sandesh',
+          description: bookName || t('books.oneTimePayment'),
+          prefill,
+          theme: { color: '#2563eb' }
+        },
+        cancelMessage: t('payment.errors.paymentCancelled'),
+        failedMessage: t('payment.errors.paymentFailed'),
+        pollPaid: async () => {
+          const data = await getBookOrder(bookOrderId);
+          return String(data?.order?.payment_status || '').toLowerCase() === 'verified';
+        },
+        onSuccess: async (response) => {
           releaseCheckout();
+          if (response?.polled) {
+            clearBookOrderDraft();
+            clearGuestBookToken(bookOrderId);
+            toast.success(t('success.paymentSuccessful'));
+            navigate('/success', { state: { paymentVerified: true, bookOrder: true } });
+            return;
+          }
           try {
             await verifyPayment({
               razorpay_payment_id: response.razorpay_payment_id,
@@ -171,26 +191,16 @@ function BookPaymentContent({ bookOrderId, bookName, orderItems, totalPaise, boo
             });
           }
         },
-        modal: {
-          ondismiss: function onDismiss() {
-            releaseCheckout();
-            setPaymentError(t('payment.errors.paymentCancelled'));
-          }
+        onFailure: (msg) => {
+          releaseCheckout();
+          setPaymentError(msg);
+          toast.error(msg);
+        },
+        onCancel: () => {
+          releaseCheckout();
+          setPaymentError(t('payment.errors.paymentCancelled'));
         }
       });
-
-      rzp.on('payment.failed', function onPaymentFailed(resp) {
-        releaseCheckout();
-        const e = resp?.error;
-        const msg =
-          (typeof e?.description === 'string' && e.description) ||
-          (typeof e?.reason === 'string' && e.reason) ||
-          t('payment.errors.paymentFailed');
-        setPaymentError(msg);
-        toast.error(msg);
-      });
-
-      rzp.open();
     } catch (err) {
       releaseCheckout();
       const msg = friendlyError(err, t('payment.errors.couldNotStartShort'));
